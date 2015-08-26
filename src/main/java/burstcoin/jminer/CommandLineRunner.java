@@ -206,10 +206,11 @@ public class CommandLineRunner
           @Override
           public void onApplicationEvent(NetworkDevResultConfirmedEvent event)
           {
-            LOG.info("devPool response '"+ event.getResponse()+"', block '"+event.getBlockNumber()+"'");
+            LOG.info("devPool response '" + event.getResponse() + "', block '" + event.getBlockNumber() + "'");
             for(DevPoolResult devPoolResult : event.getDevPoolResults())
             {
-              LOG.info("dl '" + devPoolResult.getCalculatedDeadline() + "' successful committed!  [ " + getDeadlineTime(devPoolResult.getCalculatedDeadline()) + " ]");
+              LOG.info(
+                "dl '" + devPoolResult.getCalculatedDeadline() + "' successful committed!  [ " + getDeadlineTime(devPoolResult.getCalculatedDeadline()) + " ]");
             }
           }
         });

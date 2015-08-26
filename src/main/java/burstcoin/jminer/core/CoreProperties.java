@@ -46,7 +46,7 @@ public class CoreProperties
     }
     catch(IOException e)
     {
-      LOG.error(e.getLocalizedMessage());
+      LOG.error(e.getMessage());
     }
   }
 

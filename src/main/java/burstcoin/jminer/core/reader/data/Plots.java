@@ -38,7 +38,8 @@ public class Plots
       chunkPartStartNonces.putAll(plotDrive.collectChunkPartStartNonces());
       if(expectedSize != chunkPartStartNonces.size())
       {
-        LOGGER.error("possible duplicate/overlapping polt-file on drive '"+plotDrive.getDirectory()+"' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+        LOGGER.error("possible duplicate/overlapping polt-file on drive '" + plotDrive.getDirectory()
+                     + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
       }
     }
   }
@@ -68,7 +69,7 @@ public class Plots
       }
       catch(IOException | DirectoryIteratorException e)
       {
-        LOGGER.error(e.getLocalizedMessage());
+        LOGGER.error(e.getMessage());
       }
     }
     return plotFilesLookup;

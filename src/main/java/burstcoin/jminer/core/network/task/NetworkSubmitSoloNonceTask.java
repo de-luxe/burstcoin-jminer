@@ -41,7 +41,8 @@ public class NetworkSubmitSoloNonceTask
   private long calculatedDeadline;
   private long connectionTimeout;
 
-  public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, long nonce, long chunkPartStartNonce, long calculatedDeadline)
+  public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, long nonce, long chunkPartStartNonce,
+                   long calculatedDeadline)
   {
     this.connectionTimeout = connectionTimeout;
 
@@ -86,7 +87,7 @@ public class NetworkSubmitSoloNonceTask
     }
     catch(Exception e)
     {
-      LOG.warn("Error: Failed to submit solo nonce: " + e.getLocalizedMessage());
+      LOG.warn("Error: Failed to submit solo nonce: " + e.getMessage());
     }
   }
 }

@@ -62,9 +62,9 @@ public class Checker
     {
       if(devPool && optDevPool)
       {
-        // todo findTartget() does not work?!
+        // todo findTartget() does not work! optDevPool not supported yet!
         OCLCheckerFindAllBelowTargetTask oclCheckerFindAllBelowTargetTask = context.getBean(OCLCheckerFindAllBelowTargetTask.class);
-        oclCheckerFindAllBelowTargetTask.init(event.getBlockNumber(),generationSignature, event.getScoops(), targetDeadline,
+        oclCheckerFindAllBelowTargetTask.init(event.getBlockNumber(), generationSignature, event.getScoops(), targetDeadline,
                                               event.getChunkPartStartNonce(), baseTarget);
         checkTaskExecutor.execute(oclCheckerFindAllBelowTargetTask);
       }

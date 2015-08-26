@@ -97,7 +97,7 @@ public class ReaderLoadDriveTask
     }
     catch(NoSuchFileException exception)
     {
-      LOG.debug("File not found ... please restart to rescan plot-files, maybe set rescan to 'true': "+ exception.getLocalizedMessage());
+      LOG.debug("File not found ... please restart to rescan plot-files, maybe set rescan to 'true': " + exception.getMessage());
     }
     catch(ClosedByInterruptException e)
     {
@@ -105,7 +105,7 @@ public class ReaderLoadDriveTask
     }
     catch(IOException e)
     {
-      LOG.error("IOException: "+ e.getLocalizedMessage());
+      LOG.error("IOException: " + e.getMessage());
     }
   }
 }

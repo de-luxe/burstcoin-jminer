@@ -65,7 +65,7 @@ public class NetworkRequestMiningInfoTask
       }
       else
       {
-       response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
+        response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
           .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
           .send();
       }
@@ -95,7 +95,7 @@ public class NetworkRequestMiningInfoTask
     }
     catch(Exception e)
     {
-      LOG.warn("Unable to get mining info from wallet: " + e.getLocalizedMessage());
+      LOG.warn("Unable to get mining info from wallet: " + e.getMessage());
     }
   }
 }

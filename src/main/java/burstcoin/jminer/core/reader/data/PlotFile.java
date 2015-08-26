@@ -57,7 +57,7 @@ public class PlotFile
         Long key = chunkPartStartNonces.put(chunkPartStartNonce, chunkPartSize);
         if(key != null)
         {
-            LOGGER.error("possible overlapping plot-file '"+ filePath +"' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+          LOGGER.error("possible overlapping plot-file '" + filePath + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
         }
       }
     }

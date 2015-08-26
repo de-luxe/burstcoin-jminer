@@ -53,7 +53,8 @@ public class PlotDrive
       chunkPartStartNonces.putAll(plotFile.getChunkPartStartNonces());
       if(expectedSize != chunkPartStartNonces.size())
       {
-        LOGGER.error("possible overlapping plot-file '"+plotFile.getFilePath()+"' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+        LOGGER
+          .error("possible overlapping plot-file '" + plotFile.getFilePath() + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
       }
     }
     return chunkPartStartNonces;

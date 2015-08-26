@@ -73,7 +73,7 @@ public class NetworkRequestLastWinnerTask
       lastBlock = getBlock(blockChainStatus.getLastBlock());
       if(lastBlock != null)
       {
-        while(blockNumber-1 /*from pool*/ != lastBlock.getHeight()  /* from walletServer*/ && retries < winnerRetriesOnAsync)
+        while(blockNumber - 1 /*from pool*/ != lastBlock.getHeight()  /* from walletServer*/ && retries < winnerRetriesOnAsync)
         {
           retries++;
 

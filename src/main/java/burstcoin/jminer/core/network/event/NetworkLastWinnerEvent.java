@@ -5,7 +5,8 @@ import org.springframework.context.ApplicationEvent;
 /**
  * fired if last winner was found
  */
-public class NetworkLastWinnerEvent extends ApplicationEvent
+public class NetworkLastWinnerEvent
+  extends ApplicationEvent
 {
   private long lastBlockNumber;
   private String winner;

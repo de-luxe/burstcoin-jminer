@@ -64,8 +64,6 @@ public class Block
     return generatorPublicKey;
   }
 
-
-
   public String getBaseTarget()
   {
     return baseTarget;

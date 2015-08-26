@@ -70,7 +70,7 @@ public class NetworkSubmitDevPoolNoncesTask
       }
       else
       {
-        LOG.error("Error: could not commit nonces to devPool: "+ submitResult);
+        LOG.error("Error: could not commit nonces to devPool: " + submitResult);
       }
     }
     catch(Exception e)
