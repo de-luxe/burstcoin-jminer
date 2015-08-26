@@ -29,7 +29,7 @@ poolMining=false<br>
 passPhrase=YOUR PASS PHRASE<br>
 
 # BUILD
-burstcoin-jminer can be build with maven, install maven and execute e.g.:
+burstcoin-jminer can be build with maven, install maven and execute e.g.:<br>
 mvn clean dependency:copy-dependencies package
 
 
