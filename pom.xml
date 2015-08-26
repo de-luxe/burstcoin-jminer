@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>burstcoin</groupId>
+    <artifactId>burstcoin-jminer</artifactId>
+    <version>0.3.6-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>burstcoin-jminer</name>
+    <description>Burstcoin (BURST) - GPU assisted PoC-Miner</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.2.5.RELEASE</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <start-class>burstcoin.jminer.CommandLineRunner</start-class>
+        <java.version>1.8</java.version>
+        <spring.version>4.2.0.RELEASE</spring.version>
+        <jocl.version>0.1.9</jocl.version>
+        <saphir-hash.version>3.0.1</saphir-hash.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jocl</groupId>
+            <artifactId>jocl</artifactId>
+            <version>${jocl.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.tynne</groupId>
+            <artifactId>saphir-hash-core</artifactId>
+            <version>${saphir-hash.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.tynne</groupId>
+            <artifactId>saphir-hash-jca</artifactId>
+            <version>${saphir-hash.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+            <version>9.2.2.v20140723</version>
+            <!-- todo isssues with <version>9.3.0.M0</version>-->
+        </dependency>
+
+        <dependency>
+            <groupId>bouncycastle</groupId>
+            <artifactId>bcprov-jdk16</artifactId>
+            <version>140</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <!--<include>burstcoin/jminer/gui/**/*.fxml</include>-->
+                    <!--<include>burstcoin/jminer/gui/**/*.css</include>-->
+                    <!--<include>burstcoin/jminer/gui/**/*.jpg</include>-->
+                    <include>burstcoin/jminer/core/**/*.cl</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.txt</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.1</version>
+                <configuration>
+                    <show>private</show>
+                    <nohelp>true</nohelp>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
