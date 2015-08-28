@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane fx:id="borderPane" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="burstcoin.jminer.gui.mining.MiningController">
+  <top>
+
+    <!-- network -->
+
+  </top>
+
+  <center>
+    <VBox>
+      <children>
+        <ToolBar prefHeight="16.0">
+          <items>
+            <Label text="mining"/>
+          </items>
+        </ToolBar>
+        <SplitPane fx:id="roundsContainer" SplitPane.resizableWithParent="true" VBox.vgrow="ALWAYS">
+          <items>
+
+            <!--rounds-->
+
+            <SplitPane fx:id="roundAndCommittedContainer" orientation="VERTICAL" SplitPane.resizableWithParent="true">
+              <items>
+
+                <!-- round / committed -->
+
+              </items>
+            </SplitPane>
+          </items>
+        </SplitPane>
+      </children>
+    </VBox>
+  </center>
+
+</BorderPane>

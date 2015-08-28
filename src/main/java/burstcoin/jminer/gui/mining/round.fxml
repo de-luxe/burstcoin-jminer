@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.effect.Glow?>
+<?import javafx.scene.effect.Reflection?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<HBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="burstcoin.jminer.gui.mining.RoundController">
+  <children>
+    <VBox alignment="CENTER">
+      <children>
+        <Label alignment="BOTTOM_CENTER" prefHeight="16.0" prefWidth="246.0" text="best deadline">
+          <effect>
+            <Reflection bottomOpacity="0.1" topOffset="-8.0" topOpacity="0.17"/>
+          </effect>
+        </Label>
+        <Label alignment="CENTER" prefHeight="38.0" prefWidth="250.0" text="12349">
+          <font>
+            <Font size="18.0"/>
+          </font>
+          <effect>
+            <Glow/>
+          </effect>
+        </Label>
+        <Label alignment="CENTER" prefHeight="17.0" prefWidth="247.0" text="12d 3h 14min 34sec">
+          <effect>
+            <Reflection bottomOpacity="0.1" topOffset="-8.0" topOpacity="0.17"/>
+          </effect>
+        </Label>
+        <Label alignment="BOTTOM_CENTER" layoutX="62.0" layoutY="112.0" prefHeight="43.0" prefWidth="246.0" text="winner">
+          <effect>
+            <Reflection bottomOpacity="0.1" topOffset="-8.0" topOpacity="0.17"/>
+          </effect>
+        </Label>
+        <Label alignment="CENTER" layoutX="60.0" layoutY="54.0" prefHeight="38.0" prefWidth="290.0" text="BURST-HGVB-JKNM-IOPT-KKJHG">
+          <effect>
+            <Glow/>
+          </effect>
+          <font>
+            <Font size="18.0"/>
+          </font>
+        </Label>
+        <Label alignment="BOTTOM_CENTER" layoutX="10.0" layoutY="10.0" prefHeight="14.0" prefWidth="246.0" text="deadline">
+          <effect>
+            <Reflection bottomOpacity="0.1" topOffset="-8.0" topOpacity="0.17"/>
+          </effect>
+        </Label>
+        <Label alignment="CENTER" layoutX="10.0" layoutY="45.0" prefHeight="36.0" prefWidth="250.0" text="345">
+          <font>
+            <Font size="18.0"/>
+          </font>
+          <effect>
+            <Glow/>
+          </effect>
+        </Label>
+        <Label alignment="CENTER" layoutX="10.0" layoutY="72.0" prefHeight="17.0" prefWidth="247.0" text="0d 0h 4min 12sec">
+          <effect>
+            <Reflection bottomOpacity="0.1" topOffset="-8.0" topOpacity="0.17"/>
+          </effect>
+        </Label>
+      </children>
+    </VBox>
+    <VBox alignment="CENTER">
+      <children>
+        <Label alignment="BOTTOM_CENTER" prefHeight="34.0" prefWidth="354.0" text="34456 GB / 85451GB">
+          <effect>
+            <Glow/>
+          </effect>
+        </Label>
+        <ProgressIndicator blendMode="DARKEN" prefHeight="184.0" prefWidth="309.0" progress="0.37">
+          <VBox.margin>
+            <Insets/>
+          </VBox.margin>
+          <effect>
+            <Glow/>
+          </effect>
+        </ProgressIndicator>
+      </children>
+    </VBox>
+  </children>
+</HBox>

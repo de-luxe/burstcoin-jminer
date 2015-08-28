@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<TableView fx:id="roundsTableView" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="burstcoin.jminer.gui.mining.RoundsController">
+  <columns>
+
+    <TableColumn prefWidth="100" text="block">
+      <cellValueFactory>
+        <PropertyValueFactory property="block"/>
+      </cellValueFactory>
+    </TableColumn>
+
+    <TableColumn prefWidth="100" text="scoop">
+      <cellValueFactory>
+        <PropertyValueFactory property="scoop"/>
+      </cellValueFactory>
+    </TableColumn>
+
+    <TableColumn prefWidth="100" text="deadline">
+      <cellValueFactory>
+        <PropertyValueFactory property="deadline"/>
+      </cellValueFactory>
+    </TableColumn>
+
+    <TableColumn prefWidth="100" text="elapsedTime">
+      <cellValueFactory>
+        <PropertyValueFactory property="elapsedTime"/>
+      </cellValueFactory>
+    </TableColumn>
+
+    <TableColumn prefWidth="100" text="percentDone">
+      <cellValueFactory>
+        <PropertyValueFactory property="percentDone"/>
+      </cellValueFactory>
+    </TableColumn>
+
+    <TableColumn prefWidth="100" text="effectiveReadSpeed">
+      <cellValueFactory>
+        <PropertyValueFactory property="effectiveReadSpeed"/>
+      </cellValueFactory>
+    </TableColumn>
+
+    <TableColumn prefWidth="100" text="winner">
+      <cellValueFactory>
+        <PropertyValueFactory property="winner"/>
+      </cellValueFactory>
+    </TableColumn>
+
+  </columns>
+</TableView>

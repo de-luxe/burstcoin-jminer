@@ -1,3 +1,25 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 by luxe - https://github.com/de-luxe - BURST-LUXE-ZDVD-CX3E-3SM58
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package burstcoin.jminer.core;
 
 import org.slf4j.Logger;
@@ -12,6 +34,9 @@ import java.util.List;
 import java.util.Properties;
 
 
+/**
+ * The type Core properties.
+ */
 public class CoreProperties
 {
   private static final Logger LOG = LoggerFactory.getLogger(CoreProperties.class);
@@ -77,6 +102,11 @@ public class CoreProperties
     // no instances
   }
 
+  /**
+   * Gets read progress per round.
+   *
+   * @return the read progress per round
+   */
   public static int getReadProgressPerRound()
   {
     if(readProgressPerRound == null)
@@ -86,6 +116,11 @@ public class CoreProperties
     return readProgressPerRound;
   }
 
+  /**
+   * Gets refresh interval.
+   *
+   * @return the refresh interval
+   */
   public static long getRefreshInterval()
   {
     if(refreshInterval == null)
@@ -95,6 +130,11 @@ public class CoreProperties
     return refreshInterval;
   }
 
+  /**
+   * Gets connection timeout.
+   *
+   * @return the connection timeout
+   */
   public static long getConnectionTimeout()
   {
     if(connectionTimeout == null)
@@ -104,6 +144,11 @@ public class CoreProperties
     return connectionTimeout;
   }
 
+  /**
+   * Gets winner retries on async.
+   *
+   * @return the winner retries on async
+   */
   public static int getWinnerRetriesOnAsync()
   {
     if(winnerRetriesOnAsync == null)
@@ -114,6 +159,11 @@ public class CoreProperties
     return winnerRetriesOnAsync;
   }
 
+  /**
+   * Gets winner retry interval in ms.
+   *
+   * @return the winner retry interval in ms
+   */
   public static long getWinnerRetryIntervalInMs()
   {
     if(winnerRetryIntervalInMs == null)
@@ -123,6 +173,11 @@ public class CoreProperties
     return winnerRetryIntervalInMs;
   }
 
+  /**
+   * Is scan paths every round.
+   *
+   * @return the boolean
+   */
   public static boolean isScanPathsEveryRound()
   {
     if(scanPathsEveryRound == null)
@@ -132,6 +187,11 @@ public class CoreProperties
     return scanPathsEveryRound;
   }
 
+  /**
+   * Gets dev pool commits per round.
+   *
+   * @return the dev pool commits per round
+   */
   public static int getDevPoolCommitsPerRound()
   {
     if(devPoolCommitsPerRound == null)
@@ -141,6 +201,11 @@ public class CoreProperties
     return devPoolCommitsPerRound;
   }
 
+  /**
+   * Is opt dev pool.
+   *
+   * @return the boolean
+   */
   public static boolean isOptDevPool()
   {
     if(optDevPool == null)
@@ -150,6 +215,11 @@ public class CoreProperties
     return optDevPool;
   }
 
+  /**
+   * Is dev pool.
+   *
+   * @return the boolean
+   */
   public static boolean isDevPool()
   {
     if(devPool == null)
@@ -159,6 +229,11 @@ public class CoreProperties
     return devPool;
   }
 
+  /**
+   * Is pool mining.
+   *
+   * @return the boolean
+   */
   public static boolean isPoolMining()
   {
     if(poolMining == null)
@@ -168,6 +243,11 @@ public class CoreProperties
     return poolMining;
   }
 
+  /**
+   * Gets target deadline.
+   *
+   * @return the target deadline
+   */
   public static long getTargetDeadline()
   {
     if(targetDeadline == null)
@@ -177,6 +257,11 @@ public class CoreProperties
     return targetDeadline;
   }
 
+  /**
+   * Gets pool server.
+   *
+   * @return the pool server
+   */
   public static String getPoolServer()
   {
     if(poolServer == null)
@@ -190,6 +275,11 @@ public class CoreProperties
     return poolServer;
   }
 
+  /**
+   * Gets wallet server.
+   *
+   * @return the wallet server
+   */
   public static String getWalletServer()
   {
     if(walletServer == null)
@@ -204,6 +294,11 @@ public class CoreProperties
     return walletServer.equals("disabled") ? null : walletServer; //no default, to turn winner on and off.
   }
 
+  /**
+   * Gets numeric account id.
+   *
+   * @return the numeric account id
+   */
   public static String getNumericAccountId()
   {
     if(numericAccountId == null)
@@ -218,6 +313,11 @@ public class CoreProperties
     return numericAccountId;
   }
 
+  /**
+   * Gets solo server.
+   *
+   * @return the solo server
+   */
   public static String getSoloServer()
   {
     if(soloServer == null)
@@ -232,6 +332,11 @@ public class CoreProperties
     return !StringUtils.isEmpty(soloServer) ? soloServer : DEFAULT_SOLO_SERVER;
   }
 
+  /**
+   * Gets pass phrase.
+   *
+   * @return the pass phrase
+   */
   public static String getPassPhrase()
   {
     if(passPhrase == null)
@@ -246,6 +351,11 @@ public class CoreProperties
     return passPhrase; // we deliver "noPassPhrase", should find no plots!
   }
 
+  /**
+   * Gets platform id.
+   *
+   * @return the platform id
+   */
   public static int getPlatformId()
   {
     if(platformId == null)
@@ -255,6 +365,11 @@ public class CoreProperties
     return platformId;
   }
 
+  /**
+   * Gets device id.
+   *
+   * @return the device id
+   */
   public static int getDeviceId()
   {
     if(deviceId == null)
@@ -264,6 +379,11 @@ public class CoreProperties
     return deviceId;
   }
 
+  /**
+   * Gets restart interval.
+   *
+   * @return the restart interval
+   */
   public static int getRestartInterval()
   {
     if(restartInterval == null)
@@ -273,6 +393,11 @@ public class CoreProperties
     return restartInterval;
   }
 
+  /**
+   * Gets plot paths.
+   *
+   * @return the plot paths
+   */
   public static List<String> getPlotPaths()
   {
     if(plotPaths == null)
@@ -287,6 +412,11 @@ public class CoreProperties
     return plotPaths;
   }
 
+  /**
+   * Gets chunk part nonces.
+   *
+   * @return the chunk part nonces
+   */
   public static long getChunkPartNonces()
   {
     if(chunkPartNonces == null)

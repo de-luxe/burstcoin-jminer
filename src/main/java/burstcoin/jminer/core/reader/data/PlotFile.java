@@ -1,3 +1,25 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 by luxe - https://github.com/de-luxe - BURST-LUXE-ZDVD-CX3E-3SM58
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package burstcoin.jminer.core.reader.data;
 
 import nxt.util.Convert;
@@ -11,6 +33,9 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The type Plot file.
+ */
 public class PlotFile
 {
   private static final Logger LOGGER = LoggerFactory.getLogger(PlotFile.class);
@@ -31,6 +56,12 @@ public class PlotFile
 
   private long size;
 
+  /**
+   * Instantiates a new Plot file.
+   *
+   * @param filePath the file path
+   * @param chunkPartNonces the chunk part nonces
+   */
   public PlotFile(Path filePath, Long chunkPartNonces)
   {
     this.filePath = filePath;
@@ -77,56 +108,111 @@ public class PlotFile
     return size;
   }
 
+  /**
+   * Gets size.
+   *
+   * @return the size
+   */
   public long getSize()
   {
     return size;
   }
 
+  /**
+   * Gets file path.
+   *
+   * @return the file path
+   */
   public Path getFilePath()
   {
     return filePath;
   }
 
+  /**
+   * Gets filename.
+   *
+   * @return the filename
+   */
   public String getFilename()
   {
     return filename;
   }
 
+  /**
+   * Gets address.
+   *
+   * @return the address
+   */
   public long getAddress()
   {
     return address;
   }
 
+  /**
+   * Gets startnonce.
+   *
+   * @return the startnonce
+   */
   public long getStartnonce()
   {
     return startnonce;
   }
 
+  /**
+   * Gets plots.
+   *
+   * @return the plots
+   */
   public long getPlots()
   {
     return plots;
   }
 
+  /**
+   * Gets staggeramt.
+   *
+   * @return the staggeramt
+   */
   public long getStaggeramt()
   {
     return staggeramt;
   }
 
+  /**
+   * Gets number of chunks.
+   *
+   * @return the number of chunks
+   */
   public long getNumberOfChunks()
   {
     return numberOfChunks;
   }
 
+  /**
+   * Gets number of parts.
+   *
+   * @return the number of parts
+   */
   public int getNumberOfParts()
   {
     return numberOfParts;
   }
 
+  /**
+   * Sets number of parts.
+   *
+   * @param numberOfParts the number of parts
+   */
   public void setNumberOfParts(int numberOfParts)
   {
     this.numberOfParts = numberOfParts;
   }
 
+  /**
+   * Gets chunk part start nonces.
+   *
+   * @return the chunk part start nonces
+   */
   public Map<Long, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;

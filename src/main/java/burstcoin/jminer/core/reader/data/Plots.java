@@ -1,3 +1,25 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 by luxe - https://github.com/de-luxe - BURST-LUXE-ZDVD-CX3E-3SM58
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package burstcoin.jminer.core.reader.data;
 
 
@@ -17,6 +39,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * The type Plots.
+ */
 public class Plots
 {
   private static final Logger LOGGER = LoggerFactory.getLogger(Plots.class);
@@ -24,6 +49,13 @@ public class Plots
   private Collection<PlotDrive> plotDrives;
   private Map<Long, Long> chunkPartStartNonces;
 
+  /**
+   * Instantiates a new Plots.
+   *
+   * @param plotPaths the plot paths
+   * @param numericAccountId the numeric account id
+   * @param chunkPartNonces the chunk part nonces
+   */
   public Plots(List<String> plotPaths, String numericAccountId, long chunkPartNonces)
   {
     plotDrives = new HashSet<>();
@@ -44,6 +76,11 @@ public class Plots
     }
   }
 
+  /**
+   * Gets plot drives.
+   *
+   * @return the plot drives
+   */
   public Collection<PlotDrive> getPlotDrives()
   {
     return plotDrives;
@@ -75,7 +112,12 @@ public class Plots
     return plotFilesLookup;
   }
 
-  // returns total number of bytes of all plotFiles
+  /**
+   * Gets size.
+   *
+   * @return the size
+   */
+// returns total number of bytes of all plotFiles
   public long getSize()
   {
     long size = 0;
@@ -86,6 +128,9 @@ public class Plots
     return size;
   }
 
+  /**
+   * Print plot files.
+   */
   public void printPlotFiles()
   {
     for(PlotDrive plotDrive : getPlotDrives())
@@ -97,6 +142,12 @@ public class Plots
     }
   }
 
+  /**
+   * Gets plot file by plot file start nonce.
+   *
+   * @param plotFileStartNonce the plot file start nonce
+   * @return the plot file by plot file start nonce
+   */
   public PlotFile getPlotFileByPlotFileStartNonce(long plotFileStartNonce)
   {
     for(PlotDrive plotDrive : getPlotDrives())
@@ -112,11 +163,22 @@ public class Plots
     return null;
   }
 
+  /**
+   * Gets chunk part start nonces.
+   *
+   * @return the chunk part start nonces
+   */
   public Map<Long, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;
   }
 
+  /**
+   * Gets plot file by chunk part start nonce.
+   *
+   * @param chunkPartStartNonce the chunk part start nonce
+   * @return the plot file by chunk part start nonce
+   */
   public PlotFile getPlotFileByChunkPartStartNonce(long chunkPartStartNonce)
   {
     for(PlotDrive plotDrive : getPlotDrives())

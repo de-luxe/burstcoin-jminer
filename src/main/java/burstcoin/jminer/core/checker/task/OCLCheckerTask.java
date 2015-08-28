@@ -1,3 +1,25 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 by luxe - https://github.com/de-luxe - BURST-LUXE-ZDVD-CX3E-3SM58
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package burstcoin.jminer.core.checker.task;
 
 
@@ -15,6 +37,9 @@ import pocminer.generate.MiningPlot;
 import java.math.BigInteger;
 
 
+/**
+ * The type OCL checker task.
+ */
 @Component
 @Scope("prototype")
 public class OCLCheckerTask
@@ -32,12 +57,25 @@ public class OCLCheckerTask
   private byte[] scoops;
   private long chunkPartStartNonce;
 
+  /**
+   * Instantiates a new OCL checker task.
+   *
+   * @param oclChecker the ocl checker
+   */
   @Autowired
   public OCLCheckerTask(OCLChecker oclChecker)
   {
     this.oclChecker = oclChecker;
   }
 
+  /**
+   * Init void.
+   *
+   * @param blockNumber the block number
+   * @param generationSignature the generation signature
+   * @param scoops the scoops
+   * @param chunkPartStartNonce the chunk part start nonce
+   */
   public void init(long blockNumber, byte[] generationSignature, byte[] scoops, long chunkPartStartNonce)
   {
     this.blockNumber = blockNumber;

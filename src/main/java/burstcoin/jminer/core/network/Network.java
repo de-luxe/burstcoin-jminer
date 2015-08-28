@@ -1,3 +1,25 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2015 by luxe - https://github.com/de-luxe - BURST-LUXE-ZDVD-CX3E-3SM58
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies
+ * or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package burstcoin.jminer.core.network;
 
 import burstcoin.jminer.core.CoreProperties;
@@ -25,6 +47,9 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * The type Network.
+ */
 @Component
 @Scope("singleton")
 public class Network
@@ -58,6 +83,9 @@ public class Network
   private long blockNumber;
   private Timer timer;
 
+  /**
+   * Post construct.
+   */
   @PostConstruct
   protected void postConstruct()
   {
@@ -107,6 +135,11 @@ public class Network
 //    startMining();
   }
 
+  /**
+   * Check last winner.
+   *
+   * @param blockNumber the block number
+   */
   public void checkLastWinner(long blockNumber)
   {
     // find winner of lastBlock on new round, if server available
@@ -119,6 +152,14 @@ public class Network
     }
   }
 
+  /**
+   * Check result.
+   *
+   * @param blockNumber the block number
+   * @param calculatedDeadline the calculated deadline
+   * @param nonce the nonce
+   * @param chunkPartStartNonce the chunk part start nonce
+   */
   public void checkResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce)
   {
     if(poolMining)
@@ -147,6 +188,12 @@ public class Network
     }
   }
 
+  /**
+   * Check dev result.
+   *
+   * @param blockNumber the block number
+   * @param devPoolResults the dev pool results
+   */
   public void checkDevResult(long blockNumber, List<DevPoolResult> devPoolResults)
   {
     NetworkSubmitDevPoolNoncesTask networkSubmitDevPoolNoncesTask = context.getBean(NetworkSubmitDevPoolNoncesTask.class);
@@ -161,6 +208,9 @@ public class Network
     blockNumber = event.getBlockNumber();
   }
 
+  /**
+   * Check network state.
+   */
   public void checkNetworkState()
   {
     String server = poolMining ? poolServer : soloServer;
@@ -172,6 +222,9 @@ public class Network
     }
   }
 
+  /**
+   * Start mining.
+   */
   public void startMining()
   {
     timer.schedule(new TimerTask()
@@ -184,6 +237,9 @@ public class Network
     }, 100, CoreProperties.getRefreshInterval());
   }
 
+  /**
+   * Stop timer.
+   */
   public void stopTimer()
   {
     timer.cancel();

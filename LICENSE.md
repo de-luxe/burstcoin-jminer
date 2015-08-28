@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2015 de-luxe (luxe)
+Copyright (c) 2015 by luxe - https://github.com/de-luxe - BURST-LUXE-ZDVD-CX3E-3SM58
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

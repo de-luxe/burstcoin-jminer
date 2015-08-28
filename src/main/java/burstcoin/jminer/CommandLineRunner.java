@@ -249,7 +249,7 @@ public class CommandLineRunner
         LOG.info("            __         __   GPU assisted PoC-Miner");
         LOG.info("           |__| _____ |__| ____   ___________ ");
         LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-        LOG.info("     0.3.6 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+        LOG.info("     0.4.0 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
         LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
         LOG.info("       \\______|     \\/        \\/     \\/");
         LOG.info("      mining engine: BURST-LUXE-ZDVD-CX3E-3SM58");

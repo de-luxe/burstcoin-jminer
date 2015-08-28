@@ -7,7 +7,7 @@ GPU assisted Proof of Capacity (PoC) Miner for Burstcoin (BURST)
 <br>
 <br>
 
-QUICKSTART editing 'jminer.properties'... (make a copy of jmniner.default.properties and rename to jminer.properties)
+QUICKSTART editing 'jminer.properties'... (e.g. make a copy of jminer.default.properties and rename to jminer.properties)
 
 POOL min. required settings:
 --------------------------------------------------------------------------------

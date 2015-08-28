@@ -20,50 +20,29 @@
  *
  */
 
-package burstcoin.jminer.core.network.event;
+package burstcoin.jminer.gui.mining;
 
-import org.springframework.context.ApplicationEvent;
+import burstcoin.jminer.gui.mining.model.MiningRound;
+import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
+import javafx.scene.control.TableView;
+
+import java.net.URL;
+import java.util.ResourceBundle;
 
 /**
- * fired if last winner was found
+ * select round/block from list of historic and current round/block
  */
-public class NetworkLastWinnerEvent
-  extends ApplicationEvent
+public class RoundsController
+  implements Initializable
 {
-  private long lastBlockNumber;
-  private String winner;
+  @FXML
+  private TableView<MiningRound> roundsTableView;
 
-  /**
-   * Instantiates a new Network last winner event.
-   *
-   * @param source the source
-   * @param lastBlockNumber the last block number
-   * @param winner the winner
-   */
-  public NetworkLastWinnerEvent(Object source, long lastBlockNumber, String winner)
+  @Override
+  public void initialize(URL location, ResourceBundle resources)
   {
-    super(source);
-    this.lastBlockNumber = lastBlockNumber;
-    this.winner = winner;
-  }
+    roundsTableView.setTableMenuButtonVisible(true);
 
-  /**
-   * Gets last block number.
-   *
-   * @return the last block number
-   */
-  public long getLastBlockNumber()
-  {
-    return lastBlockNumber;
-  }
-
-  /**
-   * Gets winner.
-   *
-   * @return the winner
-   */
-  public String getWinner()
-  {
-    return winner;
   }
 }
