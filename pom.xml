@@ -4,16 +4,17 @@
 
     <groupId>burstcoin</groupId>
     <artifactId>burstcoin-jminer</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>burstcoin-jminer</name>
+
     <description>Burstcoin (BURST) - GPU assisted PoC-Miner</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.2.5.RELEASE</version>
+        <version>1.2.8.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -21,9 +22,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>burstcoin.jminer.CommandLineRunner</start-class>
         <java.version>1.8</java.version>
-        <spring.version>4.2.0.RELEASE</spring.version>
-        <jocl.version>0.1.9</jocl.version>
+        <spring.version>4.2.4.RELEASE</spring.version>
+        <jetty.version>9.3.7.RC1</jetty.version>
+        <jocl.version>0.2.0-RC00</jocl.version>
         <saphir-hash.version>3.0.1</saphir-hash.version>
+        <bcprov-jdk16.version>1.46</bcprov-jdk16.version>
     </properties>
 
     <dependencies>
@@ -52,22 +55,36 @@
         </dependency>
 
         <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk16</artifactId>
+            <version>${bcprov-jdk16.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-client</artifactId>
-            <version>9.2.2.v20140723</version>
-            <!-- todo isssues with <version>9.3.0.M0</version>-->
+            <version>${jetty.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>bouncycastle</groupId>
-            <artifactId>bcprov-jdk16</artifactId>
-            <version>140</version>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-util</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>1.9.13</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
         </dependency>
 
     </dependencies>
@@ -101,7 +118,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.2</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -115,7 +131,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.10.1</version>
                 <configuration>
                     <show>private</show>
                     <nohelp>true</nohelp>

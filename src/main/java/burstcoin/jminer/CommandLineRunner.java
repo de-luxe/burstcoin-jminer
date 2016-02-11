@@ -37,6 +37,7 @@ import burstcoin.jminer.core.round.event.RoundFinishedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
+import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -52,16 +53,19 @@ import java.util.TimerTask;
 
 @SpringBootApplication
 public class CommandLineRunner
-  implements org.springframework.boot.CommandLineRunner
 {
   private static final Logger LOG = LoggerFactory.getLogger(CommandLineRunner.class);
 
-  private static ConfigurableApplicationContext context;
+  private static final int NUMBER_OF_PROGRESS_LOGS_PER_ROUND = CoreProperties.getReadProgressPerRound();
+  private static final int SIZE_DIVISOR = CoreProperties.isSizeUnitsDecimal() ? 1000 : 1024;
+  private static final String T_UNIT = CoreProperties.isSizeUnitsDecimal() ? "TB" : "TiB";
+  private static final String G_UNIT = CoreProperties.isSizeUnitsDecimal() ? "GB" : "GiB";
 
+  private static final String M_UNIT = CoreProperties.isSizeUnitsDecimal() ? "MB" : "MiB";
+  private static ConfigurableApplicationContext context;
   private static boolean roundFinished = true;
   private static long blockNumber;
   private static int progressLogStep;
-  private static int numberOfProgressLogsPerBlock = CoreProperties.getReadProgressPerRound();
 
   public static void main(String[] args)
   {
@@ -96,14 +100,14 @@ public class CommandLineRunner
           Round round = context.getBean(Round.class);
           round.stopTimer();
 
-          progressLogStep = numberOfProgressLogsPerBlock;
+          progressLogStep = NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
 
           context.stop();
           context.close();
         }
 
         LOG.info("start the engines ...");
-        context = SpringApplication.run(CommandLineRunner.class, args);
+        context = SpringApplication.run(CommandLineRunner.class);
 
         context.addApplicationListener(new ApplicationListener<RoundFinishedEvent>()
         {
@@ -119,6 +123,29 @@ public class CommandLineRunner
             LOG.info("FINISH block '" + event.getBlockNumber() + "', "
                      + "best deadline '" + bestDeadline + "', "
                      + "round time '" + s + "s " + ms + "ms'");
+          }
+        });
+
+        context.addApplicationListener(new ApplicationListener<RoundStoppedEvent>()
+        {
+          @Override
+          public void onApplicationEvent(RoundStoppedEvent event)
+          {
+            roundFinished = true;
+
+            long s = event.getElapsedTime() / 1000;
+            long ms = event.getElapsedTime() % 1000;
+
+            BigDecimal totalCapacity = new BigDecimal(event.getCapacity());
+            BigDecimal factor = BigDecimal.ONE.divide(totalCapacity, MathContext.DECIMAL32);
+            BigDecimal progress = factor.multiply(new BigDecimal(event.getCapacity() - event.getRemainingCapacity()));
+            int percentage = (int) Math.ceil(progress.doubleValue() * 100);
+            percentage = percentage > 100 ? 100 : percentage;
+
+            String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
+            LOG.info("NOT FINISHED block '" + event.getBlockNumber() + "', "
+                     + "best deadline '" + bestDeadline + "', "
+                     + "elapsed time '" + s + "s " + ms + "ms', " + String.valueOf(percentage) + "% done!");
           }
         });
 
@@ -153,12 +180,12 @@ public class CommandLineRunner
           public void onApplicationEvent(RoundStartedEvent event)
           {
             roundFinished = false;
-            progressLogStep = numberOfProgressLogsPerBlock;
+            progressLogStep = NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
 
             LOG.info("-------------------------------------------------------");
             LOG.info("START block '" + event.getBlockNumber() + "', "
                      + "scoopNumber '" + event.getScoopNumber() + "', "
-                     + "capacity '" + event.getCapacity() / 1024 / 1024 / 1024 + " GB'"
+                     + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'"
                     );
             String target = event.getTargetDeadline() == Long.MAX_VALUE ? "N/A" : String.valueOf(event.getTargetDeadline());
             LOG.info("      targetDeadline '" + target + "', " + "baseTarget '" + String.valueOf(event.getBaseTarget()) + "'");
@@ -170,7 +197,7 @@ public class CommandLineRunner
           @Override
           public void onApplicationEvent(ReaderProgressChangedEvent event)
           {
-            long logStepCapacity = event.getCapacity() / numberOfProgressLogsPerBlock;
+            long logStepCapacity = event.getCapacity() / NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
 
             if(event.getRemainingCapacity() < logStepCapacity * progressLogStep || event.getRemainingCapacity() == 0)
             {
@@ -184,14 +211,15 @@ public class CommandLineRunner
 
               // calculate capacity
               long doneBytes = event.getCapacity() - event.getRemainingCapacity();
-              long doneTB = doneBytes / 1024 / 1024 / 1024 / 1024;
-              long doneGB = doneBytes / 1024 / 1024 / 1024 % 1024;
+              long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
+              long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
 
               // calculate reading speed
               long effectiveBytesPerMs = (doneBytes / 4096) / event.getElapsedTime();
-              long effectiveMBPerSec = (effectiveBytesPerMs * 1000) / 1024 / 1024;
+              long effectiveMBPerSec = (effectiveBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
 
-              LOG.info(String.valueOf(percentage) + "% done (" + doneTB + "TB " + doneGB + "GB), eff.read '" + effectiveMBPerSec + " MB/s'");
+              LOG.info(
+                String.valueOf(percentage) + "% done (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + "), eff.read '" + effectiveMBPerSec + " " + M_UNIT + "/s'");
             }
           }
         });
@@ -271,7 +299,7 @@ public class CommandLineRunner
         LOG.info("            __         __   GPU assisted PoC-Miner");
         LOG.info("           |__| _____ |__| ____   ___________ ");
         LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-        LOG.info("     0.4.0 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+        LOG.info("     0.4.1 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
         LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
         LOG.info("       \\______|     \\/        \\/     \\/");
         LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
@@ -293,11 +321,5 @@ public class CommandLineRunner
     long days = hours / 24;
     hours = hours % 24;
     return days + "d " + hours + "h " + min + "m " + sec + "s";
-  }
-
-  @Override
-  public void run(String... args)
-    throws Exception
-  {
   }
 }

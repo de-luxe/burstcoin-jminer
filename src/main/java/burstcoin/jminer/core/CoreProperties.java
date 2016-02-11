@@ -59,6 +59,8 @@ public class CoreProperties
   private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 500;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = false;
   private static final int DEFAULT_DEV_POOL_COMMITS_PER_ROUND = 3;
+  private static final boolean DEFAULT_SIZE_UNITS_DECIMAL = true;
+  private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   // there seams to be a issue on checker
   private static final boolean DEFAULT_OPT_DEV_POOL = false;
 
@@ -96,6 +98,8 @@ public class CoreProperties
   private static String soloServer;
   private static String passPhrase;
   private static String poolServer;
+  private static Boolean sizeUnitsDecimal;
+  private static Boolean listPlotFiles;
 
   private CoreProperties()
   {
@@ -424,7 +428,24 @@ public class CoreProperties
       chunkPartNonces = asLong("chunkPartNonces", DEFAULT_CHUNK_PART_NONCES);
     }
     return chunkPartNonces;
+  }
 
+  public static boolean isSizeUnitsDecimal()
+  {
+    if(sizeUnitsDecimal == null)
+    {
+      sizeUnitsDecimal = asBoolean("sizeUnitsDecimal", DEFAULT_SIZE_UNITS_DECIMAL);
+    }
+    return sizeUnitsDecimal;
+  }
+
+  public static boolean isListPlotFiles()
+  {
+    if(listPlotFiles == null)
+    {
+      listPlotFiles = asBoolean("listPlotFiles", DEFAULT_LIST_PLOT_FILES);
+    }
+    return listPlotFiles;
   }
 
   private static Boolean asBoolean(String key, boolean defaultValue)
@@ -439,7 +460,7 @@ public class CoreProperties
       }
       catch(Exception e)
       {
-        LOG.error("property: '" + key + "' value should be of type 'boolean'.");
+        LOG.error("property: '" + key + "' value should be of type 'boolean' (e.g. 'true' or 'false').");
       }
     }
     return value != null ? value : defaultValue;

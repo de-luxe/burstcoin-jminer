@@ -24,8 +24,8 @@ package burstcoin.jminer.core.network.task;
 
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.MiningInfoResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import nxt.util.Convert;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The type Network request mining info task.
@@ -127,6 +128,10 @@ public class NetworkRequestMiningInfoTask
       {
         LOG.warn("Unable to parse mining info: " + response.getContentAsString());
       }
+    }
+    catch(TimeoutException timeoutException)
+    {
+      LOG.warn("Unable to get mining info from wallet, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

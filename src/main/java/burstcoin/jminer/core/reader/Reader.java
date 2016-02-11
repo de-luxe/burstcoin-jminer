@@ -31,6 +31,7 @@ import burstcoin.jminer.core.reader.data.Plots;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
+import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.reader.task.ReaderLoadDriveTask;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
@@ -51,6 +52,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+//import org.springframework.context.event.EventListener;
 
 /**
  * The type Reader.
@@ -77,6 +80,7 @@ public class Reader
   private List<String> directories;
   private long chunkPartNonces;
   private boolean scanPathsEveryRound;
+  private boolean listPlotFiles;
 
   // data
   private long blockNumber;
@@ -120,11 +124,17 @@ public class Reader
     this.directories = CoreProperties.getPlotPaths();
     this.chunkPartNonces = CoreProperties.getChunkPartNonces();
     this.scanPathsEveryRound = CoreProperties.isScanPathsEveryRound();
+    this.listPlotFiles = CoreProperties.isListPlotFiles();
+    this.
     capacityLookup = new HashMap<>();
 
     if(!scanPathsEveryRound)
     {
       plots = new Plots(directories, numericAccountId, chunkPartNonces);
+      if(listPlotFiles)
+      {
+        plots.printPlotFiles();
+      }
     }
   }
 
@@ -135,7 +145,7 @@ public class Reader
    * @param scoopNumber the scoop number
    * @return chunkPartStartNonces that will be read and their capacity
    */
-  public Plots read(long blockNumber, int scoopNumber)
+  public Plots read(long previousBlockNumber, long blockNumber, int scoopNumber, long lastBestCommittedDeadline)
   {
     this.blockNumber = blockNumber;
 
@@ -148,6 +158,8 @@ public class Reader
     if(readerPool.getActiveCount() > 0)
     {
       readerPool.shutdown();
+      long elapsedTime = new Date().getTime() - readerStartTime;
+      publisher.publishEvent(new ReaderStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, lastBestCommittedDeadline));
       readerPool.initialize();
     }
 
@@ -189,7 +201,8 @@ public class Reader
       }
       else
       {
-        LOG.error("Error: ReaderPartLoadedEvent for unknown chunkPartStartNonce!");
+        LOG.error("Error: ReaderPartLoadedEvent for unknown chunkPartStartNonce: '"+event.getChunkPartStartNonce()+"'!"
+                  + " Please check for plot-file duplicate or overlapping plots e.g. use https://bchain.info/BURST/tools/overlap");
       }
     }
     else

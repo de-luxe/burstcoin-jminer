@@ -25,7 +25,7 @@ package burstcoin.jminer.core.network.task;
 import burstcoin.jminer.core.network.event.NetworkLastWinnerEvent;
 import burstcoin.jminer.core.network.model.Block;
 import burstcoin.jminer.core.network.model.BlockchainStatus;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;

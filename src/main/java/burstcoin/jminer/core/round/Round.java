@@ -148,9 +148,12 @@ public class Round
   {
     if(blockNumber < event.getBlockNumber())
     {
+      long previousBlockNumber = blockNumber;
       this.blockNumber = event.getBlockNumber();
       this.baseTarget = event.getBaseTarget();
       this.targetDeadline = event.getTargetDeadline();
+
+      long lastBestCommittedDeadline = bestCommittedDeadline;
 
       initNewRound();
 
@@ -159,7 +162,7 @@ public class Round
 
       // start reader
       int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
-      Plots plots = reader.read(blockNumber, scoopNumber);
+      Plots plots = reader.read(previousBlockNumber, blockNumber, scoopNumber, lastBestCommittedDeadline);
 
       runningChunkPartStartNonces.clear();
       runningChunkPartStartNonces.addAll(plots.getChunkPartStartNonces().keySet());

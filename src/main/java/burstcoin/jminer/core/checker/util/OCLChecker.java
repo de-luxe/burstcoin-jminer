@@ -34,6 +34,7 @@ import org.jocl.cl_kernel;
 import org.jocl.cl_mem;
 import org.jocl.cl_platform_id;
 import org.jocl.cl_program;
+import org.jocl.cl_queue_properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -104,7 +105,8 @@ public class OCLChecker
 
     context = clCreateContext(contextProperties, 1, new cl_device_id[]{devices[deviceId]}, null, null, null);
 
-    queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
+    // org. queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
+    queue = clCreateCommandQueueWithProperties(context, devices[deviceId], new cl_queue_properties(), null);
 
     String kernelSource;
     try
