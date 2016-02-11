@@ -35,10 +35,12 @@ import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.Plots;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
+import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
+import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import burstcoin.jminer.core.round.task.RoundFireEventTask;
 import fr.cryptohash.Shabal256;
 import org.slf4j.Logger;
@@ -106,7 +108,7 @@ public class Round
   /**
    * Instantiates a new Round.
    *
-   * @param reader the reader
+   * @param reader  the reader
    * @param checker the checker
    * @param network the network
    */
@@ -364,6 +366,15 @@ public class Round
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
       triggerFinishRoundEvent(event.getBlockNumber());
     }
+  }
+
+  @EventListener
+  public void handleMessage(ReaderStoppedEvent event)
+  {
+    finishedBlockNumber = event.getBlockNumber();
+    System.gc();
+    fireEvent(new RoundStoppedEvent(event.getBlockNumber(), event.getLastBestCommittedDeadline(), event.getCapacity(), event.getRemainingCapacity(),
+                                    event.getElapsedTime()));
   }
 
   private void triggerFinishRoundEvent(long blockNumber)

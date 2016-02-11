@@ -80,7 +80,6 @@ public class Reader
   private List<String> directories;
   private long chunkPartNonces;
   private boolean scanPathsEveryRound;
-  private boolean listPlotFiles;
 
   // data
   private long blockNumber;
@@ -121,17 +120,15 @@ public class Reader
       LOG.error("init reader failed!");
     }
 
-    this.directories = CoreProperties.getPlotPaths();
-    this.chunkPartNonces = CoreProperties.getChunkPartNonces();
-    this.scanPathsEveryRound = CoreProperties.isScanPathsEveryRound();
-    this.listPlotFiles = CoreProperties.isListPlotFiles();
-    this.
+    directories = CoreProperties.getPlotPaths();
+    chunkPartNonces = CoreProperties.getChunkPartNonces();
+    scanPathsEveryRound = CoreProperties.isScanPathsEveryRound();
     capacityLookup = new HashMap<>();
 
     if(!scanPathsEveryRound)
     {
       plots = new Plots(directories, numericAccountId, chunkPartNonces);
-      if(listPlotFiles)
+      if(CoreProperties.isListPlotFiles())
       {
         plots.printPlotFiles();
       }

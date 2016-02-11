@@ -2,8 +2,8 @@
 GPU assisted Proof of Capacity (PoC) Miner for Burstcoin (BURST)
 
 1. edit 'jminer.properties' with text editor to configure miner
-2. ensure java8 and openCL driver/sdk is installed
-3. execute 'java -jar -XX:+UseG1GC burstcoin-jminer-0.3.6-RELEASE.jar' or run the *.bat file
+2. ensure java8 (64bit) and openCL driver/sdk is installed
+3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.4.x-RELEASE.jar' or run the *.bat file
 <br>
 <br>
 
@@ -30,7 +30,7 @@ passPhrase=YOUR PASS PHRASE<br>
 
 # BUILD
 burstcoin-jminer can be build with maven, install maven and execute e.g.:<br>
-mvn clean dependency:copy-dependencies package
+mvn package
 
 
 
