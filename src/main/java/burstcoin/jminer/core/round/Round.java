@@ -371,8 +371,7 @@ public class Round
   @EventListener
   public void handleMessage(ReaderStoppedEvent event)
   {
-    finishedBlockNumber = event.getBlockNumber();
-    System.gc();
+    triggerGarbageCollection();
     fireEvent(new RoundStoppedEvent(event.getBlockNumber(), event.getLastBestCommittedDeadline(), event.getCapacity(), event.getRemainingCapacity(),
                                     event.getElapsedTime()));
   }

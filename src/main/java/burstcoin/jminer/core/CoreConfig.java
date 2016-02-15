@@ -49,7 +49,8 @@ public class CoreConfig
   public ThreadPoolTaskExecutor readerPool()
   {
     ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
-    pool.setThreadPriority(2);
+    pool.setThreadPriority(Thread.NORM_PRIORITY);
+    // tasks will interrupt them self and stop fast.
     pool.setWaitForTasksToCompleteOnShutdown(true);
     return pool;
   }
@@ -64,7 +65,7 @@ public class CoreConfig
   {
     ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
     pool.setMaxPoolSize(2);
-    pool.setThreadPriority(1);
+    pool.setThreadPriority(Thread.NORM_PRIORITY + 1);
     pool.setWaitForTasksToCompleteOnShutdown(true);
     return pool;
   }

@@ -59,8 +59,9 @@ public class CoreProperties
   private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 500;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = false;
   private static final int DEFAULT_DEV_POOL_COMMITS_PER_ROUND = 3;
-  private static final boolean DEFAULT_SIZE_UNITS_DECIMAL = true;
+  private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
+  private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
   // there seams to be a issue on checker
   private static final boolean DEFAULT_OPT_DEV_POOL = false;
 
@@ -98,8 +99,9 @@ public class CoreProperties
   private static String soloServer;
   private static String passPhrase;
   private static String poolServer;
-  private static Boolean sizeUnitsDecimal;
+  private static Boolean byteUnitDecimal;
   private static Boolean listPlotFiles;
+  private static Boolean showDriveInfo;
 
   private CoreProperties()
   {
@@ -430,13 +432,13 @@ public class CoreProperties
     return chunkPartNonces;
   }
 
-  public static boolean isSizeUnitsDecimal()
+  public static boolean isByteUnitDecimal()
   {
-    if(sizeUnitsDecimal == null)
+    if(byteUnitDecimal == null)
     {
-      sizeUnitsDecimal = asBoolean("sizeUnitsDecimal", DEFAULT_SIZE_UNITS_DECIMAL);
+      byteUnitDecimal = asBoolean("byteUnitDecimal", DEFAULT_BYTE_UNIT_DECIMAL);
     }
-    return sizeUnitsDecimal;
+    return byteUnitDecimal;
   }
 
   public static boolean isListPlotFiles()
@@ -446,6 +448,15 @@ public class CoreProperties
       listPlotFiles = asBoolean("listPlotFiles", DEFAULT_LIST_PLOT_FILES);
     }
     return listPlotFiles;
+  }
+
+  public static boolean isShowDriveInfo()
+  {
+    if(showDriveInfo == null)
+    {
+      showDriveInfo = asBoolean("showDriveInfo", DEFAULT_SHOW_DRIVE_INFO);
+    }
+    return showDriveInfo;
   }
 
   private static Boolean asBoolean(String key, boolean defaultValue)

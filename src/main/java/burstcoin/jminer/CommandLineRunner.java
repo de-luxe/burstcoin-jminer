@@ -31,6 +31,7 @@ import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
+import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
 import burstcoin.jminer.core.round.Round;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
@@ -50,22 +51,23 @@ import java.math.MathContext;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 @SpringBootApplication
 public class CommandLineRunner
 {
   private static final Logger LOG = LoggerFactory.getLogger(CommandLineRunner.class);
 
   private static final int NUMBER_OF_PROGRESS_LOGS_PER_ROUND = CoreProperties.getReadProgressPerRound();
-  private static final int SIZE_DIVISOR = CoreProperties.isSizeUnitsDecimal() ? 1000 : 1024;
-  private static final String T_UNIT = CoreProperties.isSizeUnitsDecimal() ? "TB" : "TiB";
-  private static final String G_UNIT = CoreProperties.isSizeUnitsDecimal() ? "GB" : "GiB";
+  private static final int SIZE_DIVISOR = CoreProperties.isByteUnitDecimal() ? 1000 : 1024;
+  private static final String T_UNIT = CoreProperties.isByteUnitDecimal() ? "TB" : "TiB";
+  private static final String G_UNIT = CoreProperties.isByteUnitDecimal() ? "GB" : "GiB";
 
-  private static final String M_UNIT = CoreProperties.isSizeUnitsDecimal() ? "MB" : "MiB";
+  private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
   private static ConfigurableApplicationContext context;
   private static boolean roundFinished = true;
   private static long blockNumber;
   private static int progressLogStep;
+  private static long previousRemainingCapacity = 0;
+  private static long previousElapsedTime = 0;
 
   public static void main(String[] args)
   {
@@ -115,6 +117,8 @@ public class CommandLineRunner
           public void onApplicationEvent(RoundFinishedEvent event)
           {
             roundFinished = true;
+            previousRemainingCapacity = 0;
+            previousElapsedTime = 0;
 
             long s = event.getRoundTime() / 1000;
             long ms = event.getRoundTime() % 1000;
@@ -132,6 +136,8 @@ public class CommandLineRunner
           public void onApplicationEvent(RoundStoppedEvent event)
           {
             roundFinished = true;
+            previousRemainingCapacity = 0;
+            previousElapsedTime = 0;
 
             long s = event.getElapsedTime() / 1000;
             long ms = event.getElapsedTime() % 1000;
@@ -143,9 +149,9 @@ public class CommandLineRunner
             percentage = percentage > 100 ? 100 : percentage;
 
             String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
-            LOG.info("NOT FINISHED block '" + event.getBlockNumber() + "', "
+            LOG.info("STOP block '" + event.getBlockNumber() + "', " + String.valueOf(percentage) + "% done, "
                      + "best deadline '" + bestDeadline + "', "
-                     + "elapsed time '" + s + "s " + ms + "ms', " + String.valueOf(percentage) + "% done!");
+                     + "elapsed time '" + s + "s " + ms + "ms'");
           }
         });
 
@@ -210,16 +216,31 @@ public class CommandLineRunner
               percentage = percentage > 100 ? 100 : percentage;
 
               // calculate capacity
+              long effMBPerSec = 0;
+              if(previousRemainingCapacity > 0)
+              {
+                long effDoneBytes = previousRemainingCapacity - event.getRemainingCapacity();
+
+                // calculate current reading speed (since last info)
+                long effBytesPerMs = (effDoneBytes / 4096) / (event.getElapsedTime()-previousElapsedTime);
+                effMBPerSec = (effBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
+              }
+
+              // calculate capacity
               long doneBytes = event.getCapacity() - event.getRemainingCapacity();
               long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
               long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
 
-              // calculate reading speed
-              long effectiveBytesPerMs = (doneBytes / 4096) / event.getElapsedTime();
-              long effectiveMBPerSec = (effectiveBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
+              // calculate reading speed (average)
+              long averageBytesPerMs = (doneBytes / 4096) / event.getElapsedTime();
+              long averageMBPerSec = (averageBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
+
+              previousRemainingCapacity = event.getRemainingCapacity();
+              previousElapsedTime = event.getElapsedTime();
 
               LOG.info(
-                String.valueOf(percentage) + "% done (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + "), eff.read '" + effectiveMBPerSec + " " + M_UNIT + "/s'");
+                String.valueOf(percentage) + "% done (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + "), avg.'" + averageMBPerSec + " " + M_UNIT + "/s'" +
+                (effMBPerSec > 0 ? ", eff.'" + effMBPerSec + " " + M_UNIT + "/s'" : ""));
             }
           }
         });
@@ -287,14 +308,24 @@ public class CommandLineRunner
           }
         });
 
+        context.addApplicationListener(new ApplicationListener<ReaderDriveFinishEvent>()
+        {
+          @Override
+          public void onApplicationEvent(ReaderDriveFinishEvent event)
+          {
+            // calculate capacity
+            long doneBytes = event.getSize();
+            long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
+            long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
+
+            long s = event.getTime() / 1000;
+            long ms = event.getTime() % 1000;
+
+            LOG.info("read '"+event.getDirectory()+ "' (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + ") in '" + s + "s " + ms + "ms'");
+          }
+        });
+
         LOG.info("");
-//        LOG.info(":::::::::  :::    ::: :::::::::   ::::::::  ::::::::::::");
-//        LOG.info(":+:    :+: :+:    :+: :+:    :+: :+:            :+:");
-//        LOG.info("+#++:++#+  +#+    +:+ +#++:++#:  +#++:++#++     +#+");
-//        LOG.info("+#+    +#+ +#+    +#+ +#+    +#+        +#+     +#+");
-//        LOG.info("#+#    #+# #+#    #+# #+#    #+#         #+#    #+#");
-//        LOG.info("#########   ########  ###    ###  BURSTCOIN     ###");
-//        LOG.info("::::::::::::::::::::::::::::::::::::::::::::::::::::::::");
         LOG.info("                            Burstcoin (BURST)");
         LOG.info("            __         __   GPU assisted PoC-Miner");
         LOG.info("           |__| _____ |__| ____   ___________ ");

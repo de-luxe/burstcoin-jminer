@@ -23,8 +23,10 @@
 package burstcoin.jminer.core.reader.task;
 
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.reader.data.PlotDrive;
 import burstcoin.jminer.core.reader.data.PlotFile;
+import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +43,13 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardOpenOption;
+import java.util.Date;
 import java.util.EnumSet;
 
 
 /**
- * The type Reader load drive task.
+ * Executed once for every block ... reads scoops of drive plots
  */
-/* executed once for every block ... reads scoops of drive plots */
 @Component
 @Scope("prototype")
 public class ReaderLoadDriveTask
@@ -61,13 +63,14 @@ public class ReaderLoadDriveTask
   private PlotDrive plotDrive;
   private int scoopNumber;
   private long blockNumber;
+  private boolean showDriveInfo;
 
   /**
    * Init void.
    *
    * @param scoopNumber the scoop number
    * @param blockNumber the block number
-   * @param plotDrive the plot drive
+   * @param plotDrive   the plot drive
    */
   public void init(int scoopNumber, long blockNumber, PlotDrive plotDrive)
   {
@@ -75,11 +78,15 @@ public class ReaderLoadDriveTask
     this.blockNumber = blockNumber;
 
     this.plotDrive = plotDrive;
+
+    showDriveInfo = CoreProperties.isShowDriveInfo();
   }
 
   @Override
   public void run()
   {
+    long startTime = showDriveInfo ? new Date().getTime() : 0;
+
     for(PlotFile plotPathInfo : plotDrive.getPlotFiles())
     {
       if(plotPathInfo.getStaggeramt() % plotPathInfo.getNumberOfParts() > 0)
@@ -89,6 +96,11 @@ public class ReaderLoadDriveTask
         plotPathInfo.setNumberOfParts(1);
       }
       load(plotPathInfo);
+    }
+
+    if(showDriveInfo)
+    {
+      publisher.publishEvent(new ReaderDriveFinishEvent(plotDrive.getDirectory(), plotDrive.getSize(), new Date().getTime() - startTime));
     }
   }
 
