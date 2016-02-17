@@ -153,14 +153,14 @@ public class Network
   }
 
   /**
-   * Check result.
+   * Commit result.
    *
    * @param blockNumber the block number
    * @param calculatedDeadline the calculated deadline
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public void checkResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce)
+  public void commitResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce)
   {
     if(poolMining)
     {
@@ -189,12 +189,12 @@ public class Network
   }
 
   /**
-   * Check dev result.
+   * Commit dev result.
    *
    * @param blockNumber the block number
    * @param devPoolResults the dev pool results
    */
-  public void checkDevResult(long blockNumber, List<DevPoolResult> devPoolResults)
+  public void commitDevResult(long blockNumber, List<DevPoolResult> devPoolResults)
   {
     NetworkSubmitDevPoolNoncesTask networkSubmitDevPoolNoncesTask = context.getBean(NetworkSubmitDevPoolNoncesTask.class);
     networkSubmitDevPoolNoncesTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, devPoolResults);

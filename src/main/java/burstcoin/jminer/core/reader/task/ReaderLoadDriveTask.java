@@ -27,6 +27,7 @@ import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.reader.data.PlotDrive;
 import burstcoin.jminer.core.reader.data.PlotFile;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
+import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.Iterator;
 
 
 /**
@@ -65,18 +67,10 @@ public class ReaderLoadDriveTask
   private long blockNumber;
   private boolean showDriveInfo;
 
-  /**
-   * Init void.
-   *
-   * @param scoopNumber the scoop number
-   * @param blockNumber the block number
-   * @param plotDrive   the plot drive
-   */
   public void init(int scoopNumber, long blockNumber, PlotDrive plotDrive)
   {
     this.scoopNumber = scoopNumber;
     this.blockNumber = blockNumber;
-
     this.plotDrive = plotDrive;
 
     showDriveInfo = CoreProperties.isShowDriveInfo();
@@ -86,9 +80,10 @@ public class ReaderLoadDriveTask
   public void run()
   {
     long startTime = showDriveInfo ? new Date().getTime() : 0;
-
-    for(PlotFile plotPathInfo : plotDrive.getPlotFiles())
+    Iterator<PlotFile> iterator = plotDrive.getPlotFiles().iterator();
+    while(iterator.hasNext() && !Thread.currentThread().isInterrupted())
     {
+      PlotFile plotPathInfo = iterator.next();
       if(plotPathInfo.getStaggeramt() % plotPathInfo.getNumberOfParts() > 0)
       {
         LOG.warn("staggeramt " + plotPathInfo.getStaggeramt() + " can not be devided by " + plotPathInfo.getNumberOfParts());
@@ -100,7 +95,14 @@ public class ReaderLoadDriveTask
 
     if(showDriveInfo)
     {
-      publisher.publishEvent(new ReaderDriveFinishEvent(plotDrive.getDirectory(), plotDrive.getSize(), new Date().getTime() - startTime));
+      if(Thread.currentThread().isInterrupted())
+      {
+        publisher.publishEvent(new ReaderDriveInterruptedEvent(blockNumber, plotDrive.getDirectory()));
+      }
+      else
+      {
+        publisher.publishEvent(new ReaderDriveFinishEvent(plotDrive.getDirectory(), plotDrive.getSize(), new Date().getTime() - startTime));
+      }
     }
   }
 
@@ -120,9 +122,9 @@ public class ReaderLoadDriveTask
         for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++)
         {
           sbc.read(partBuffer);
-
-          if(Thread.interrupted())
+          if(Thread.currentThread().isInterrupted())
           {
+            // todo never reached?!
             LOG.debug("loadDriveThread interrupted!");
             // make sure to stop reading and clean up
             chunkNumber += plotFile.getNumberOfChunks();
@@ -141,10 +143,11 @@ public class ReaderLoadDriveTask
     }
     catch(NoSuchFileException exception)
     {
-      LOG.debug("File not found ... please restart to rescan plot-files, maybe set rescan to 'true': " + exception.getMessage());
+      LOG.error("File not found ... please restart to rescan plot-files, maybe set rescan to 'true': " + exception.getMessage());
     }
     catch(ClosedByInterruptException e)
     {
+      // we reach this, if we do not wait for task on shutdown - ByteChannel closed by thread interruption
       LOG.debug("reader stopped cause of new block ...");
     }
     catch(IOException e)

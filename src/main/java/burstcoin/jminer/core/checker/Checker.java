@@ -113,7 +113,7 @@ public class Checker
     }
     else
     {
-      LOG.debug("skipped check scoop ... old block ...");
+      LOG.trace("skipped check scoop ... old block ...");
     }
   }
 }

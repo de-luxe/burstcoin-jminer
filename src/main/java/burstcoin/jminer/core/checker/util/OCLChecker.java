@@ -131,9 +131,9 @@ public class OCLChecker
     for(int i = 0; i < 3; i++)
     {
       clGetKernelWorkGroupInfo(kernel[i], devices[deviceId], CL_KERNEL_WORK_GROUP_SIZE, 8, Pointer.to(maxWorkGroupSize), null);
-      LOG.debug("Max work group size: " + maxWorkGroupSize[0]);
       workgroupSize[i] = maxWorkGroupSize[0];
     }
+    LOG.debug("Max work group size: " + maxWorkGroupSize[0]);
 
     long[] maxComputeUnits = new long[1];
     clGetDeviceInfo(devices[deviceId], CL_DEVICE_MAX_COMPUTE_UNITS, 8, Pointer.to(maxComputeUnits), null);

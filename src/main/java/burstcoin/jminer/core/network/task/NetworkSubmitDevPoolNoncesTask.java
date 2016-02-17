@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The type Network submit dev pool nonces task.
@@ -106,6 +107,10 @@ public class NetworkSubmitDevPoolNoncesTask
       {
         LOG.error("Error: could not commit nonces to devPool: " + submitResult);
       }
+    }
+    catch(TimeoutException timeoutException)
+    {
+      LOG.warn("Unable to commit nonces to devPool, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

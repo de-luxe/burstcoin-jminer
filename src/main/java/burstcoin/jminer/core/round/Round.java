@@ -131,15 +131,13 @@ public class Round
     this.devPoolCommitsPerRound = CoreProperties.getDevPoolCommitsPerRound();
 
     timer = new Timer();
-
-    initNewRound();
   }
 
-  private void initNewRound()
+  private void initNewRound(Plots plots)
   {
+    runningChunkPartStartNonces = new HashSet<>(plots.getChunkPartStartNonces().keySet());
     roundStartDate = new Date();
     lowest = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
-    runningChunkPartStartNonces = new HashSet<>();
     devPoolResults = new ArrayList<>();
     bestCommittedDeadline = Long.MAX_VALUE;
     devPoolCommitsThisRound = devPoolCommitsPerRound;
@@ -157,17 +155,15 @@ public class Round
 
       long lastBestCommittedDeadline = bestCommittedDeadline;
 
-      initNewRound();
+      Plots plots = reader.getPlots();
+      initNewRound(plots);
 
       // reconfigure checker
       checker.reconfigure(blockNumber, baseTarget, targetDeadline, event.getGenerationSignature());
 
       // start reader
       int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
-      Plots plots = reader.read(previousBlockNumber, blockNumber, scoopNumber, lastBestCommittedDeadline);
-
-      runningChunkPartStartNonces.clear();
-      runningChunkPartStartNonces.addAll(plots.getChunkPartStartNonces().keySet());
+      reader.read(previousBlockNumber, blockNumber, scoopNumber, lastBestCommittedDeadline);
 
       // ui event
       fireEvent(new RoundStartedEvent(blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget));
@@ -223,7 +219,7 @@ public class Round
             lowest = event.getResult();
             if(calculatedDeadline < targetDeadline)
             {
-              network.checkResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce());
+              network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce());
 
               // ui event
               fireEvent(new RoundSingleResultEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline, poolMining));
@@ -371,14 +367,14 @@ public class Round
   @EventListener
   public void handleMessage(ReaderStoppedEvent event)
   {
-    triggerGarbageCollection();
+    System.gc();
     fireEvent(new RoundStoppedEvent(event.getBlockNumber(), event.getLastBestCommittedDeadline(), event.getCapacity(), event.getRemainingCapacity(),
                                     event.getElapsedTime()));
   }
 
   private void triggerFinishRoundEvent(long blockNumber)
   {
-    if(finishedBlockNumber < blockNumber)
+    if(this.blockNumber == blockNumber && finishedBlockNumber < blockNumber)
     {
       if(runningChunkPartStartNonces.isEmpty())
       {
@@ -397,6 +393,7 @@ public class Round
     finishedBlockNumber = blockNumber;
     long elapsedRoundTime = new Date().getTime() - roundStartDate.getTime();
     triggerGarbageCollection();
+    reader.freeResources();
     timer.schedule(new TimerTask()
     {
       @Override
@@ -404,12 +401,12 @@ public class Round
       {
         fireEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime));
       }
-    }, 5); // fire deferred
+    }, 200); // fire deferred
   }
 
   private void commitDevPoolNonces(long blockNumber)
   {
-    network.checkDevResult(blockNumber, new ArrayList<>(devPoolResults));
+    network.commitDevResult(blockNumber, new ArrayList<>(devPoolResults));
     devPoolResults.clear();
 
     // todo ui event

@@ -32,6 +32,7 @@ import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
+import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
 import burstcoin.jminer.core.round.Round;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
@@ -57,11 +58,12 @@ public class CommandLineRunner
   private static final Logger LOG = LoggerFactory.getLogger(CommandLineRunner.class);
 
   private static final int NUMBER_OF_PROGRESS_LOGS_PER_ROUND = CoreProperties.getReadProgressPerRound();
+
   private static final int SIZE_DIVISOR = CoreProperties.isByteUnitDecimal() ? 1000 : 1024;
   private static final String T_UNIT = CoreProperties.isByteUnitDecimal() ? "TB" : "TiB";
   private static final String G_UNIT = CoreProperties.isByteUnitDecimal() ? "GB" : "GiB";
-
   private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
+
   private static ConfigurableApplicationContext context;
   private static boolean roundFinished = true;
   private static long blockNumber;
@@ -209,6 +211,9 @@ public class CommandLineRunner
             {
               progressLogStep--;
 
+              // trigger garbage collection on every progress step
+              System.gc();
+
               BigDecimal totalCapacity = new BigDecimal(event.getCapacity());
               BigDecimal factor = BigDecimal.ONE.divide(totalCapacity, MathContext.DECIMAL32);
               BigDecimal progress = factor.multiply(new BigDecimal(event.getCapacity() - event.getRemainingCapacity()));
@@ -322,6 +327,15 @@ public class CommandLineRunner
             long ms = event.getTime() % 1000;
 
             LOG.info("read '"+event.getDirectory()+ "' (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + ") in '" + s + "s " + ms + "ms'");
+          }
+        });
+
+        context.addApplicationListener(new ApplicationListener<ReaderDriveInterruptedEvent>()
+        {
+          @Override
+          public void onApplicationEvent(ReaderDriveInterruptedEvent event)
+          {
+            LOG.info("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
           }
         });
 

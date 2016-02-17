@@ -53,8 +53,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-//import org.springframework.context.event.EventListener;
-
 /**
  * The type Reader.
  */
@@ -88,6 +86,7 @@ public class Reader
   private long remainingCapacity;
   private long capacity;
   private long readerStartTime;
+  private int readerThreads;
 
   /**
    * Post construct.
@@ -123,15 +122,12 @@ public class Reader
     directories = CoreProperties.getPlotPaths();
     chunkPartNonces = CoreProperties.getChunkPartNonces();
     scanPathsEveryRound = CoreProperties.isScanPathsEveryRound();
+    readerThreads = CoreProperties.getReaderThreads();
     capacityLookup = new HashMap<>();
 
-    if(!scanPathsEveryRound)
+    if(CoreProperties.isListPlotFiles())
     {
-      plots = new Plots(directories, numericAccountId, chunkPartNonces);
-      if(CoreProperties.isListPlotFiles())
-      {
-        plots.printPlotFiles();
-      }
+      getPlots().printPlotFiles();
     }
   }
 
@@ -140,17 +136,13 @@ public class Reader
    *
    * @param blockNumber the block number
    * @param scoopNumber the scoop number
-   * @return chunkPartStartNonces that will be read and their capacity
    */
-  public Plots read(long previousBlockNumber, long blockNumber, int scoopNumber, long lastBestCommittedDeadline)
+  public void read(long previousBlockNumber, long blockNumber, int scoopNumber, long lastBestCommittedDeadline)
   {
     this.blockNumber = blockNumber;
 
-    // re-scan drives each round
-    if(scanPathsEveryRound)
-    {
-      plots = new Plots(directories, numericAccountId, chunkPartNonces);
-    }
+    // ensure plots are initialized
+    plots = plots == null ? getPlots() : plots;
 
     if(readerPool.getActiveCount() > 0)
     {
@@ -161,8 +153,9 @@ public class Reader
     }
 
     // update reader thread count
-    readerPool.setCorePoolSize(directories.size());
-    readerPool.setMaxPoolSize(directories.size());
+    int poolSize = readerThreads <= 0 ? directories.size() : readerThreads;
+    readerPool.setCorePoolSize(poolSize);
+    readerPool.setMaxPoolSize(poolSize);
 
     // we use the startnonce of loaded (startnonce+chunk+part) as unique job identifier
     capacityLookup.clear();
@@ -173,13 +166,28 @@ public class Reader
 
     readerStartTime = new Date().getTime();
 
+    // todo why use a threadPool in case we have one thread per drive anyway
     for(PlotDrive plotDrive : plots.getPlotDrives())
     {
       ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
       readerLoadDriveTask.init(scoopNumber, blockNumber, plotDrive);
       readerPool.execute(readerLoadDriveTask);
     }
+  }
+
+  public Plots getPlots()
+  {
+    if(scanPathsEveryRound || plots == null)
+    {
+      plots = new Plots(directories, numericAccountId, chunkPartNonces);
+    }
     return plots;
+  }
+
+  public void freeResources()
+  {
+    readerPool.setCorePoolSize(1);
+    readerPool.setMaxPoolSize(1);
   }
 
   @Override
@@ -204,7 +212,7 @@ public class Reader
     }
     else
     {
-      LOG.debug("update reader progress skipped ... old block ...");
+      LOG.trace("update reader progress skipped ... old block ...");
     }
   }
 

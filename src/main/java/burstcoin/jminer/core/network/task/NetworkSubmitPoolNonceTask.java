@@ -38,6 +38,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The type Network submit pool nonce task.
@@ -130,6 +131,10 @@ public class NetworkSubmitPoolNonceTask
           LOG.warn("Error: Submit nonce to pool not successful: " + response.getContentAsString());
         }
       }
+    }
+    catch(TimeoutException timeoutException)
+    {
+      LOG.warn("Unable to commit nonce to pool, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

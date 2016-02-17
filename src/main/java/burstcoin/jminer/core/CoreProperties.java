@@ -62,6 +62,7 @@ public class CoreProperties
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
+  private static final int DEFAULT_READER_THREADS = 0;
   // there seams to be a issue on checker
   private static final boolean DEFAULT_OPT_DEV_POOL = false;
 
@@ -102,6 +103,7 @@ public class CoreProperties
   private static Boolean byteUnitDecimal;
   private static Boolean listPlotFiles;
   private static Boolean showDriveInfo;
+  private static Integer readerThreads;
 
   private CoreProperties()
   {
@@ -397,6 +399,15 @@ public class CoreProperties
       restartInterval = asInteger("restartInterval", DEFAULT_RESTART_INTERVAL);
     }
     return restartInterval;
+  }
+
+  public static int getReaderThreads()
+  {
+    if(readerThreads == null)
+    {
+      readerThreads = asInteger("readerThreads", DEFAULT_READER_THREADS);
+    }
+    return readerThreads;
   }
 
   /**

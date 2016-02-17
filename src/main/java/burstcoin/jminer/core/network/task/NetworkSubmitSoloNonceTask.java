@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The type Network submit solo nonce task.
@@ -120,6 +121,10 @@ public class NetworkSubmitSoloNonceTask
       {
         LOG.warn("Error: Submit solo nonce not successful: " + response.getContentAsString());
       }
+    }
+    catch(TimeoutException timeoutException)
+    {
+      LOG.warn("Unable to solo nonce, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {
