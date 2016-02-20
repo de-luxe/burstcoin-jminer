@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 by luxe - https://github.com/de-luxe -  BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -227,7 +227,7 @@ public class CommandLineRunner
                 long effDoneBytes = previousRemainingCapacity - event.getRemainingCapacity();
 
                 // calculate current reading speed (since last info)
-                long effBytesPerMs = (effDoneBytes / 4096) / (event.getElapsedTime()-previousElapsedTime);
+                long effBytesPerMs = (effDoneBytes / 4096) / (event.getElapsedTime() - previousElapsedTime);
                 effMBPerSec = (effBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
               }
 
@@ -318,15 +318,18 @@ public class CommandLineRunner
           @Override
           public void onApplicationEvent(ReaderDriveFinishEvent event)
           {
-            // calculate capacity
-            long doneBytes = event.getSize();
-            long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
-            long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
+            if(blockNumber == event.getBlockNumber())
+            {
+              // calculate capacity
+              long doneBytes = event.getSize();
+              long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
+              long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
 
-            long s = event.getTime() / 1000;
-            long ms = event.getTime() % 1000;
+              long s = event.getTime() / 1000;
+              long ms = event.getTime() % 1000;
 
-            LOG.info("read '"+event.getDirectory()+ "' (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + ") in '" + s + "s " + ms + "ms'");
+              LOG.info("read '" + event.getDirectory() + "' (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + ") in '" + s + "s " + ms + "ms'");
+            }
           }
         });
 
@@ -335,7 +338,7 @@ public class CommandLineRunner
           @Override
           public void onApplicationEvent(ReaderDriveInterruptedEvent event)
           {
-            LOG.info("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
+            LOG.debug("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
           }
         });
 
@@ -344,7 +347,7 @@ public class CommandLineRunner
         LOG.info("            __         __   GPU assisted PoC-Miner");
         LOG.info("           |__| _____ |__| ____   ___________ ");
         LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-        LOG.info("     0.4.1 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+        LOG.info("     0.4.2 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
         LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
         LOG.info("       \\______|     \\/        \\/     \\/");
         LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");

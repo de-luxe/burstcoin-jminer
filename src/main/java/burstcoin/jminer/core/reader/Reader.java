@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 by luxe - https://github.com/de-luxe -  BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -80,7 +80,7 @@ public class Reader
   private boolean scanPathsEveryRound;
 
   // data
-  private long blockNumber;
+  public static volatile long blockNumber;
   private Plots plots;
   private Map<Long, Long> capacityLookup;
   private long remainingCapacity;
@@ -139,17 +139,18 @@ public class Reader
    */
   public void read(long previousBlockNumber, long blockNumber, int scoopNumber, long lastBestCommittedDeadline)
   {
-    this.blockNumber = blockNumber;
+    Reader.blockNumber = blockNumber;
 
     // ensure plots are initialized
     plots = plots == null ? getPlots() : plots;
 
     if(readerPool.getActiveCount() > 0)
     {
-      readerPool.shutdown();
+      // todo shutdown still needed?!
+//      readerPool.shutdown();
       long elapsedTime = new Date().getTime() - readerStartTime;
       publisher.publishEvent(new ReaderStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, lastBestCommittedDeadline));
-      readerPool.initialize();
+//      readerPool.initialize();
     }
 
     // update reader thread count
@@ -166,7 +167,6 @@ public class Reader
 
     readerStartTime = new Date().getTime();
 
-    // todo why use a threadPool in case we have one thread per drive anyway
     for(PlotDrive plotDrive : plots.getPlotDrives())
     {
       ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
@@ -186,8 +186,12 @@ public class Reader
 
   public void freeResources()
   {
-    readerPool.setCorePoolSize(1);
-    readerPool.setMaxPoolSize(1);
+    // if no read thread running, pool will be increased on next round
+    if(readerPool.getActiveCount() == 0)
+    {
+      readerPool.setCorePoolSize(1);
+      readerPool.setMaxPoolSize(1);
+    }
   }
 
   @Override
@@ -206,7 +210,7 @@ public class Reader
       }
       else
       {
-        LOG.error("Error: ReaderPartLoadedEvent for unknown chunkPartStartNonce: '"+event.getChunkPartStartNonce()+"'!"
+        LOG.error("Error: ReaderPartLoadedEvent for unknown chunkPartStartNonce: '" + event.getChunkPartStartNonce() + "'!"
                   + " Please check for plot-file duplicate or overlapping plots e.g. use https://bchain.info/BURST/tools/overlap");
       }
     }

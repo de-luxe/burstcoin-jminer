@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 by luxe - https://github.com/de-luxe -  BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -31,14 +31,16 @@ public class ReaderDriveFinishEvent
   private String directory;
   private long size;
   private long time;
+  private long blockNumber;
 
-  public ReaderDriveFinishEvent(String directory, long size, long time)
+  public ReaderDriveFinishEvent(String directory, long size, long time, long blockNumber)
   {
     super(directory);
 
     this.directory = directory;
     this.size = size;
     this.time = time;
+    this.blockNumber = blockNumber;
   }
 
   public long getTime()
@@ -54,5 +56,10 @@ public class ReaderDriveFinishEvent
   public long getSize()
   {
     return size;
+  }
+
+  public long getBlockNumber()
+  {
+    return blockNumber;
   }
 }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 by luxe - https://github.com/de-luxe -  BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -24,6 +24,7 @@ package burstcoin.jminer.core.reader.task;
 
 
 import burstcoin.jminer.core.CoreProperties;
+import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.PlotDrive;
 import burstcoin.jminer.core.reader.data.PlotFile;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
@@ -81,7 +82,7 @@ public class ReaderLoadDriveTask
   {
     long startTime = showDriveInfo ? new Date().getTime() : 0;
     Iterator<PlotFile> iterator = plotDrive.getPlotFiles().iterator();
-    while(iterator.hasNext() && !Thread.currentThread().isInterrupted())
+    while(iterator.hasNext() && Reader.blockNumber == blockNumber)
     {
       PlotFile plotPathInfo = iterator.next();
       if(plotPathInfo.getStaggeramt() % plotPathInfo.getNumberOfParts() > 0)
@@ -95,13 +96,13 @@ public class ReaderLoadDriveTask
 
     if(showDriveInfo)
     {
-      if(Thread.currentThread().isInterrupted())
+      if(Reader.blockNumber != blockNumber)
       {
         publisher.publishEvent(new ReaderDriveInterruptedEvent(blockNumber, plotDrive.getDirectory()));
       }
       else
       {
-        publisher.publishEvent(new ReaderDriveFinishEvent(plotDrive.getDirectory(), plotDrive.getSize(), new Date().getTime() - startTime));
+        publisher.publishEvent(new ReaderDriveFinishEvent(plotDrive.getDirectory(), plotDrive.getSize(), new Date().getTime() - startTime, blockNumber));
       }
     }
   }
@@ -121,17 +122,17 @@ public class ReaderLoadDriveTask
         sbc.position(currentScoopPosition + currentChunkPosition);
         for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++)
         {
-          sbc.read(partBuffer);
-          if(Thread.currentThread().isInterrupted())
+          if(Reader.blockNumber != blockNumber)
           {
             // todo never reached?!
-            LOG.debug("loadDriveThread interrupted!");
+            LOG.debug("loadDriveThread stopped!");
             // make sure to stop reading and clean up
             chunkNumber += plotFile.getNumberOfChunks();
             partNumber += plotFile.getNumberOfParts();
           }
           else
           {
+            sbc.read(partBuffer);
             long chunkPartStartNonce = plotFile.getStartnonce() + (chunkNumber * plotFile.getStaggeramt()) + (partNumber * partSize);
             final byte[] scoops = partBuffer.array();
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, scoops, chunkPartStartNonce));

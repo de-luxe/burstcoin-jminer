@@ -4,7 +4,7 @@
 
     <groupId>burstcoin</groupId>
     <artifactId>burstcoin-jminer</artifactId>
-    <version>0.4.1-SNAPSHOT</version>
+    <version>0.4.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>burstcoin-jminer</name>
@@ -94,9 +94,6 @@
             <resource>
                 <directory>src/main/java</directory>
                 <includes>
-                    <include>burstcoin/jminer/gui/**/*.fxml</include>
-                    <include>burstcoin/jminer/gui/**/*.css</include>
-                    <include>burstcoin/jminer/gui/**/*.jpg</include>
                     <include>burstcoin/jminer/core/**/*.cl</include>
                 </includes>
             </resource>

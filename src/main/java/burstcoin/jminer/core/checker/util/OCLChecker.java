@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2015 by luxe - https://github.com/de-luxe -  BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -105,8 +105,18 @@ public class OCLChecker
 
     context = clCreateContext(contextProperties, 1, new cl_device_id[]{devices[deviceId]}, null, null, null);
 
-    // org. queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
-    queue = clCreateCommandQueueWithProperties(context, devices[deviceId], new cl_queue_properties(), null);
+    boolean openCl2 = true;
+    try
+    {
+      // openCL 2.0
+      queue = clCreateCommandQueueWithProperties(context, devices[deviceId], new cl_queue_properties(), null);
+    }
+    catch(UnsupportedOperationException e)
+    {
+      // org. - fallback for openCL 1.2
+      openCl2 = false;
+      queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
+    }
 
     String kernelSource;
     try
@@ -144,7 +154,7 @@ public class OCLChecker
     gensigMem = clCreateBuffer(context, CL_MEM_READ_ONLY, 32, null, null);
     bestMem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 400, null, null); // org 400 // tested 5000
 
-    LOG.info("success ... started openCL context!");
+    LOG.info("success ... started openCL " + (openCl2 ? "2.0" : "1.2") + " context!");
   }
 
   public void reset(int platformId, int deviceId)
