@@ -124,7 +124,7 @@ public class NetworkSubmitSoloNonceTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Unable to solo nonce, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
+      LOG.warn("Unable to commit solo nonce, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

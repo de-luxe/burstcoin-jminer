@@ -146,11 +146,8 @@ public class Reader
 
     if(readerPool.getActiveCount() > 0)
     {
-      // todo shutdown still needed?!
-//      readerPool.shutdown();
       long elapsedTime = new Date().getTime() - readerStartTime;
       publisher.publishEvent(new ReaderStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, lastBestCommittedDeadline));
-//      readerPool.initialize();
     }
 
     // update reader thread count
@@ -184,14 +181,18 @@ public class Reader
     return plots;
   }
 
-  public void freeResources()
+  public boolean cleanupReaderPool()
   {
     // if no read thread running, pool will be increased on next round
     if(readerPool.getActiveCount() == 0)
     {
       readerPool.setCorePoolSize(1);
       readerPool.setMaxPoolSize(1);
+      LOG.debug("cleanup was successful ...");
+      return true;
     }
+    LOG.debug("cleanup skipped ... retry in 1s");
+    return false;
   }
 
   @Override

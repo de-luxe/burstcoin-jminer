@@ -23,7 +23,6 @@
 package burstcoin.jminer.core.checker.util;
 
 import burstcoin.jminer.core.CoreProperties;
-import org.jocl.CL;
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
 import org.jocl.cl_command_queue;
@@ -76,7 +75,7 @@ public class OCLChecker
 
   public void initChecker(int platformId, int deviceId)
   {
-    CL.setExceptionsEnabled(true);
+    setExceptionsEnabled(true);
 
     int numPlatforms[] = new int[1];
     clGetPlatformIDs(0, null, numPlatforms);
@@ -159,7 +158,7 @@ public class OCLChecker
 
   public void reset(int platformId, int deviceId)
   {
-    CL.clReleaseContext(context);
+    clReleaseContext(context);
     initChecker(platformId, deviceId);
   }
 

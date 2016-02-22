@@ -398,10 +398,35 @@ public class Round
       @Override
       public void run()
       {
-        reader.freeResources();
         fireEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime));
       }
     }, 250); // fire deferred
+
+    triggerCleanup();
+  }
+
+  private void triggerCleanup()
+  {
+    TimerTask cleanupTask = new TimerTask()
+    {
+      @Override
+      public void run()
+      {
+        if(!reader.cleanupReaderPool())
+        {
+          triggerCleanup();
+        }
+      }
+    };
+
+    try
+    {
+      timer.schedule(cleanupTask, 1000);
+    }
+    catch(IllegalStateException e)
+    {
+      LOG.error("cleanup task already scheduled ...");
+    }
   }
 
   private void commitDevPoolNonces(long blockNumber)

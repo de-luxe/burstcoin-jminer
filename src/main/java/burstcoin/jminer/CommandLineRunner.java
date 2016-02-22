@@ -338,7 +338,7 @@ public class CommandLineRunner
           @Override
           public void onApplicationEvent(ReaderDriveInterruptedEvent event)
           {
-            LOG.debug("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
+            LOG.info("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
           }
         });
 

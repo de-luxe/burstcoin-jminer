@@ -82,7 +82,8 @@ public class ReaderLoadDriveTask
   {
     long startTime = showDriveInfo ? new Date().getTime() : 0;
     Iterator<PlotFile> iterator = plotDrive.getPlotFiles().iterator();
-    while(iterator.hasNext() && Reader.blockNumber == blockNumber)
+    boolean interrupted = false;
+    while(iterator.hasNext() && !interrupted)
     {
       PlotFile plotPathInfo = iterator.next();
       if(plotPathInfo.getStaggeramt() % plotPathInfo.getNumberOfParts() > 0)
@@ -91,12 +92,12 @@ public class ReaderLoadDriveTask
         // fallback ... could lead to problems on optimized plot-files
         plotPathInfo.setNumberOfParts(1);
       }
-      load(plotPathInfo);
+      interrupted = load(plotPathInfo);
     }
 
     if(showDriveInfo)
     {
-      if(Reader.blockNumber != blockNumber)
+      if(interrupted)
       {
         publisher.publishEvent(new ReaderDriveInterruptedEvent(blockNumber, plotDrive.getDirectory()));
       }
@@ -107,7 +108,7 @@ public class ReaderLoadDriveTask
     }
   }
 
-  private void load(PlotFile plotFile)
+  private boolean load(PlotFile plotFile)
   {
     try (SeekableByteChannel sbc = Files.newByteChannel(plotFile.getFilePath(), EnumSet.of(StandardOpenOption.READ)))
     {
@@ -122,17 +123,17 @@ public class ReaderLoadDriveTask
         sbc.position(currentScoopPosition + currentChunkPosition);
         for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++)
         {
+          sbc.read(partBuffer);
+
           if(Reader.blockNumber != blockNumber)
           {
-            // todo never reached?!
             LOG.debug("loadDriveThread stopped!");
-            // make sure to stop reading and clean up
-            chunkNumber += plotFile.getNumberOfChunks();
-            partNumber += plotFile.getNumberOfParts();
+            partBuffer.clear();
+            sbc.close();
+            return true;
           }
           else
           {
-            sbc.read(partBuffer);
             long chunkPartStartNonce = plotFile.getStartnonce() + (chunkNumber * plotFile.getStaggeramt()) + (partNumber * partSize);
             final byte[] scoops = partBuffer.array();
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, scoops, chunkPartStartNonce));
@@ -155,5 +156,6 @@ public class ReaderLoadDriveTask
     {
       LOG.error("IOException: " + e.getMessage());
     }
+    return false;
   }
 }

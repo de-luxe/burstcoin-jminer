@@ -57,7 +57,7 @@ public class CoreProperties
   private static final int DEFAULT_CONNECTION_TIMEOUT = 6000;
   private static final int DEFAULT_WINNER_RETRIES_ON_ASYNC = 4;
   private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 500;
-  private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = false;
+  private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = true;
   private static final int DEFAULT_DEV_POOL_COMMITS_PER_ROUND = 3;
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
