@@ -29,6 +29,8 @@ import burstcoin.jminer.core.network.model.SubmitResultResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nxt.util.Convert;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.client.HttpContentResponse;
+import org.eclipse.jetty.client.HttpResponseException;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -49,6 +52,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.3-SNAPSHOT";
 
   @Autowired
   private ApplicationEventPublisher publisher;
@@ -68,20 +72,10 @@ public class NetworkSubmitPoolNonceTask
   private long blockNumber;
   private long chunkPartStartNonce;
   private long calculatedDeadline;
+  private long totalCapacity;
 
-  /**
-   * Init void.
-   *
-   * @param blockNumber the block number
-   * @param numericAccountId the numeric account id
-   * @param poolServer the pool server
-   * @param connectionTimeout the connection timeout
-   * @param nonce the nonce
-   * @param chunkPartStartNonce the chunk part start nonce
-   * @param calculatedDeadline the calculated deadline
-   */
   public void init(long blockNumber, String numericAccountId, String poolServer, long connectionTimeout, long nonce, long chunkPartStartNonce,
-                   long calculatedDeadline)
+                   long calculatedDeadline, long totalCapacity)
   {
     this.connectionTimeout = connectionTimeout;
 
@@ -92,6 +86,7 @@ public class NetworkSubmitPoolNonceTask
     this.blockNumber = blockNumber;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
+    this.totalCapacity = totalCapacity;
   }
 
   @Override
@@ -99,10 +94,14 @@ public class NetworkSubmitPoolNonceTask
   {
     try
     {
+      long gb = totalCapacity / 1000 /  1000 / 1000;
+
       ContentResponse response = httpClient.POST(poolServer + "/burst")
         .param("requestType", "submitNonce")
         .param("accountId", numericAccountId)
         .param("nonce", Convert.toUnsignedLong(nonce))
+        .header("X-Miner", HEADER_MINER_NAME)
+        .header("X-Capacity", String.valueOf(gb))
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
         .send();
 
@@ -122,7 +121,7 @@ public class NetworkSubmitPoolNonceTask
           }
           else
           {
-            // todo think over on re-commit
+            // todo re-commit
             publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce));
           }
         }
@@ -134,7 +133,25 @@ public class NetworkSubmitPoolNonceTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Unable to commit nonce to pool, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
+      LOG.warn("Nonce was committed to pool, but not confirmed ... caused by connectionTimeout,"
+               + " currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
+    }
+    catch(ExecutionException e)
+    {
+      // inform user about reward assignment issue
+      if(e.getCause() instanceof HttpResponseException)
+      {
+        HttpResponseException responseException = (HttpResponseException) e.getCause();
+        if(responseException.getResponse() instanceof HttpContentResponse)
+        {
+          HttpContentResponse httpContentResponse = (HttpContentResponse) responseException.getResponse();
+          LOG.warn("Error: Failed to submit nonce to pool: " + httpContentResponse.getContentAsString());
+        }
+      }
+      else
+      {
+        LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
+      }
     }
     catch(Exception e)
     {

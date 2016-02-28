@@ -104,6 +104,7 @@ public class Round
   private int devPoolCommitsPerRound;// one additional on finish round
 
   private Set<Long> runningChunkPartStartNonces;
+  private Plots plots;
 
   /**
    * Instantiates a new Round.
@@ -155,7 +156,7 @@ public class Round
 
       long lastBestCommittedDeadline = bestCommittedDeadline;
 
-      Plots plots = reader.getPlots();
+      plots = reader.getPlots();
       initNewRound(plots);
 
       // reconfigure checker
@@ -219,7 +220,7 @@ public class Round
             lowest = event.getResult();
             if(calculatedDeadline < targetDeadline)
             {
-              network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce());
+              network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize());
 
               // ui event
               fireEvent(new RoundSingleResultEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline, poolMining));
@@ -374,7 +375,7 @@ public class Round
 
   private void triggerFinishRoundEvent(long blockNumber)
   {
-    if(this.blockNumber == blockNumber && finishedBlockNumber < blockNumber)
+    if(finishedBlockNumber < blockNumber)
     {
       if(runningChunkPartStartNonces.isEmpty())
       {

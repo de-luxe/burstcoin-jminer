@@ -4,7 +4,7 @@
 
     <groupId>burstcoin</groupId>
     <artifactId>burstcoin-jminer</artifactId>
-    <version>0.4.2-RELEASE</version>
+    <version>0.4.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>burstcoin-jminer</name>
@@ -14,7 +14,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.3.2.RELEASE</version>
+        <version>1.3.3.RELEASE</version>
         <relativePath/>
     </parent>
 
@@ -22,7 +22,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <start-class>burstcoin.jminer.CommandLineRunner</start-class>
         <java.version>1.8</java.version>
-        <jetty.version>9.3.7.RC1</jetty.version>
+        <jetty.version>9.3.8.RC0</jetty.version>
         <jocl.version>0.2.0-RC00</jocl.version>
         <saphir-hash.version>3.0.1</saphir-hash.version>
         <bcprov-jdk16.version>1.46</bcprov-jdk16.version>

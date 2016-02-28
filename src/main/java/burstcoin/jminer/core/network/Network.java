@@ -160,7 +160,7 @@ public class Network
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public void commitResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce)
+  public void commitResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce, long totalCapacity)
   {
     if(poolMining)
     {
@@ -176,7 +176,7 @@ public class Network
       {
         NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
         networkSubmitPoolNonceTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, nonce,
-                                        chunkPartStartNonce, calculatedDeadline);
+                                        chunkPartStartNonce, calculatedDeadline, totalCapacity);
         networkPool.execute(networkSubmitPoolNonceTask);
       }
     }

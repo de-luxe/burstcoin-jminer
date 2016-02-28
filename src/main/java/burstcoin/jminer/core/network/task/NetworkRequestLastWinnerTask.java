@@ -113,11 +113,11 @@ public class NetworkRequestLastWinnerTask
 
           if(retries == winnerRetriesOnAsync)
           {
-            LOG.info("lastBlock from walletServer outdated, last retry in " + winnerRetryIntervalInMs + "ms");
+            LOG.debug("lastBlock from walletServer outdated, last retry in " + winnerRetryIntervalInMs + "ms");
           }
           else
           {
-            LOG.info("lastBlock from walletServer outdated, retry-" + retries + " in " + winnerRetryIntervalInMs + "ms");
+            LOG.debug("lastBlock from walletServer outdated, retry-" + retries + " in " + winnerRetryIntervalInMs + "ms");
           }
 
           try
@@ -151,7 +151,7 @@ public class NetworkRequestLastWinnerTask
     }
     catch(Exception e)
     {
-      LOG.warn("Error: Failed to 'getBlockchainStatus'");
+      LOG.warn("Error: Failed to 'getBlockchainStatus' from 'walletServer' to find last winner.");
     }
     return blockchainStatus;
   }
