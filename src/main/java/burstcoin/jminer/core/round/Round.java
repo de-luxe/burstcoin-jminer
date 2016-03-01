@@ -453,14 +453,6 @@ public class Round
     }, 1500);
   }
 
-  /**
-   * Stop timer.
-   */
-  public void stopTimer()
-  {
-    timer.cancel();
-  }
-
   private <EVENT extends ApplicationEvent> void fireEvent(EVENT event)
   {
     RoundFireEventTask roundFireEventTask = context.getBean(RoundFireEventTask.class);

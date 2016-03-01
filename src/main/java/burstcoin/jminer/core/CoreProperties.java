@@ -45,7 +45,6 @@ public class CoreProperties
 
   // default values
   private static final int DEFAULT_CHUNK_PART_NONCES = 320000;
-  private static final int DEFAULT_RESTART_INTERVAL = 240;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
@@ -92,7 +91,6 @@ public class CoreProperties
   private static Long targetDeadline;
   private static List<String> plotPaths;
   private static Long chunkPartNonces;
-  private static Integer restartInterval;
   private static Integer deviceId;
   private static Integer platformId;
   private static String walletServer;
@@ -384,20 +382,6 @@ public class CoreProperties
       deviceId = asInteger("deviceId", DEFAULT_DEVICE_ID);
     }
     return deviceId;
-  }
-
-  /**
-   * Gets restart interval.
-   *
-   * @return the restart interval
-   */
-  public static int getRestartInterval()
-  {
-    if(restartInterval == null)
-    {
-      restartInterval = asInteger("restartInterval", DEFAULT_RESTART_INTERVAL);
-    }
-    return restartInterval;
   }
 
   public static int getReaderThreads()

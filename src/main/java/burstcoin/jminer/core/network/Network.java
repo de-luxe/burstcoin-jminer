@@ -236,12 +236,4 @@ public class Network
       }
     }, 100, CoreProperties.getRefreshInterval());
   }
-
-  /**
-   * Stop timer.
-   */
-  public void stopTimer()
-  {
-    timer.cancel();
-  }
 }
