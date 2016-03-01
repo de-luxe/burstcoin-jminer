@@ -37,9 +37,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
-/**
- * The type Network request last winner task.
- */
 @Component
 @Scope("prototype")
 public class NetworkRequestLastWinnerTask
@@ -63,15 +60,6 @@ public class NetworkRequestLastWinnerTask
   private int winnerRetriesOnAsync;
   private long winnerRetryIntervalInMs;
 
-  /**
-   * Init void.
-   *
-   * @param server the server
-   * @param blockNumber the block number
-   * @param connectionTimeout the connection timeout
-   * @param winnerRetriesOnAsync the winner retries on async
-   * @param winnerRetryIntervalInMs the winner retry interval in ms
-   */
   public void init(String server, long blockNumber, long connectionTimeout, int winnerRetriesOnAsync, long winnerRetryIntervalInMs)
   {
     this.server = server;
@@ -92,8 +80,8 @@ public class NetworkRequestLastWinnerTask
     }
     else
     {
+      // todo event
       LOG.info("      last winner 'N/A', walletServer out of sync.");
-//      publisher.publishEvent(new NetworkLastWinnerEvent(this, blockNumber-1, "N/A"));
     }
   }
 
@@ -171,7 +159,7 @@ public class NetworkRequestLastWinnerTask
     }
     catch(Exception e)
     {
-      LOG.warn("Error: Failed to 'getBlock'");
+      LOG.warn("Error: Failed to 'getBlock' to find last winner.");
     }
     return block;
   }

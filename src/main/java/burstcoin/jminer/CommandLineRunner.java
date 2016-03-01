@@ -26,6 +26,7 @@ import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.Network;
 import burstcoin.jminer.core.network.event.NetworkDevResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkLastWinnerEvent;
+import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
@@ -297,6 +298,21 @@ public class CommandLineRunner
       }
     });
 
+    context.addApplicationListener(new ApplicationListener<NetworkPoolInfoEvent>()
+    {
+      @Override
+      public void onApplicationEvent(NetworkPoolInfoEvent event)
+      {
+        String value = event.getPoolBalanceNQT();
+        String amount = value.length() > 8 ? value.substring(0, value.length() - 8) : value;
+        value = event.getPoolForgedBalanceNQT();
+        String totalForget = value.length() > 8 ? value.substring(0, value.length() - 8) : value;
+        LOG.info("-------------------------------------------------------");
+        LOG.info("POOL account '" + event.getPoolAccountRS() + "', assigned miners '" + event.getPoolNumberOfMiningAccounts() + "'");
+        LOG.info("     balance '" + amount + " BURST', total mined '" + totalForget + " BURST'");
+      }
+    });
+
     LOG.info("");
     LOG.info("                            Burstcoin (BURST)");
     LOG.info("            __         __   GPU assisted PoC-Miner");
@@ -309,6 +325,7 @@ public class CommandLineRunner
     LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
 
     Network network = context.getBean(Network.class);
+    network.checkPoolInfo();
     network.startMining();
   }
 

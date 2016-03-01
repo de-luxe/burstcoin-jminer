@@ -27,6 +27,7 @@ import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.network.task.NetworkRequestLastWinnerTask;
 import burstcoin.jminer.core.network.task.NetworkRequestMiningInfoTask;
+import burstcoin.jminer.core.network.task.NetworkRequestPoolInfoTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitDevPoolNoncesTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
@@ -47,9 +48,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/**
- * The type Network.
- */
 @Component
 @Scope("singleton")
 public class Network
@@ -83,9 +81,6 @@ public class Network
   private long blockNumber;
   private Timer timer;
 
-  /**
-   * Post construct.
-   */
   @PostConstruct
   protected void postConstruct()
   {
@@ -131,15 +126,26 @@ public class Network
     }
     this.defaultTargetDeadline = CoreProperties.getTargetDeadline();
     this.connectionTimeout = CoreProperties.getConnectionTimeout();
-
-//    startMining();
   }
 
-  /**
-   * Check last winner.
-   *
-   * @param blockNumber the block number
-   */
+  @Override
+  @EventListener
+  public void handleMessage(NetworkStateChangeEvent event)
+  {
+    blockNumber = event.getBlockNumber();
+  }
+
+  public void checkNetworkState()
+  {
+    String server = poolMining ? poolServer : soloServer;
+    if(!StringUtils.isEmpty(server))
+    {
+      NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
+      networkRequestMiningInfoTask.init(server, blockNumber, poolMining, connectionTimeout, defaultTargetDeadline, devPool);
+      networkPool.execute(networkRequestMiningInfoTask);
+    }
+  }
+
   public void checkLastWinner(long blockNumber)
   {
     // find winner of lastBlock on new round, if server available
@@ -152,14 +158,16 @@ public class Network
     }
   }
 
-  /**
-   * Commit result.
-   *
-   * @param blockNumber the block number
-   * @param calculatedDeadline the calculated deadline
-   * @param nonce the nonce
-   * @param chunkPartStartNonce the chunk part start nonce
-   */
+  public void checkPoolInfo()
+  {
+    if(CoreProperties.isPoolMining() && !walletServer.equals("disabled"))
+    {
+      NetworkRequestPoolInfoTask networkRequestPoolInfoTask = context.getBean(NetworkRequestPoolInfoTask.class);
+      networkRequestPoolInfoTask.init(walletServer, numericAccountId, connectionTimeout);
+      networkPool.execute(networkRequestPoolInfoTask);
+    }
+  }
+
   public void commitResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce, long totalCapacity)
   {
     if(poolMining)
@@ -188,12 +196,6 @@ public class Network
     }
   }
 
-  /**
-   * Commit dev result.
-   *
-   * @param blockNumber the block number
-   * @param devPoolResults the dev pool results
-   */
   public void commitDevResult(long blockNumber, List<DevPoolResult> devPoolResults)
   {
     NetworkSubmitDevPoolNoncesTask networkSubmitDevPoolNoncesTask = context.getBean(NetworkSubmitDevPoolNoncesTask.class);
@@ -201,30 +203,6 @@ public class Network
     networkPool.execute(networkSubmitDevPoolNoncesTask);
   }
 
-  @Override
-  @EventListener
-  public void handleMessage(NetworkStateChangeEvent event)
-  {
-    blockNumber = event.getBlockNumber();
-  }
-
-  /**
-   * Check network state.
-   */
-  public void checkNetworkState()
-  {
-    String server = poolMining ? poolServer : soloServer;
-    if(!StringUtils.isEmpty(server))
-    {
-      NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, poolMining, connectionTimeout, defaultTargetDeadline, devPool);
-      networkPool.execute(networkRequestMiningInfoTask);
-    }
-  }
-
-  /**
-   * Start mining.
-   */
   public void startMining()
   {
     timer.schedule(new TimerTask()
