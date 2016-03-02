@@ -160,7 +160,7 @@ public class Network
 
   public void checkPoolInfo()
   {
-    if(CoreProperties.isPoolMining() && !walletServer.equals("disabled"))
+    if(CoreProperties.isPoolMining() && walletServer != null)
     {
       NetworkRequestPoolInfoTask networkRequestPoolInfoTask = context.getBean(NetworkRequestPoolInfoTask.class);
       networkRequestPoolInfoTask.init(walletServer, numericAccountId, connectionTimeout);

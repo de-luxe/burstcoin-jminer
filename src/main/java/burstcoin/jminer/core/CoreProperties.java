@@ -293,7 +293,7 @@ public class CoreProperties
       walletServer = asString("walletServer", "disabled");
       if(isPoolMining() && walletServer.equals("disabled"))
       {
-        LOG.info("Winner feature disabled, property 'walletServer' undefined!");
+        LOG.info("Winner and PoolInfo feature disabled, property 'walletServer' undefined!");
       }
     }
     return walletServer.equals("disabled") ? null : walletServer; //no default, to turn winner on and off.
