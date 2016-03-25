@@ -33,7 +33,10 @@ import org.jocl.cl_kernel;
 import org.jocl.cl_mem;
 import org.jocl.cl_platform_id;
 import org.jocl.cl_program;
-import org.jocl.cl_queue_properties;
+import org.jocl.utils.DeviceInfos;
+import org.jocl.utils.Devices;
+import org.jocl.utils.PlatformInfos;
+import org.jocl.utils.Platforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
@@ -44,6 +47,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import static org.jocl.CL.*;
 
@@ -55,6 +59,11 @@ import static org.jocl.CL.*;
 public class OCLChecker
 {
   private static final Logger LOG = LoggerFactory.getLogger(OCLChecker.class);
+
+  private static final int SIZE_DIVISOR = CoreProperties.isByteUnitDecimal() ? 1000 : 1024;
+  private static final String T_UNIT = CoreProperties.isByteUnitDecimal() ? "TB" : "TiB";
+  private static final String G_UNIT = CoreProperties.isByteUnitDecimal() ? "GB" : "GiB";
+  private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
 
   cl_context context;
   cl_command_queue queue;
@@ -75,6 +84,8 @@ public class OCLChecker
 
   public void initChecker(int platformId, int deviceId)
   {
+    check();
+
     setExceptionsEnabled(true);
 
     int numPlatforms[] = new int[1];
@@ -89,7 +100,7 @@ public class OCLChecker
     clGetPlatformIDs(platforms.length, platforms, null);
 
     int[] numDevices = new int[1];
-    clGetDeviceIDs(platforms[platformId], CL_DEVICE_TYPE_GPU, 0, null, numDevices);
+    clGetDeviceIDs(platforms[platformId], CL_DEVICE_TYPE_ALL, 0, null, numDevices);
 
     if(deviceId >= numDevices[0])
     {
@@ -97,25 +108,13 @@ public class OCLChecker
     }
 
     cl_device_id devices[] = new cl_device_id[numDevices[0]];
-    clGetDeviceIDs(platforms[platformId], CL_DEVICE_TYPE_GPU, devices.length, devices, null);
+    clGetDeviceIDs(platforms[platformId], CL_DEVICE_TYPE_ALL, devices.length, devices, null);
 
     cl_context_properties contextProperties = new cl_context_properties();
     contextProperties.addProperty(CL_CONTEXT_PLATFORM, platforms[platformId]);
 
     context = clCreateContext(contextProperties, 1, new cl_device_id[]{devices[deviceId]}, null, null, null);
-
-    boolean openCl2 = true;
-    try
-    {
-      // openCL 2.0
-      queue = clCreateCommandQueueWithProperties(context, devices[deviceId], new cl_queue_properties(), null);
-    }
-    catch(UnsupportedOperationException e)
-    {
-      // org. - fallback for openCL 1.2
-      openCl2 = false;
-      queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
-    }
+    queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
 
     String kernelSource;
     try
@@ -142,24 +141,64 @@ public class OCLChecker
       clGetKernelWorkGroupInfo(kernel[i], devices[deviceId], CL_KERNEL_WORK_GROUP_SIZE, 8, Pointer.to(maxWorkGroupSize), null);
       workgroupSize[i] = maxWorkGroupSize[0];
     }
-    LOG.debug("Max work group size: " + maxWorkGroupSize[0]);
 
     long[] maxComputeUnits = new long[1];
     clGetDeviceInfo(devices[deviceId], CL_DEVICE_MAX_COMPUTE_UNITS, 8, Pointer.to(maxComputeUnits), null);
-    LOG.debug("Max compute units: " + maxComputeUnits[0]);
 
     computeUnits = maxComputeUnits[0];
-
     gensigMem = clCreateBuffer(context, CL_MEM_READ_ONLY, 32, null, null);
     bestMem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 400, null, null); // org 400 // tested 5000
 
-    LOG.info("success ... started openCL " + (openCl2 ? "2.0" : "1.2") + " context!");
+    LOG.info("");
+    LOG.info("(*) openCL context successfully started! (platformId: "+platformId+", deviceId: "+deviceId+")");
+    LOG.info("-------------------------------------------------------");
+  }
+
+  private void check()
+  {
+    List<cl_platform_id> platforms = Platforms.getPlatforms();
+    LOG.info("-------------------------------------------------------");
+    LOG.info("List of system openCL platforms and devices (* = used for mining)");
+    LOG.info("");
+    for(cl_platform_id cl_platform_id : platforms)
+    {
+      int currentPlatformId = platforms.indexOf(cl_platform_id);
+      if(currentPlatformId == CoreProperties.getPlatformId())
+      {
+
+        String selector = " * ";
+        String selectionPrefix = currentPlatformId == CoreProperties.getPlatformId() ? selector : "   ";
+        LOG.info(selectionPrefix + "PLATFORM-[" + currentPlatformId + "] " + PlatformInfos.getName(cl_platform_id) + " - "
+                 + "(" + PlatformInfos.getVersion(cl_platform_id) + ")");
+
+        List<cl_device_id> devices = Devices.getDevices(cl_platform_id);
+        for(cl_device_id cl_device_id : devices)
+        {
+          int currentDeviceId = devices.indexOf(cl_device_id);
+          selectionPrefix = currentDeviceId == CoreProperties.getDeviceId() ? selector : "   ";
+
+          LOG.info(selectionPrefix + "  DEVICE-[" + currentDeviceId + "] " + DeviceInfos.getName(cl_device_id) + " "
+                   + "(" + bytesAsGigabyte(DeviceInfos.getMaxMemAllocSize(cl_device_id)) + ")"
+                   + " - " + DeviceInfos.getVendor(cl_device_id) + " (" + DeviceInfos.getDeviceVersion(cl_device_id)
+                   + " | '" + DeviceInfos.getDriverVersion(cl_device_id) + "')");
+          LOG.info(selectionPrefix + "         [" + currentDeviceId + "] "
+                   + "work group size: '" + DeviceInfos.getMaxWorkGroupSize(cl_device_id) + "', "
+                   + "computing units: '" + DeviceInfos.getMaxComputeUnits(cl_device_id) + "', "
+                   + "available '" + DeviceInfos.getAvailable(cl_device_id) + "'");
+        }
+      }
+    }
   }
 
   public void reset(int platformId, int deviceId)
   {
     clReleaseContext(context);
     initChecker(platformId, deviceId);
+  }
+
+  private String bytesAsGigabyte(long bytes)
+  {
+    return bytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR + "" + G_UNIT;
   }
 
   public int findLowest(byte[] gensig, byte[] data)

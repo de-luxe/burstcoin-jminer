@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * The type Round fire event task.
+ * ensure event handler code is executed in round pool
  */
 @Component
 @Scope("prototype")
@@ -45,12 +45,6 @@ public class RoundFireEventTask
 
   private ApplicationEvent event;
 
-  /**
-   * Init void.
-   *
-   * @param <EVENT>  the type parameter
-   * @param event the event
-   */
   public <EVENT extends ApplicationEvent> void init(EVENT event)
   {
     this.event = event;

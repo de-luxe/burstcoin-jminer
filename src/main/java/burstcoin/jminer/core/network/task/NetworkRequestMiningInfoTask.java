@@ -65,16 +65,6 @@ public class NetworkRequestMiningInfoTask
   private long defaultTargetDeadline;
   private boolean devV2Pool;
 
-  /**
-   * Init void.
-   *
-   * @param server the server
-   * @param blockNumber the block number
-   * @param poolMining the pool mining
-   * @param connectionTimeout the connection timeout
-   * @param defaultTargetDeadline the default target deadline
-   * @param devV2Pool the dev v 2 pool
-   */
   public void init(String server, long blockNumber, boolean poolMining, long connectionTimeout, long defaultTargetDeadline, boolean devV2Pool)
   {
     this.server = server;
@@ -89,6 +79,8 @@ public class NetworkRequestMiningInfoTask
   @Override
   public void run()
   {
+    LOG.trace("start check network state");
+
     MiningInfoResponse result;
     try
     {
@@ -123,6 +115,10 @@ public class NetworkRequestMiningInfoTask
 
           publisher.publishEvent(new NetworkStateChangeEvent(blockNumber, baseTarget, generationSignature, targetDeadline));
         }
+        else
+        {
+          LOG.trace("not publish NetworkStateChangeEvent ... '" + blockNumber + " <= " + this.blockNumber + "'");
+        }
       }
       else
       {
@@ -131,7 +127,7 @@ public class NetworkRequestMiningInfoTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Unable to get mining info from wallet, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
+      LOG.warn("Unable to get mining info from wallet, caused by connectionTimeout, currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

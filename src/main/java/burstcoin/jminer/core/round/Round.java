@@ -250,7 +250,7 @@ public class Round
     }
     else
     {
-      LOG.debug("event for previous block ...");
+      LOG.trace("event for previous block ...");
     }
   }
 
@@ -277,7 +277,7 @@ public class Round
     }
     else
     {
-      LOG.debug("event for previous block ...");
+      LOG.trace("event for previous block ...");
     }
   }
 

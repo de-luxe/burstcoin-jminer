@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -65,9 +64,6 @@ public class Reader
 
   @Autowired
   private ApplicationContext context;
-
-  @Autowired
-  private ApplicationEventPublisher publisher;
 
   @Autowired
   @Qualifier(value = "readerPool")
@@ -147,7 +143,7 @@ public class Reader
     if(readerPool.getActiveCount() > 0)
     {
       long elapsedTime = new Date().getTime() - readerStartTime;
-      publisher.publishEvent(new ReaderStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, lastBestCommittedDeadline));
+      context.publishEvent(new ReaderStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, lastBestCommittedDeadline));
     }
 
     // update reader thread count
@@ -207,7 +203,7 @@ public class Reader
       {
         remainingCapacity -= removedCapacity;
         long elapsedTime = new Date().getTime() - readerStartTime;
-        publisher.publishEvent(new ReaderProgressChangedEvent(this, event.getBlockNumber(), capacity, remainingCapacity, elapsedTime));
+        context.publishEvent(new ReaderProgressChangedEvent(this, event.getBlockNumber(), capacity, remainingCapacity, elapsedTime));
       }
       else
       {
@@ -232,7 +228,7 @@ public class Reader
       if(plotFile != null)
       {
         // plotFile.toString is just objId
-        publisher.publishEvent(new ReaderCorruptFileEvent(this, event.getBlockNumber(), plotFile.getFilePath().toString(), plotFile.getNumberOfChunks(),
+        context.publishEvent(new ReaderCorruptFileEvent(this, event.getBlockNumber(), plotFile.getFilePath().toString(), plotFile.getNumberOfChunks(),
                                                           plotFile.getNumberOfParts()));
       }
     }

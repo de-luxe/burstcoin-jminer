@@ -27,8 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pocminer.generate.MiningPlot;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +36,7 @@ import java.util.Map;
  */
 public class PlotFile
 {
-  private static final Logger LOGGER = LoggerFactory.getLogger(PlotFile.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PlotFile.class);
 
   // key -> size
   private Map<Long, Long> chunkPartStartNonces;
@@ -59,7 +57,7 @@ public class PlotFile
   /**
    * Instantiates a new Plot file.
    *
-   * @param filePath the file path
+   * @param filePath        the file path
    * @param chunkPartNonces the chunk part nonces
    */
   public PlotFile(Path filePath, Long chunkPartNonces)
@@ -78,7 +76,17 @@ public class PlotFile
     chunkPartStartNonces = new HashMap<>();
 
     size = numberOfChunks * staggeramt * MiningPlot.PLOT_SIZE;
-    long chunkPartSize = size / numberOfChunks / numberOfParts;
+
+    if(LOG.isDebugEnabled())
+    {
+      long fileSize = filePath.toFile().length();
+      if(fileSize != size)
+      {
+        LOG.debug("incomplete plotFile: " + filePath.toString() + " specified size '" + size + " bytes', size '" + fileSize + " bytes'.");
+      }
+    }
+
+    long chunkPartSize = this.size / numberOfChunks / numberOfParts;
     for(int chunkNumber = 0; chunkNumber < numberOfChunks; chunkNumber++)
     {
       for(int partNumber = 0; partNumber < numberOfParts; partNumber++)
@@ -88,24 +96,10 @@ public class PlotFile
         Long key = chunkPartStartNonces.put(chunkPartStartNonce, chunkPartSize);
         if(key != null)
         {
-          LOGGER.error("possible overlapping plot-file '" + filePath + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+          LOG.error("possible overlapping plot-file '" + filePath + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
         }
       }
     }
-  }
-
-  private long getSize(Path filePath)
-  {
-    long size = 1;
-    try
-    {
-      size = Files.size(filePath);
-    }
-    catch(IOException e)
-    {
-      e.printStackTrace();
-    }
-    return size;
   }
 
   /**

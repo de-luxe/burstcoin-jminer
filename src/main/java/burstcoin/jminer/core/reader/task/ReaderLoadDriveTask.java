@@ -127,7 +127,7 @@ public class ReaderLoadDriveTask
 
           if(Reader.blockNumber != blockNumber)
           {
-            LOG.debug("loadDriveThread stopped!");
+            LOG.trace("loadDriveThread stopped!");
             partBuffer.clear();
             sbc.close();
             return true;
@@ -150,7 +150,7 @@ public class ReaderLoadDriveTask
     catch(ClosedByInterruptException e)
     {
       // we reach this, if we do not wait for task on shutdown - ByteChannel closed by thread interruption
-      LOG.debug("reader stopped cause of new block ...");
+      LOG.trace("reader stopped cause of new block ...");
     }
     catch(IOException e)
     {

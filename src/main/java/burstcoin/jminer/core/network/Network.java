@@ -28,6 +28,7 @@ import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.network.task.NetworkRequestLastWinnerTask;
 import burstcoin.jminer.core.network.task.NetworkRequestMiningInfoTask;
 import burstcoin.jminer.core.network.task.NetworkRequestPoolInfoTask;
+import burstcoin.jminer.core.network.task.NetworkRequestTriggerServerTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitDevPoolNoncesTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
@@ -146,6 +147,17 @@ public class Network
     }
   }
 
+  // ensure wallet-server does not stuck on solo mining
+  public void triggerServer()
+  {
+    if(!StringUtils.isEmpty(soloServer))
+    {
+      NetworkRequestTriggerServerTask networkRequestTriggerServerTask = context.getBean(NetworkRequestTriggerServerTask.class);
+      networkRequestTriggerServerTask.init(soloServer, numericAccountId, connectionTimeout);
+      networkPool.execute(networkRequestTriggerServerTask);
+    }
+  }
+
   public void checkLastWinner(long blockNumber)
   {
     // find winner of lastBlock on new round, if server available
@@ -213,5 +225,18 @@ public class Network
         checkNetworkState();
       }
     }, 100, CoreProperties.getRefreshInterval());
+
+    // on solo mining
+    if(!CoreProperties.isPoolMining())
+    {
+      timer.schedule(new TimerTask()
+      {
+        @Override
+        public void run()
+        {
+          triggerServer();
+        }
+      }, 5000, 25000);
+    }
   }
 }

@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class PlotDrive
 {
-  private static final Logger LOGGER = LoggerFactory.getLogger(PlotDrive.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PlotDrive.class);
 
   private Collection<PlotFile> plotFiles;
   private String directory;
@@ -61,7 +61,7 @@ public class PlotDrive
 
       if(plotFile.getStaggeramt() % plotFile.getNumberOfParts() != 0)
       {
-        LOGGER.warn("could not calculate valid numberOfParts: " + plotFile.getFilePath());
+        LOG.warn("could not calculate valid numberOfParts: " + plotFile.getFilePath());
       }
     }
   }
@@ -100,8 +100,7 @@ public class PlotDrive
       chunkPartStartNonces.putAll(plotFile.getChunkPartStartNonces());
       if(expectedSize != chunkPartStartNonces.size())
       {
-        LOGGER
-          .error("possible overlapping plot-file '" + plotFile.getFilePath() + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+        LOG.error("possible overlapping plot-file '" + plotFile.getFilePath() + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
       }
     }
     return chunkPartStartNonces;

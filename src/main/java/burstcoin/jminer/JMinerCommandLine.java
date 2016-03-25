@@ -42,18 +42,18 @@ import burstcoin.jminer.core.round.event.RoundStartedEvent;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
 
-@SpringBootApplication
-public class CommandLineRunner
+
+public class JMinerCommandLine
+  implements CommandLineRunner
 {
-  private static final Logger LOG = LoggerFactory.getLogger(CommandLineRunner.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JMinerCommandLine.class);
 
   private static final int NUMBER_OF_PROGRESS_LOGS_PER_ROUND = CoreProperties.getReadProgressPerRound();
 
@@ -67,11 +67,37 @@ public class CommandLineRunner
   private static long previousRemainingCapacity = 0;
   private static long previousElapsedTime = 0;
 
-  public static void main(String[] args)
-  {
-    LOG.info("start the engines ...");
-    ConfigurableApplicationContext context = SpringApplication.run(CommandLineRunner.class);
+  private ConfigurableApplicationContext context;
 
+  public JMinerCommandLine(ConfigurableApplicationContext context)
+  {
+    this.context = context;
+  }
+
+  @Override
+  public void run(String... args)
+    throws Exception
+  {
+    initApplicationListeners();
+
+    LOG.info("-------------------------------------------------------");
+    LOG.info("                            Burstcoin (BURST)");
+    LOG.info("            __         __   GPU assisted PoC-Miner");
+    LOG.info("           |__| _____ |__| ____   ___________ ");
+    LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
+    LOG.info("     0.4.4 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
+    LOG.info("       \\______|     \\/        \\/     \\/");
+    LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
+    LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
+
+    Network network = context.getBean(Network.class);
+    network.checkPoolInfo();
+    network.startMining();
+  }
+
+  private void initApplicationListeners()
+  {
     context.addApplicationListener(new ApplicationListener<RoundFinishedEvent>()
     {
       @Override
@@ -312,24 +338,9 @@ public class CommandLineRunner
         LOG.info("     balance '" + amount + " BURST', total mined '" + totalForget + " BURST'");
       }
     });
-
-    LOG.info("");
-    LOG.info("                            Burstcoin (BURST)");
-    LOG.info("            __         __   GPU assisted PoC-Miner");
-    LOG.info("           |__| _____ |__| ____   ___________ ");
-    LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.4.3 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
-    LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
-    LOG.info("       \\______|     \\/        \\/     \\/");
-    LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
-    LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
-
-    Network network = context.getBean(Network.class);
-    network.checkPoolInfo();
-    network.startMining();
   }
 
-  private static String getDeadlineTime(Long calculatedDeadline)
+  private String getDeadlineTime(Long calculatedDeadline)
   {
     long sec = calculatedDeadline;
     long min = sec / 60;

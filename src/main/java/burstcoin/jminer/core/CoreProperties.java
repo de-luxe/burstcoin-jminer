@@ -62,6 +62,10 @@ public class CoreProperties
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
   private static final int DEFAULT_READER_THREADS = 0;
+  private static final boolean DEFAULT_DEBUG = false;
+  private static final boolean DEFAULT_WRITE_LOG_FILE = false;
+  private static final String DEFAULT_LOG_FILE_PATH = "log/jminer.log.txt";
+
   // there seams to be a issue on checker
   private static final boolean DEFAULT_OPT_DEV_POOL = false;
 
@@ -102,6 +106,9 @@ public class CoreProperties
   private static Boolean listPlotFiles;
   private static Boolean showDriveInfo;
   private static Integer readerThreads;
+  private static Boolean writeLogFile;
+  private static Boolean debug;
+  private static String logFilePath;
 
   private CoreProperties()
   {
@@ -451,6 +458,33 @@ public class CoreProperties
       showDriveInfo = asBoolean("showDriveInfo", DEFAULT_SHOW_DRIVE_INFO);
     }
     return showDriveInfo;
+  }
+
+  public static boolean isWriteLogFile()
+  {
+    if(writeLogFile == null)
+    {
+      writeLogFile = asBoolean("writeLogFile", DEFAULT_WRITE_LOG_FILE);
+    }
+    return writeLogFile;
+  }
+
+  public static boolean isDebug()
+  {
+    if(debug == null)
+    {
+      debug = asBoolean("debug", DEFAULT_DEBUG);
+    }
+    return debug;
+  }
+
+  public static String getLogFilePath()
+  {
+    if(logFilePath == null)
+    {
+      logFilePath = asString("logFilePath", DEFAULT_LOG_FILE_PATH);
+    }
+    return logFilePath;
   }
 
   private static Boolean asBoolean(String key, boolean defaultValue)

@@ -52,7 +52,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.3-SNAPSHOT";
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.4-SNAPSHOT";
 
   @Autowired
   private ApplicationEventPublisher publisher;

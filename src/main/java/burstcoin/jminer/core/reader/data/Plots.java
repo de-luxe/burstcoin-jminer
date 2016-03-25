@@ -23,6 +23,7 @@
 package burstcoin.jminer.core.reader.data;
 
 
+import burstcoin.jminer.core.CoreProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,18 +45,16 @@ import java.util.Map;
  */
 public class Plots
 {
-  private static final Logger LOGGER = LoggerFactory.getLogger(Plots.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Plots.class);
 
   private Collection<PlotDrive> plotDrives;
   private Map<Long, Long> chunkPartStartNonces;
 
-  /**
-   * Instantiates a new Plots.
-   *
-   * @param plotPaths the plot paths
-   * @param numericAccountId the numeric account id
-   * @param chunkPartNonces the chunk part nonces
-   */
+  public Plots()
+  {
+    this(CoreProperties.getPlotPaths(), CoreProperties.getNumericAccountId(), CoreProperties.getChunkPartNonces());
+  }
+
   public Plots(List<String> plotPaths, String numericAccountId, long chunkPartNonces)
   {
     plotDrives = new HashSet<>();
@@ -70,8 +69,8 @@ public class Plots
       chunkPartStartNonces.putAll(plotDrive.collectChunkPartStartNonces());
       if(expectedSize != chunkPartStartNonces.size())
       {
-        LOGGER.error("possible duplicate/overlapping polt-file on drive '" + plotDrive.getDirectory()
-                     + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+        LOG.error("possible duplicate/overlapping polt-file on drive '" + plotDrive.getDirectory()
+                  + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
       }
     }
   }
@@ -106,7 +105,7 @@ public class Plots
       }
       catch(IOException | DirectoryIteratorException e)
       {
-        LOGGER.error(e.getMessage());
+        LOG.error(e.getMessage());
       }
     }
     return plotFilesLookup;
@@ -115,9 +114,8 @@ public class Plots
   /**
    * Gets size.
    *
-   * @return the size
+   * @return total number of bytes of all plotFiles
    */
-// returns total number of bytes of all plotFiles
   public long getSize()
   {
     long size = 0;
@@ -146,6 +144,7 @@ public class Plots
    * Gets plot file by plot file start nonce.
    *
    * @param plotFileStartNonce the plot file start nonce
+   *
    * @return the plot file by plot file start nonce
    */
   public PlotFile getPlotFileByPlotFileStartNonce(long plotFileStartNonce)
@@ -177,6 +176,7 @@ public class Plots
    * Gets plot file by chunk part start nonce.
    *
    * @param chunkPartStartNonce the chunk part start nonce
+   *
    * @return the plot file by chunk part start nonce
    */
   public PlotFile getPlotFileByChunkPartStartNonce(long chunkPartStartNonce)
