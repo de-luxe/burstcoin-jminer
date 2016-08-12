@@ -25,6 +25,7 @@ package burstcoin.jminer.core.network.task;
 
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
+import burstcoin.jminer.core.network.model.ResponseError;
 import burstcoin.jminer.core.network.model.SubmitResultResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nxt.util.Convert;
@@ -52,7 +53,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.4-SNAPSHOT";
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.5-SNAPSHOT";
 
   @Autowired
   private ApplicationEventPublisher publisher;
@@ -94,7 +95,7 @@ public class NetworkSubmitPoolNonceTask
   {
     try
     {
-      long gb = totalCapacity / 1000 /  1000 / 1000;
+      long gb = totalCapacity / 1000 / 1000 / 1000;
 
       ContentResponse response = httpClient.POST(poolServer + "/burst")
         .param("requestType", "submitNonce")
@@ -107,7 +108,11 @@ public class NetworkSubmitPoolNonceTask
 
       if(response.getContentAsString().contains("errorCode"))
       {
-        LOG.warn("Error: Submit nonce to pool not successful: " + response.getContentAsString());
+        ResponseError error = objectMapper.readValue(response.getContentAsString(), ResponseError.class);
+        LOG.info("dl '" + calculatedDeadline + "' not accepted by pool!");
+        LOG.debug("Error code: '"+error.getErrorCode()+"'.");
+        LOG.debug("Error description: '"+error.getErrorDescription()+"'.");
+        publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
       }
       else
       {
@@ -121,13 +126,14 @@ public class NetworkSubmitPoolNonceTask
           }
           else
           {
-            // todo re-commit
+            // in general if deadlines do not match, we end up in errorCode above
             publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce));
           }
         }
         else
         {
           LOG.warn("Error: Submit nonce to pool not successful: " + response.getContentAsString());
+          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
         }
       }
     }
@@ -135,6 +141,7 @@ public class NetworkSubmitPoolNonceTask
     {
       LOG.warn("Nonce was committed to pool, but not confirmed ... caused by connectionTimeout,"
                + " currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
     }
     catch(ExecutionException e)
     {
@@ -152,10 +159,12 @@ public class NetworkSubmitPoolNonceTask
       {
         LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
       }
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
     }
     catch(Exception e)
     {
       LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
     }
   }
 }

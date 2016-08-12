@@ -85,7 +85,7 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.4.4 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("     0.4.5 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
@@ -278,8 +278,9 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(NetworkResultErrorEvent event)
       {
-        LOG.info("strange dl result '" + event.getStrangeDeadline() + "', calculated '" + event.getCalculatedDeadline() + "' "
-                 + "block '" + event.getBlockNumber() + "' nonce '" + event.getNonce() + "'");
+        LOG.debug("strange dl result '" + event.getStrangeDeadline() + "', "
+                  + "calculated '" + (event.getCalculatedDeadline() > 0 ? event.getCalculatedDeadline() : "N/A") + "' "
+                  + "block '" + event.getBlockNumber() + "' nonce '" + event.getNonce() + "'");
       }
     });
 
@@ -288,10 +289,10 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(ReaderCorruptFileEvent event)
       {
-        LOG.info("strange dl source '" + event.getFilePath() + "' (try replotting!?)");
-        LOG.info("strange dl file chunks '" + event.getNumberOfChunks() + "', "
-                 + "parts per chunk '" + event.getNumberOfParts() + "', "
-                 + "block '" + event.getBlockNumber() + "'");
+        LOG.debug("strange dl source '" + event.getFilePath() + "' (try replotting!?)");
+        LOG.debug("strange dl file chunks '" + event.getNumberOfChunks() + "', "
+                  + "parts per chunk '" + event.getNumberOfParts() + "', "
+                  + "block '" + event.getBlockNumber() + "'");
       }
     });
 
