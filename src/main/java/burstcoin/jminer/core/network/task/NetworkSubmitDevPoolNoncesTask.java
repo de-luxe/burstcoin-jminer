@@ -24,7 +24,6 @@ package burstcoin.jminer.core.network.task;
 
 import burstcoin.jminer.core.network.event.NetworkDevResultConfirmedEvent;
 import burstcoin.jminer.core.network.model.DevPoolResult;
-import nxt.util.Convert;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.eclipse.jetty.client.util.StringContentProvider;
@@ -89,7 +88,7 @@ public class NetworkSubmitDevPoolNoncesTask
       String data = "";
       for(DevPoolResult devPoolResult : devPoolResults)
       {
-        data += numericAccountId + ":" + Convert.toUnsignedLong(devPoolResult.getNonce()) + ":" + blockNumber + "\n";
+        data += numericAccountId + ":" + devPoolResult.getNonce().toString() + ":" + blockNumber + "\n";
       }
 
       ContentResponse response = httpClient.POST(poolServer + "/pool/submitWork")

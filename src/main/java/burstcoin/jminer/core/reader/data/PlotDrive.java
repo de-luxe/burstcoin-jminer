@@ -26,6 +26,7 @@ package burstcoin.jminer.core.reader.data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -91,9 +92,9 @@ public class PlotDrive
    *
    * @return the map
    */
-  public Map<Long, Long> collectChunkPartStartNonces()
+  public Map<BigInteger, Long> collectChunkPartStartNonces()
   {
-    Map<Long, Long> chunkPartStartNonces = new HashMap<>();
+    Map<BigInteger, Long> chunkPartStartNonces = new HashMap<>();
     for(PlotFile plotFile : plotFiles)
     {
       int expectedSize = chunkPartStartNonces.size() + plotFile.getChunkPartStartNonces().size();

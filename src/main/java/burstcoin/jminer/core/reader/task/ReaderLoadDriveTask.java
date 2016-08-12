@@ -39,6 +39,7 @@ import org.springframework.stereotype.Component;
 import pocminer.generate.MiningPlot;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.SeekableByteChannel;
@@ -134,7 +135,7 @@ public class ReaderLoadDriveTask
           }
           else
           {
-            long chunkPartStartNonce = plotFile.getStartnonce() + (chunkNumber * plotFile.getStaggeramt()) + (partNumber * partSize);
+            BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(chunkNumber * plotFile.getStaggeramt() + partNumber * partSize));
             final byte[] scoops = partBuffer.array();
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, scoops, chunkPartStartNonce));
           }

@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -78,7 +79,7 @@ public class Reader
   // data
   public static volatile long blockNumber;
   private Plots plots;
-  private Map<Long, Long> capacityLookup;
+  private Map<BigInteger, Long> capacityLookup;
   private long remainingCapacity;
   private long capacity;
   private long readerStartTime;

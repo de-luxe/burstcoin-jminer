@@ -24,6 +24,8 @@ package burstcoin.jminer.core.network.event;
 
 import org.springframework.context.ApplicationEvent;
 
+import java.math.BigInteger;
+
 /**
  * fired if server response deadline does not match calculated deadline.
  */
@@ -44,12 +46,12 @@ public class NetworkResultErrorEvent
   }
 
   private long blockNumber;
-  private long nonce;
+  private BigInteger nonce;
 
   private long calculatedDeadline;
   private long strangeDeadline;
 
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
 
   /**
    * Instantiates a new Network result error event.
@@ -60,7 +62,7 @@ public class NetworkResultErrorEvent
    * @param strangeDeadline the strange deadline
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultErrorEvent(long blockNumber, long nonce, long calculatedDeadline, long strangeDeadline, long chunkPartStartNonce)
+  public NetworkResultErrorEvent(long blockNumber, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce)
   {
     super(blockNumber);
 
@@ -77,7 +79,7 @@ public class NetworkResultErrorEvent
    *
    * @return the chunk part start nonce
    */
-  public long getChunkPartStartNonce()
+  public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;
   }
@@ -97,7 +99,7 @@ public class NetworkResultErrorEvent
    *
    * @return the nonce
    */
-  public long getNonce()
+  public BigInteger getNonce()
   {
     return nonce;
   }

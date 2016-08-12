@@ -24,6 +24,7 @@ package burstcoin.jminer.core.checker.event;
 
 import burstcoin.jminer.core.network.model.DevPoolResult;
 
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
  */
 public class CheckerDevResultEvent
 {
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
   private long blockNumber;
 
   private List<DevPoolResult> devPoolResults;
@@ -43,7 +44,7 @@ public class CheckerDevResultEvent
    * @param chunkPartStartNonce the chunk part start nonce
    * @param devPoolResults the dev pool results
    */
-  public CheckerDevResultEvent(long blockNumber, long chunkPartStartNonce, List<DevPoolResult> devPoolResults)
+  public CheckerDevResultEvent(long blockNumber, BigInteger chunkPartStartNonce, List<DevPoolResult> devPoolResults)
   {
     this.chunkPartStartNonce = chunkPartStartNonce;
 
@@ -66,7 +67,7 @@ public class CheckerDevResultEvent
    *
    * @return the chunk part start nonce
    */
-  public long getChunkPartStartNonce()
+  public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;
   }

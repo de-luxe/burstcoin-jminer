@@ -28,7 +28,6 @@ import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.model.ResponseError;
 import burstcoin.jminer.core.network.model.SubmitResultResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nxt.util.Convert;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpContentResponse;
 import org.eclipse.jetty.client.HttpResponseException;
@@ -40,6 +39,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -66,16 +66,16 @@ public class NetworkSubmitPoolNonceTask
 
   private long connectionTimeout;
 
-  private long nonce;
+  private BigInteger nonce;
   private String poolServer;
   private String numericAccountId;
 
   private long blockNumber;
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
   private long calculatedDeadline;
   private long totalCapacity;
 
-  public void init(long blockNumber, String numericAccountId, String poolServer, long connectionTimeout, long nonce, long chunkPartStartNonce,
+  public void init(long blockNumber, String numericAccountId, String poolServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
                    long calculatedDeadline, long totalCapacity)
   {
     this.connectionTimeout = connectionTimeout;
@@ -100,7 +100,7 @@ public class NetworkSubmitPoolNonceTask
       ContentResponse response = httpClient.POST(poolServer + "/burst")
         .param("requestType", "submitNonce")
         .param("accountId", numericAccountId)
-        .param("nonce", Convert.toUnsignedLong(nonce))
+        .param("nonce", nonce.toString())
         .header("X-Miner", HEADER_MINER_NAME)
         .header("X-Capacity", String.valueOf(gb))
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)

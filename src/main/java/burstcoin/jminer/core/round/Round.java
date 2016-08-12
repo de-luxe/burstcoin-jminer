@@ -103,7 +103,7 @@ public class Round
   private int devPoolCommitsThisRound;
   private int devPoolCommitsPerRound;// one additional on finish round
 
-  private Set<Long> runningChunkPartStartNonces;
+  private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
 
   /**
@@ -193,7 +193,7 @@ public class Round
       // check new lowest result
       if(event.getResult() != null)
       {
-        long nonce = event.getNonce();
+        BigInteger nonce = event.getNonce();
         BigInteger deadline = event.getResult().divide(BigInteger.valueOf(baseTarget));
         long calculatedDeadline = deadline.longValue();
 

@@ -55,7 +55,7 @@ public class OCLCheckerTask
   private long blockNumber;
   private byte[] generationSignature;
   private byte[] scoops;
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
 
   /**
    * Instantiates a new OCL checker task.
@@ -71,12 +71,12 @@ public class OCLCheckerTask
   /**
    * Init void.
    *
-   * @param blockNumber the block number
+   * @param blockNumber         the block number
    * @param generationSignature the generation signature
-   * @param scoops the scoops
+   * @param scoops              the scoops
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public void init(long blockNumber, byte[] generationSignature, byte[] scoops, long chunkPartStartNonce)
+  public void init(long blockNumber, byte[] generationSignature, byte[] scoops, BigInteger chunkPartStartNonce)
   {
     this.blockNumber = blockNumber;
     this.generationSignature = generationSignature;
@@ -92,7 +92,7 @@ public class OCLCheckerTask
     {
       lowestNonce = oclChecker.findLowest(generationSignature, scoops);
     }
-    long nonce = chunkPartStartNonce + lowestNonce;
+    BigInteger nonce = chunkPartStartNonce.add(BigInteger.valueOf(lowestNonce));
 
     BigInteger result = calculateResult(scoops, generationSignature, lowestNonce);
     publisher.publishEvent(new CheckerResultEvent(blockNumber, chunkPartStartNonce, nonce, result));

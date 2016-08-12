@@ -26,7 +26,6 @@ import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.model.SubmitResultResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import nxt.util.Convert;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
 import org.slf4j.Logger;
@@ -36,6 +35,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -60,10 +60,10 @@ public class NetworkSubmitSoloNonceTask
 
   private String soloServer;
   private String passPhrase;
-  private long nonce;
+  private BigInteger nonce;
 
   private long blockNumber;
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
   private long calculatedDeadline;
   private long connectionTimeout;
 
@@ -78,7 +78,7 @@ public class NetworkSubmitSoloNonceTask
    * @param chunkPartStartNonce the chunk part start nonce
    * @param calculatedDeadline the calculated deadline
    */
-  public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, long nonce, long chunkPartStartNonce,
+  public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
                    long calculatedDeadline)
   {
     this.connectionTimeout = connectionTimeout;
@@ -100,7 +100,8 @@ public class NetworkSubmitSoloNonceTask
       ContentResponse response = httpClient.POST(soloServer + "/burst")
         .param("requestType", "submitNonce")
         .param("secretPhrase", passPhrase)
-        .param("nonce", Convert.toUnsignedLong(nonce))
+//        .param("nonce", Convert.toUnsignedLong(nonce))
+        .param("nonce", nonce.toString())
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
         .send();
 

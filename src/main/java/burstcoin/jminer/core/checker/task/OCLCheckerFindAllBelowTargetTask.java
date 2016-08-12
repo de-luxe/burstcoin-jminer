@@ -57,7 +57,7 @@ public class OCLCheckerFindAllBelowTargetTask
   private long blockNumber;
   private byte[] generationSignature;
   private byte[] scoops;
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
   private long targetDeadline;
   private long baseTarget;
 
@@ -82,7 +82,7 @@ public class OCLCheckerFindAllBelowTargetTask
    * @param chunkPartStartNonce the chunk part start nonce
    * @param baseTarget the base target
    */
-  public void init(long blockNumber, byte[] generationSignature, byte[] scoops, long targetDeadline, long chunkPartStartNonce, long baseTarget)
+  public void init(long blockNumber, byte[] generationSignature, byte[] scoops, long targetDeadline, BigInteger chunkPartStartNonce, long baseTarget)
   {
     this.blockNumber = blockNumber;
     this.generationSignature = generationSignature;
@@ -107,7 +107,7 @@ public class OCLCheckerFindAllBelowTargetTask
       List<DevPoolResult> devPoolResults = new ArrayList<>();
       for(int lowestNonce : lowestNonces)
       {
-        long nonce = chunkPartStartNonce + lowestNonce;
+        BigInteger nonce = chunkPartStartNonce.add(BigInteger.valueOf(lowestNonce));
         BigInteger result = calculateResult(scoops, generationSignature, lowestNonce);
         BigInteger deadline = result.divide(BigInteger.valueOf(baseTarget));
         long calculatedDeadline = deadline.longValue();

@@ -23,6 +23,8 @@
 package burstcoin.jminer.core.reader.event;
 
 
+import java.math.BigInteger;
+
 /**
  * The type Reader loaded part event.
  */
@@ -41,7 +43,7 @@ public class ReaderLoadedPartEvent
     void handleMessage(ReaderLoadedPartEvent event);
   }
 
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
   private long blockNumber;
 
   private byte[] scoops;
@@ -53,7 +55,7 @@ public class ReaderLoadedPartEvent
    * @param scoops the scoops
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public ReaderLoadedPartEvent(long blockNumber, byte[] scoops, long chunkPartStartNonce)
+  public ReaderLoadedPartEvent(long blockNumber, byte[] scoops, BigInteger chunkPartStartNonce)
   {
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
@@ -85,10 +87,8 @@ public class ReaderLoadedPartEvent
    *
    * @return the chunk part start nonce
    */
-  public long getChunkPartStartNonce()
+  public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;
   }
-
-
 }

@@ -44,6 +44,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
@@ -180,7 +181,7 @@ public class Network
     }
   }
 
-  public void commitResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce, long totalCapacity)
+  public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity)
   {
     if(poolMining)
     {

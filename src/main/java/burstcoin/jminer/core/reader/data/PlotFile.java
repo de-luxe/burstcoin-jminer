@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pocminer.generate.MiningPlot;
 
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class PlotFile
   private static final Logger LOG = LoggerFactory.getLogger(PlotFile.class);
 
   // key -> size
-  private Map<Long, Long> chunkPartStartNonces;
+  private Map<BigInteger, Long> chunkPartStartNonces;
 
   private Path filePath;
   private Long chunkPartNonces;
@@ -48,7 +49,7 @@ public class PlotFile
 
   private String filename;
   private long address;
-  private long startnonce;
+  private BigInteger startnonce;
   private long plots;
   private long staggeramt;
 
@@ -67,7 +68,7 @@ public class PlotFile
     this.filename = filePath.getFileName().toString();
     String[] parts = filename.split("_");
     this.address = Convert.parseUnsignedLong(parts[0]);
-    this.startnonce = Long.valueOf(parts[1]);
+    this.startnonce = new BigInteger(parts[1]);
     this.plots = Long.valueOf(parts[2]);
     staggeramt = Long.valueOf(parts[3]);
     this.numberOfParts = calculateNumberOfParts(staggeramt);
@@ -92,7 +93,7 @@ public class PlotFile
       for(int partNumber = 0; partNumber < numberOfParts; partNumber++)
       {
         // register a unique key for identification
-        long chunkPartStartNonce = startnonce + chunkNumber * staggeramt + partNumber * (staggeramt / numberOfParts);
+        BigInteger chunkPartStartNonce = startnonce.add(BigInteger.valueOf(chunkNumber * staggeramt + partNumber * (staggeramt / numberOfParts)));
         Long key = chunkPartStartNonces.put(chunkPartStartNonce, chunkPartSize);
         if(key != null)
         {
@@ -147,7 +148,7 @@ public class PlotFile
    *
    * @return the startnonce
    */
-  public long getStartnonce()
+  public BigInteger getStartnonce()
   {
     return startnonce;
   }
@@ -207,7 +208,7 @@ public class PlotFile
    *
    * @return the chunk part start nonces
    */
-  public Map<Long, Long> getChunkPartStartNonces()
+  public Map<BigInteger, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;
   }

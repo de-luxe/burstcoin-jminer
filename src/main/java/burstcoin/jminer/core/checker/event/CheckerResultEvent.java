@@ -29,10 +29,10 @@ import java.math.BigInteger;
  */
 public class CheckerResultEvent
 {
-  private long chunkPartStartNonce;
+  private BigInteger chunkPartStartNonce;
 
   private long blockNumber;
-  private long nonce;
+  private BigInteger nonce;
   private BigInteger result;
 
   /**
@@ -43,7 +43,7 @@ public class CheckerResultEvent
    * @param nonce the nonce
    * @param result the result
    */
-  public CheckerResultEvent(long blockNumber, long chunkPartStartNonce, long nonce, BigInteger result)
+  public CheckerResultEvent(long blockNumber, BigInteger chunkPartStartNonce, BigInteger nonce, BigInteger result)
   {
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
@@ -67,7 +67,7 @@ public class CheckerResultEvent
    *
    * @return the nonce
    */
-  public long getNonce()
+  public BigInteger getNonce()
   {
     return nonce;
   }
@@ -87,7 +87,7 @@ public class CheckerResultEvent
    *
    * @return the chunk part start nonce
    */
-  public long getChunkPartStartNonce()
+  public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;
   }

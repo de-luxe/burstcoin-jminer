@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.file.DirectoryIteratorException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -65,7 +66,7 @@ public class Plots
   private static final Logger LOG = LoggerFactory.getLogger(Plots.class);
 
   private Collection<PlotDrive> plotDrives;
-  private Map<Long, Long> chunkPartStartNonces;
+  private Map<BigInteger, Long> chunkPartStartNonces;
 
   public Plots()
   {
@@ -184,7 +185,7 @@ public class Plots
    *
    * @return the chunk part start nonces
    */
-  public Map<Long, Long> getChunkPartStartNonces()
+  public Map<BigInteger, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;
   }
@@ -196,7 +197,7 @@ public class Plots
    *
    * @return the plot file by chunk part start nonce
    */
-  public PlotFile getPlotFileByChunkPartStartNonce(long chunkPartStartNonce)
+  public PlotFile getPlotFileByChunkPartStartNonce(BigInteger chunkPartStartNonce)
   {
     for(PlotDrive plotDrive : getPlotDrives())
     {

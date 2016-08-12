@@ -23,6 +23,8 @@
 package burstcoin.jminer.core.network.model;
 
 
+import java.math.BigInteger;
+
 /**
  * The type Dev pool result.
  */
@@ -30,8 +32,8 @@ public class DevPoolResult
 {
   private long blockNumber;
   private long calculatedDeadline;
-  private long nonce;
-  private long chunkPartStartNonce;
+  private BigInteger nonce;
+  private BigInteger chunkPartStartNonce;
 
   /**
    * Instantiates a new Dev pool result.
@@ -41,7 +43,7 @@ public class DevPoolResult
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public DevPoolResult(long blockNumber, long calculatedDeadline, long nonce, long chunkPartStartNonce)
+  public DevPoolResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce)
   {
     this.blockNumber = blockNumber;
     this.calculatedDeadline = calculatedDeadline;
@@ -74,7 +76,7 @@ public class DevPoolResult
    *
    * @return the nonce
    */
-  public long getNonce()
+  public BigInteger getNonce()
   {
     return nonce;
   }
@@ -84,7 +86,7 @@ public class DevPoolResult
    *
    * @return the chunk part start nonce
    */
-  public long getChunkPartStartNonce()
+  public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;
   }
