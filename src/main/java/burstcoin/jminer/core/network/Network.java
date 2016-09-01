@@ -60,7 +60,7 @@ public class Network
   @Autowired
   private ApplicationContext context;
 
-  @Autowired()
+  @Autowired
   @Qualifier(value = "networkPool")
   private ThreadPoolTaskExecutor networkPool;
 

@@ -209,7 +209,7 @@ public class JMinerCommandLine
             long effDoneBytes = previousRemainingCapacity - event.getRemainingCapacity();
 
             // calculate current reading speed (since last info)
-            long effBytesPerMs = (effDoneBytes / 4096) / (event.getElapsedTime() - previousElapsedTime);
+            long effBytesPerMs = (effDoneBytes / 4096) / (1 + (event.getElapsedTime() - previousElapsedTime));
             effMBPerSec = (effBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
           }
 

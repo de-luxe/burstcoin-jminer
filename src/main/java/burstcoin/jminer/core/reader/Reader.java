@@ -24,7 +24,10 @@ package burstcoin.jminer.core.reader;
 
 
 import burstcoin.jminer.core.CoreProperties;
+import burstcoin.jminer.core.network.event.NetworkBlocksEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
+import burstcoin.jminer.core.network.model.Block;
+import burstcoin.jminer.core.network.task.NetworkRequestAccountBlocksTask;
 import burstcoin.jminer.core.reader.data.PlotDrive;
 import burstcoin.jminer.core.reader.data.PlotFile;
 import burstcoin.jminer.core.reader.data.Plots;
@@ -48,10 +51,14 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The type Reader.
@@ -69,6 +76,10 @@ public class Reader
   @Autowired
   @Qualifier(value = "readerPool")
   private ThreadPoolTaskExecutor readerPool;
+
+  @Autowired
+  @Qualifier(value = "networkPool")
+  private ThreadPoolTaskExecutor networkPool;
 
   // config
   private String numericAccountId;
@@ -124,7 +135,18 @@ public class Reader
 
     if(CoreProperties.isListPlotFiles())
     {
-      getPlots().printPlotFiles();
+      // find winner of lastBlock on new round, if server available
+      String server = !poolMining ? CoreProperties.getSoloServer() : CoreProperties.getWalletServer() != null ? CoreProperties.getWalletServer() : null;
+      if(!StringUtils.isEmpty(server))
+      {
+        NetworkRequestAccountBlocksTask networkRequestAccountBlocksTask = context.getBean(NetworkRequestAccountBlocksTask.class);
+        networkRequestAccountBlocksTask.init(numericAccountId, server);
+        networkPool.execute(networkRequestAccountBlocksTask);
+      }
+      else
+      {
+        getPlots().printPlotFiles();
+      }
     }
   }
 
@@ -230,7 +252,63 @@ public class Reader
       {
         // plotFile.toString is just objId
         context.publishEvent(new ReaderCorruptFileEvent(this, event.getBlockNumber(), plotFile.getFilePath().toString(), plotFile.getNumberOfChunks(),
-                                                          plotFile.getNumberOfParts()));
+                                                        plotFile.getNumberOfParts()));
+      }
+    }
+  }
+
+  @EventListener
+  public void handleMessage(NetworkBlocksEvent event)
+  {
+    if(event.getBlocks() != null && !event.getBlocks().getBlocks().isEmpty())
+    {
+      Map<String, List<Block>> foundBlocksLookup = new HashMap<>();
+      Map<String, Long> numberOfChunksLookup = new HashMap<>();
+      Set<Block> unassignedBlocks = new HashSet<>(event.getBlocks().getBlocks());
+
+      for(PlotDrive plotDrive : getPlots().getPlotDrives())
+      {
+        for(PlotFile plotFile : plotDrive.getPlotFiles())
+        {
+          // number of chunks
+          numberOfChunksLookup.put(plotFile.getFilePath().toString(), plotFile.getPlots() / plotFile.getStaggeramt());
+
+          // found blocks
+          foundBlocksLookup.put(plotFile.getFilePath().toString(), new ArrayList<>());
+          Set<Block> assignedBlocks = new HashSet<>();
+          for(Block unassignedBlock : unassignedBlocks)
+          {
+            BigInteger nonce = new BigInteger(unassignedBlock.getNonce());
+            BigInteger end = plotFile.getStartnonce().add(BigInteger.valueOf(plotFile.getPlots()));
+            // check if nonce is within plotfile
+            if(plotFile.getStartnonce().compareTo(nonce) < 0 && end.compareTo(nonce) >= 0)
+            {
+              foundBlocksLookup.get(plotFile.getFilePath().toString()).add(unassignedBlock);
+              assignedBlocks.add(unassignedBlock);
+            }
+          }
+          unassignedBlocks.removeAll(assignedBlocks);
+        }
+      }
+
+      List<String> rows = new ArrayList<>();
+      for(Map.Entry<String, List<Block>> entry : foundBlocksLookup.entrySet())
+      {
+        String seekOut = numberOfChunksLookup.get(entry.getKey()).equals(1L) ? ", OPTIMIZED!" : ", chunks '" + numberOfChunksLookup.get(entry.getKey()) + "'.";
+        if(entry.getValue().isEmpty())
+        {
+          rows.add("'" + entry.getKey() + "', blocks 'N/A'" + seekOut);
+        }
+        else
+        {
+          rows.add("'" + entry.getKey() + "', blocks '" + entry.getValue().size() + "'" + seekOut);
+        }
+      }
+
+      Collections.sort(rows);
+      for(String row : rows)
+      {
+        System.out.println(row);
       }
     }
   }
