@@ -119,7 +119,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>nxt.Nxt</mainClass>
+              <mainClass>burstcoin.jminer.JMinerApplication</mainClass>
             </manifest>
           </archive>
         </configuration>
