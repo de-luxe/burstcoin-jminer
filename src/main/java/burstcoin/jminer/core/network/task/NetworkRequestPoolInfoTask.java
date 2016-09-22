@@ -79,7 +79,7 @@ public class NetworkRequestPoolInfoTask
       if(account != null)
       {
         publisher.publishEvent(new NetworkPoolInfoEvent(account.getAccountRS(), account.getBalanceNQT(), account.getForgedBalanceNQT(),
-                                                        accountIdsOfRewardRecipient.size()));
+                accountIdsOfRewardRecipient != null ? accountIdsOfRewardRecipient.size() : 0));
       }
     }
   }

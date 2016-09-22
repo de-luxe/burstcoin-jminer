@@ -155,7 +155,7 @@ public class ReaderLoadDriveTask
     }
     catch(IOException e)
     {
-      LOG.error("IOException: " + e.getMessage());
+      LOG.error("IOException in: " + plotFile.getFilePath().toString() +" -> " + e.getMessage());
     }
     return false;
   }
