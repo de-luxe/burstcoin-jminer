@@ -38,6 +38,7 @@ public class NetworkResultConfirmedEvent
   private BigInteger nonce;
 
   private BigInteger chunkPartStartNonce;
+  private BigInteger result;
 
   /**
    * Instantiates a new Network result confirmed event.
@@ -47,7 +48,7 @@ public class NetworkResultConfirmedEvent
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultConfirmedEvent(long blockNumber, long deadline, BigInteger nonce, BigInteger chunkPartStartNonce)
+  public NetworkResultConfirmedEvent(long blockNumber, long deadline, BigInteger nonce, BigInteger chunkPartStartNonce, BigInteger result)
   {
     super(blockNumber);
 
@@ -56,6 +57,7 @@ public class NetworkResultConfirmedEvent
     this.nonce = nonce;
 
     this.chunkPartStartNonce = chunkPartStartNonce;
+    this.result = result;
   }
 
   /**
@@ -96,5 +98,10 @@ public class NetworkResultConfirmedEvent
   public BigInteger getNonce()
   {
     return nonce;
+  }
+
+  public BigInteger getResult()
+  {
+    return result;
   }
 }

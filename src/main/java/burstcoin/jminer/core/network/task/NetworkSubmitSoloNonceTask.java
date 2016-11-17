@@ -65,21 +65,22 @@ public class NetworkSubmitSoloNonceTask
   private long blockNumber;
   private BigInteger chunkPartStartNonce;
   private long calculatedDeadline;
+  private BigInteger result;
   private long connectionTimeout;
 
   /**
    * Init void.
-   *
-   * @param blockNumber the block number
+   *  @param blockNumber the block number
    * @param passPhrase the pass phrase
    * @param soloServer the solo server
    * @param connectionTimeout the connection timeout
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    * @param calculatedDeadline the calculated deadline
+   * @param result
    */
   public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
-                   long calculatedDeadline)
+                   long calculatedDeadline, BigInteger result)
   {
     this.connectionTimeout = connectionTimeout;
 
@@ -90,6 +91,7 @@ public class NetworkSubmitSoloNonceTask
     this.blockNumber = blockNumber;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
+    this.result = result;
   }
 
   @Override
@@ -111,11 +113,11 @@ public class NetworkSubmitSoloNonceTask
       {
         if(calculatedDeadline == result.getDeadline())
         {
-          publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, result.getDeadline(), nonce, chunkPartStartNonce));
+          publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, result.getDeadline(), nonce, chunkPartStartNonce, this.result));
         }
         else
         {
-          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce));
+          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce, this.result));
         }
       }
       else

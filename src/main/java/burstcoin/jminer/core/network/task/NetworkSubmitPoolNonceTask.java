@@ -74,9 +74,10 @@ public class NetworkSubmitPoolNonceTask
   private BigInteger chunkPartStartNonce;
   private long calculatedDeadline;
   private long totalCapacity;
+  private BigInteger result;
 
   public void init(long blockNumber, String numericAccountId, String poolServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
-                   long calculatedDeadline, long totalCapacity)
+                   long calculatedDeadline, long totalCapacity, BigInteger result)
   {
     this.connectionTimeout = connectionTimeout;
 
@@ -88,6 +89,7 @@ public class NetworkSubmitPoolNonceTask
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
     this.totalCapacity = totalCapacity;
+    this.result = result;
   }
 
   @Override
@@ -96,6 +98,8 @@ public class NetworkSubmitPoolNonceTask
     try
     {
       long gb = totalCapacity / 1000 / 1000 / 1000;
+
+//      LOG.info(HEADER_MINER_NAME);
 
       ContentResponse response = httpClient.POST(poolServer + "/burst")
         .param("requestType", "submitNonce")
@@ -112,7 +116,7 @@ public class NetworkSubmitPoolNonceTask
         LOG.info("dl '" + calculatedDeadline + "' not accepted by pool!");
         LOG.debug("Error code: '"+error.getErrorCode()+"'.");
         LOG.debug("Error description: '"+error.getErrorDescription()+"'.");
-        publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
+        publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, result));
       }
       else
       {
@@ -122,18 +126,18 @@ public class NetworkSubmitPoolNonceTask
         {
           if(calculatedDeadline == result.getDeadline())
           {
-            publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, result.getDeadline(), nonce, chunkPartStartNonce));
+            publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, result.getDeadline(), nonce, chunkPartStartNonce, this.result));
           }
           else
           {
             // in general if deadlines do not match, we end up in errorCode above
-            publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce));
+            publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce, this.result));
           }
         }
         else
         {
           LOG.warn("Error: Submit nonce to pool not successful: " + response.getContentAsString());
-          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
+          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
         }
       }
     }
@@ -141,7 +145,7 @@ public class NetworkSubmitPoolNonceTask
     {
       LOG.warn("Nonce was committed to pool, but not confirmed ... caused by connectionTimeout,"
                + " currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(ExecutionException e)
     {
@@ -159,12 +163,12 @@ public class NetworkSubmitPoolNonceTask
       {
         LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
       }
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(Exception e)
     {
       LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce));
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
   }
 }

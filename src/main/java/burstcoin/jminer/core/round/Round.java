@@ -97,6 +97,10 @@ public class Round
   private BigInteger lowest;
   private long bestCommittedDeadline;
 
+  // cache for next lowest
+  private CheckerResultEvent queuedEvent;
+  private BigInteger lowestCommitted;
+
   // dev pool
   private boolean devPool;
   private List<DevPoolResult> devPoolResults;
@@ -106,13 +110,6 @@ public class Round
   private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
 
-  /**
-   * Instantiates a new Round.
-   *
-   * @param reader  the reader
-   * @param checker the checker
-   * @param network the network
-   */
   @Autowired
   public Round(Reader reader, Checker checker, Network network)
   {
@@ -139,6 +136,8 @@ public class Round
     runningChunkPartStartNonces = new HashSet<>(plots.getChunkPartStartNonces().keySet());
     roundStartDate = new Date();
     lowest = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    lowestCommitted = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    queuedEvent = null;
     devPoolResults = new ArrayList<>();
     bestCommittedDeadline = Long.MAX_VALUE;
     devPoolCommitsThisRound = devPoolCommitsPerRound;
@@ -180,11 +179,6 @@ public class Round
     }
   }
 
-  /**
-   * Handle message.
-   *
-   * @param event the event
-   */
   @EventListener
   public void handleMessage(CheckerResultEvent event)
   {
@@ -206,9 +200,6 @@ public class Round
           }
           else
           {
-            // todo there will be a lot of skipped, makes no sense, cause lowest not used here, remove or make adjustable by setting.
-//            publisher.publishEvent(new RoundSingleResultSkippedEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-//                                                                     targetDeadline, poolMining));
             runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
             triggerFinishRoundEvent(event.getBlockNumber());
           }
@@ -220,7 +211,7 @@ public class Round
             lowest = event.getResult();
             if(calculatedDeadline < targetDeadline)
             {
-              network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize());
+              network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), event.getResult());
 
               // ui event
               fireEvent(new RoundSingleResultEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline, poolMining));
@@ -234,6 +225,22 @@ public class Round
               runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
               triggerFinishRoundEvent(event.getBlockNumber());
             }
+          }
+          // remember next lowest in case that lowest fails to commit
+          else if(calculatedDeadline < targetDeadline
+                  && event.getResult().compareTo(lowestCommitted) < 0
+                  && (queuedEvent == null || event.getResult().compareTo(queuedEvent.getResult()) < 0 ))
+          {
+            if(queuedEvent != null)
+            {
+              // remove previous queued
+              runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
+            }
+            LOG.debug("new queued dl '" + calculatedDeadline +"'.");
+            queuedEvent = event;
+
+            // todo not sure if / why needed?!
+            triggerFinishRoundEvent(event.getBlockNumber());
           }
           else
           {
@@ -321,6 +328,18 @@ public class Round
   {
     if(blockNumber == event.getBlockNumber())
     {
+      lowestCommitted = event.getResult();
+
+      // if queuedLowest exist and is higher than lowestCommitted, remove queuedLowest
+      if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0 )
+      {
+        BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
+        LOG.debug("remove queued dl '" + dl +"'.");
+
+        runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
+        queuedEvent = null;
+      }
+
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
       bestCommittedDeadline = event.getDeadline();
       triggerFinishRoundEvent(event.getBlockNumber());
@@ -360,6 +379,15 @@ public class Round
   {
     if(blockNumber == event.getBlockNumber())
     {
+      // reset lowest to lowestCommitted, as it does not commit successful.
+      lowest = lowestCommitted;
+      // in case that queued result is lower than committedLowest, commit queued again.
+      if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
+      {
+        LOG.debug("trigger commit queued deadline ...");
+        handleMessage(queuedEvent);
+      }
+
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
       triggerFinishRoundEvent(event.getBlockNumber());
     }

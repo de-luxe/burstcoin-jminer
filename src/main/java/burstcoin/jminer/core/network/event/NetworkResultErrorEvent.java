@@ -52,6 +52,7 @@ public class NetworkResultErrorEvent
   private long strangeDeadline;
 
   private BigInteger chunkPartStartNonce;
+  private BigInteger result;
 
   /**
    * Instantiates a new Network result error event.
@@ -62,7 +63,7 @@ public class NetworkResultErrorEvent
    * @param strangeDeadline the strange deadline
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultErrorEvent(long blockNumber, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce)
+  public NetworkResultErrorEvent(long blockNumber, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce, BigInteger result)
   {
     super(blockNumber);
 
@@ -72,6 +73,7 @@ public class NetworkResultErrorEvent
     this.strangeDeadline = strangeDeadline;
 
     this.chunkPartStartNonce = chunkPartStartNonce;
+    this.result = result;
   }
 
   /**
@@ -122,5 +124,10 @@ public class NetworkResultErrorEvent
   public long getStrangeDeadline()
   {
     return strangeDeadline;
+  }
+
+  public BigInteger getResult()
+  {
+    return result;
   }
 }

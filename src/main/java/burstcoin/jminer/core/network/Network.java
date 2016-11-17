@@ -181,7 +181,7 @@ public class Network
     }
   }
 
-  public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity)
+  public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity, BigInteger result)
   {
     if(poolMining)
     {
@@ -197,14 +197,14 @@ public class Network
       {
         NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
         networkSubmitPoolNonceTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, nonce,
-                                        chunkPartStartNonce, calculatedDeadline, totalCapacity);
+                                        chunkPartStartNonce, calculatedDeadline, totalCapacity, result);
         networkPool.execute(networkSubmitPoolNonceTask);
       }
     }
     else
     {
       NetworkSubmitSoloNonceTask networkSubmitSoloNonceTask = context.getBean(NetworkSubmitSoloNonceTask.class);
-      networkSubmitSoloNonceTask.init(blockNumber, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline);
+      networkSubmitSoloNonceTask.init(blockNumber, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline, result);
       networkPool.execute(networkSubmitSoloNonceTask);
     }
   }
