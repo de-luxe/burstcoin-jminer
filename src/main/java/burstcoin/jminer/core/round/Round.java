@@ -236,7 +236,7 @@ public class Round
               // remove previous queued
               runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
             }
-            LOG.debug("new queued dl '" + calculatedDeadline +"'.");
+            LOG.info("dl '" + calculatedDeadline +"' queued");
             queuedEvent = event;
 
             // todo not sure if / why needed?!
@@ -334,7 +334,7 @@ public class Round
       if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0 )
       {
         BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
-        LOG.debug("remove queued dl '" + dl +"'.");
+        LOG.debug("dl '" + dl +"' removed from queue");
 
         runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
         queuedEvent = null;
@@ -384,8 +384,10 @@ public class Round
       // in case that queued result is lower than committedLowest, commit queued again.
       if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
       {
-        LOG.debug("trigger commit queued deadline ...");
+        LOG.info("commit queued dl ...");
         handleMessage(queuedEvent);
+
+        queuedEvent = null;
       }
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
