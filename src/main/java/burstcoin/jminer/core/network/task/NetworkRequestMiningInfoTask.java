@@ -22,6 +22,7 @@
 
 package burstcoin.jminer.core.network.task;
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.MiningInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +36,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.EOFException;
+import java.net.ConnectException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -131,7 +134,18 @@ public class NetworkRequestMiningInfoTask
     }
     catch(Exception e)
     {
-      LOG.warn("Unable to get mining info from wallet: " + e.getMessage());
+      if(e instanceof ConnectException)
+      {
+        LOG.warn(CoreProperties.isDebug() ? "Unable to get mining info from wallet: " + e.getMessage() : "Unable to get mining info from wallet due ConnectException.");
+      }
+      else if(e instanceof EOFException)
+      {
+        LOG.warn(CoreProperties.isDebug() ? "Unable to get mining info from wallet: " + e.getMessage() : "Unable to get mining info from wallet due EOFException.");
+      }
+      else
+      {
+        LOG.warn("Unable to get mining info from wallet: " + e.getMessage());
+      }
     }
   }
 }
