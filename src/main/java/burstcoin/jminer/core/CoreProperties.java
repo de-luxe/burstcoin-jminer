@@ -66,10 +66,6 @@ public class CoreProperties
   private static final boolean DEFAULT_WRITE_LOG_FILE = false;
   private static final String DEFAULT_LOG_FILE_PATH = "log/jminer.log.txt";
 
-  // there seams to be a issue on checker
-  private static final boolean DEFAULT_OPT_DEV_POOL = false;
-
-
   static
   {
     try
@@ -89,7 +85,6 @@ public class CoreProperties
   private static Long winnerRetryIntervalInMs;
   private static Boolean scanPathsEveryRound;
   private static Integer devPoolCommitsPerRound;
-  private static Boolean optDevPool;
   private static Boolean devPool;
   private static Boolean poolMining;
   private static Long targetDeadline;
@@ -212,20 +207,6 @@ public class CoreProperties
       devPoolCommitsPerRound = asInteger("devPoolCommitsPerRound", DEFAULT_DEV_POOL_COMMITS_PER_ROUND);
     }
     return devPoolCommitsPerRound;
-  }
-
-  /**
-   * Is opt dev pool.
-   *
-   * @return the boolean
-   */
-  public static boolean isOptDevPool()
-  {
-    if(optDevPool == null)
-    {
-      optDevPool = asBoolean("optDevPool", DEFAULT_OPT_DEV_POOL);
-    }
-    return optDevPool;
   }
 
   /**

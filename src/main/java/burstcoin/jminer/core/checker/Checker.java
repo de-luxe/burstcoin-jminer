@@ -22,8 +22,6 @@
 
 package burstcoin.jminer.core.checker;
 
-import burstcoin.jminer.core.CoreProperties;
-import burstcoin.jminer.core.checker.task.OCLCheckerFindAllBelowTargetTask;
 import burstcoin.jminer.core.checker.task.OCLCheckerTask;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import org.slf4j.Logger;
@@ -35,8 +33,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
 /**
  * The type Checker.
  */
@@ -47,46 +43,23 @@ public class Checker
 {
   private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
-  @Autowired
-  private ApplicationContext context;
-
-  @Autowired
-  private SyncTaskExecutor checkTaskExecutor;
-
-  // setting
-  private boolean devPool;
-  private boolean optDevPool;
+  private final ApplicationContext context;
+  private final SyncTaskExecutor checkTaskExecutor;
 
   // data
   private long blockNumber;
-  private long targetDeadline;
-  private long baseTarget;
   private byte[] generationSignature;
 
-  /**
-   * Post construct.
-   */
-  @PostConstruct
-  protected void postConstruct()
+  @Autowired
+  public Checker(ApplicationContext context, SyncTaskExecutor checkTaskExecutor)
   {
-    this.devPool = CoreProperties.isDevPool();
-    this.optDevPool = CoreProperties.isOptDevPool();
-    this.targetDeadline = CoreProperties.getTargetDeadline();
+    this.context = context;
+    this.checkTaskExecutor = checkTaskExecutor;
   }
 
-  /**
-   * Reconfigure void.
-   *
-   * @param blockNumber the block number
-   * @param baseTarget the base target
-   * @param targetDeadline the target deadline
-   * @param generationSignature the generation signature
-   */
-  public void reconfigure(long blockNumber, long baseTarget, long targetDeadline, byte[] generationSignature)
+  public void reconfigure(long blockNumber, byte[] generationSignature)
   {
     this.blockNumber = blockNumber;
-    this.baseTarget = baseTarget;
-    this.targetDeadline = targetDeadline;
     this.generationSignature = generationSignature;
   }
 
@@ -96,20 +69,9 @@ public class Checker
   {
     if(blockNumber == event.getBlockNumber())
     {
-      if(devPool && optDevPool)
-      {
-        // todo findTartget() does not work! optDevPool not supported yet!
-        OCLCheckerFindAllBelowTargetTask oclCheckerFindAllBelowTargetTask = context.getBean(OCLCheckerFindAllBelowTargetTask.class);
-        oclCheckerFindAllBelowTargetTask.init(event.getBlockNumber(), generationSignature, event.getScoops(), targetDeadline,
-                                              event.getChunkPartStartNonce(), baseTarget);
-        checkTaskExecutor.execute(oclCheckerFindAllBelowTargetTask);
-      }
-      else
-      {
-        OCLCheckerTask oclCheckerTask = context.getBean(OCLCheckerTask.class);
-        oclCheckerTask.init(event.getBlockNumber(), generationSignature, event.getScoops(), event.getChunkPartStartNonce());
-        checkTaskExecutor.execute(oclCheckerTask);
-      }
+      OCLCheckerTask oclCheckerTask = context.getBean(OCLCheckerTask.class);
+      oclCheckerTask.init(event.getBlockNumber(), generationSignature, event.getScoops(), event.getChunkPartStartNonce());
+      checkTaskExecutor.execute(oclCheckerTask);
     }
     else
     {

@@ -61,20 +61,16 @@ public class OCLChecker
   private static final Logger LOG = LoggerFactory.getLogger(OCLChecker.class);
 
   private static final int SIZE_DIVISOR = CoreProperties.isByteUnitDecimal() ? 1000 : 1024;
-  private static final String T_UNIT = CoreProperties.isByteUnitDecimal() ? "TB" : "TiB";
   private static final String G_UNIT = CoreProperties.isByteUnitDecimal() ? "GB" : "GiB";
-  private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
 
-  cl_context context;
-  cl_command_queue queue;
-  cl_program program;
-  cl_kernel kernel[] = new cl_kernel[3];
+  private cl_context context;
+  private cl_command_queue queue;
 
-  long workgroupSize[] = new long[3];
-  long computeUnits;
+  private cl_kernel kernel[] = new cl_kernel[2];
+  private long workgroupSize[] = new long[2];
 
-  cl_mem gensigMem;
-  cl_mem bestMem;
+  private cl_mem gensigMem;
+  private cl_mem bestMem;
 
   @PostConstruct
   protected void postConstruct()
@@ -128,15 +124,14 @@ public class OCLChecker
       throw new RuntimeException("Failed to read calcdeadlines.cl file", e);
     }
 
-    program = clCreateProgramWithSource(context, 1, new String[]{kernelSource}, null, null);
+    cl_program program = clCreateProgramWithSource(context, 1, new String[]{kernelSource}, null, null);
     clBuildProgram(program, 0, null, "-I kernel", null, null);
 
     kernel[0] = clCreateKernel(program, "calculate_deadlines", null);
     kernel[1] = clCreateKernel(program, "reduce_best", null);
-    kernel[2] = clCreateKernel(program, "reduce_target", null);
 
     long[] maxWorkGroupSize = new long[1];
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 2; i++)
     {
       clGetKernelWorkGroupInfo(kernel[i], devices[deviceId], CL_KERNEL_WORK_GROUP_SIZE, 8, Pointer.to(maxWorkGroupSize), null);
       workgroupSize[i] = maxWorkGroupSize[0];
@@ -145,7 +140,6 @@ public class OCLChecker
     long[] maxComputeUnits = new long[1];
     clGetDeviceInfo(devices[deviceId], CL_DEVICE_MAX_COMPUTE_UNITS, 8, Pointer.to(maxComputeUnits), null);
 
-    computeUnits = maxComputeUnits[0];
     gensigMem = clCreateBuffer(context, CL_MEM_READ_ONLY, 32, null, null);
     bestMem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 400, null, null); // org 400 // tested 5000
 
@@ -178,7 +172,7 @@ public class OCLChecker
           selectionPrefix = currentDeviceId == CoreProperties.getDeviceId() ? selector : "   ";
 
           LOG.info(selectionPrefix + "  DEVICE-[" + currentDeviceId + "] " + DeviceInfos.getName(cl_device_id) + " "
-                   + "(" + bytesAsGigabyte(DeviceInfos.getMaxMemAllocSize(cl_device_id)) + ")"
+                   + "(" + bytesAsGigabyte(DeviceInfos.getGlobalMemSize(cl_device_id)) + ")"
                    + " - " + DeviceInfos.getVendor(cl_device_id) + " (" + DeviceInfos.getDeviceVersion(cl_device_id)
                    + " | '" + DeviceInfos.getDriverVersion(cl_device_id) + "')");
           LOG.info(selectionPrefix + "         [" + currentDeviceId + "] "
@@ -203,8 +197,7 @@ public class OCLChecker
 
   public int findLowest(byte[] gensig, byte[] data)
   {
-    cl_mem dataMem;
-    cl_mem deadlineMem;
+    cl_mem dataMem, deadlineMem;
 
     long numNonces = data.length / 64;
     long calcWorkgroups = numNonces / workgroupSize[0];
@@ -233,44 +226,6 @@ public class OCLChecker
     clReleaseMemObject(dataMem);
     clReleaseMemObject(deadlineMem);
     return best[0];
-  }
-
-  public int[] findTarget(byte[] gensig, byte[] data, long target)
-  {
-    long numNonces = data.length / 64;
-    long calcWorkgroups = numNonces / workgroupSize[0];
-    // thx blago
-    if(numNonces % workgroupSize[0] != 0) // org. if(numNonces % 64 != 0)
-    {
-      calcWorkgroups++;
-    }
-    clEnqueueWriteBuffer(queue, gensigMem, false, 0, 32, Pointer.to(gensig), 0, null, null);
-    cl_mem dataMem = clCreateBuffer(context, CL_MEM_READ_ONLY, calcWorkgroups * workgroupSize[0] * 64, null, null);
-    clEnqueueWriteBuffer(queue, dataMem, false, 0, data.length, Pointer.to(data), 0, null, null);
-    cl_mem deadlineMem = clCreateBuffer(context, CL_MEM_READ_WRITE, calcWorkgroups * workgroupSize[0] * 8, null, null);
-    clSetKernelArg(kernel[0], 0, Sizeof.cl_mem, Pointer.to(gensigMem));
-    clSetKernelArg(kernel[0], 1, Sizeof.cl_mem, Pointer.to(dataMem));
-    clSetKernelArg(kernel[0], 2, Sizeof.cl_mem, Pointer.to(deadlineMem));
-    clEnqueueNDRangeKernel(queue, kernel[0], 1, null, new long[]{calcWorkgroups * workgroupSize[0]}, new long[]{workgroupSize[0]}, 0, null, null);
-    int best[] = new int[]{0};
-    clEnqueueWriteBuffer(queue, bestMem, false, 0, 4, Pointer.to(best), 0, null, null);
-    clSetKernelArg(kernel[2], 0, Sizeof.cl_mem, Pointer.to(deadlineMem));
-    long len[] = {data.length / 64};
-    clSetKernelArg(kernel[2], 1, Sizeof.cl_uint, Pointer.to(len));
-    long targetPtr[] = new long[]{target};
-    clSetKernelArg(kernel[2], 2, Sizeof.cl_ulong, Pointer.to(targetPtr));
-    clSetKernelArg(kernel[2], 3, Sizeof.cl_mem, Pointer.to(bestMem));
-    clEnqueueNDRangeKernel(queue, kernel[2], 1, null, new long[]{workgroupSize[2]}, new long[]{workgroupSize[2]}, 0, null, null);
-    clEnqueueReadBuffer(queue, bestMem, true, 0, 4, Pointer.to(best), 0, null, null);
-    if(best[0] == 0)
-    {
-      return null;
-    }
-    int bestVals[] = new int[best[0]];
-    clEnqueueReadBuffer(queue, bestMem, true, 4, 4 * best[0], Pointer.to(bestVals), 0, null, null);
-    clReleaseMemObject(dataMem);
-    clReleaseMemObject(deadlineMem);
-    return bestVals;
   }
 
   public static String readInputStreamAsString(InputStream in)

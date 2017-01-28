@@ -36,10 +36,6 @@ import pocminer.generate.MiningPlot;
 
 import java.math.BigInteger;
 
-
-/**
- * The type OCL checker task.
- */
 @Component
 @Scope("prototype")
 public class OCLCheckerTask
@@ -47,9 +43,7 @@ public class OCLCheckerTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(OCLCheckerTask.class);
 
-  @Autowired
-  private ApplicationEventPublisher publisher;
-
+  private final ApplicationEventPublisher publisher;
   private final OCLChecker oclChecker;
 
   private long blockNumber;
@@ -57,25 +51,13 @@ public class OCLCheckerTask
   private byte[] scoops;
   private BigInteger chunkPartStartNonce;
 
-  /**
-   * Instantiates a new OCL checker task.
-   *
-   * @param oclChecker the ocl checker
-   */
   @Autowired
-  public OCLCheckerTask(OCLChecker oclChecker)
+  public OCLCheckerTask(OCLChecker oclChecker, ApplicationEventPublisher publisher)
   {
     this.oclChecker = oclChecker;
+    this.publisher = publisher;
   }
 
-  /**
-   * Init void.
-   *
-   * @param blockNumber         the block number
-   * @param generationSignature the generation signature
-   * @param scoops              the scoops
-   * @param chunkPartStartNonce the chunk part start nonce
-   */
   public void init(long blockNumber, byte[] generationSignature, byte[] scoops, BigInteger chunkPartStartNonce)
   {
     this.blockNumber = blockNumber;

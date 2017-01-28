@@ -35,14 +35,6 @@ public class CheckerResultEvent
   private BigInteger nonce;
   private BigInteger result;
 
-  /**
-   * Instantiates a new Checker result event.
-   *
-   * @param blockNumber the block number
-   * @param chunkPartStartNonce the chunk part start nonce
-   * @param nonce the nonce
-   * @param result the result
-   */
   public CheckerResultEvent(long blockNumber, BigInteger chunkPartStartNonce, BigInteger nonce, BigInteger result)
   {
     this.chunkPartStartNonce = chunkPartStartNonce;
@@ -52,41 +44,21 @@ public class CheckerResultEvent
     this.result = result;
   }
 
-  /**
-   * Gets block number.
-   *
-   * @return the block number
-   */
   public long getBlockNumber()
   {
     return blockNumber;
   }
 
-  /**
-   * Gets nonce.
-   *
-   * @return the nonce
-   */
   public BigInteger getNonce()
   {
     return nonce;
   }
 
-  /**
-   * Gets result.
-   *
-   * @return the result
-   */
   public BigInteger getResult()
   {
     return result;
   }
 
-  /**
-   * Gets chunk part start nonce.
-   *
-   * @return the chunk part start nonce
-   */
   public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;

@@ -24,7 +24,6 @@ package burstcoin.jminer.core.round;
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.checker.Checker;
-import burstcoin.jminer.core.checker.event.CheckerDevResultEvent;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
 import burstcoin.jminer.core.network.Network;
 import burstcoin.jminer.core.network.event.NetworkDevResultConfirmedEvent;
@@ -159,7 +158,7 @@ public class Round
       initNewRound(plots);
 
       // reconfigure checker
-      checker.reconfigure(blockNumber, baseTarget, targetDeadline, event.getGenerationSignature());
+      checker.reconfigure(blockNumber, event.getGenerationSignature());
 
       // start reader
       int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
@@ -193,7 +192,7 @@ public class Round
 
         if(devPool)
         {
-          if(calculatedDeadline < targetDeadline)
+          if(calculatedDeadline <= targetDeadline)
           {
             // remember for next triggered commit
             devPoolResults.add(new DevPoolResult(event.getBlockNumber(), calculatedDeadline, event.getNonce(), event.getChunkPartStartNonce()));
@@ -262,33 +261,6 @@ public class Round
   }
 
   /**
-   * Handle message.
-   *
-   * @param event the event
-   */
-  @EventListener
-  public void handleMessage(CheckerDevResultEvent event)
-  {
-    if(blockNumber == event.getBlockNumber())
-    {
-      if(event.hasResults())
-      {
-        // remember for next triggered commit
-        devPoolResults.addAll(event.getDevPoolResults());
-      }
-      else
-      {
-        runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-        triggerFinishRoundEvent(event.getBlockNumber());
-      }
-    }
-    else
-    {
-      LOG.trace("event for previous block ...");
-    }
-  }
-
-  /**
    * triggers commit devPool nonces if needed, there will be 'numberOfDevPoolCommitsPerRound'
    *
    * @param event read progress
@@ -306,6 +278,7 @@ public class Round
       {
         devPoolCommitsThisRound--;
         LOG.debug("trigger dev commit by progress #" + (devPoolCommitsPerRound - devPoolCommitsThisRound) + " this round.");
+
         if(!devPoolResults.isEmpty())
         {
           commitDevPoolNonces(event.getBlockNumber());

@@ -62,7 +62,7 @@ public class PlotDrive
 
       if(plotFile.getStaggeramt() % plotFile.getNumberOfParts() != 0)
       {
-        LOG.warn("could not calculate valid numberOfParts: " + plotFile.getFilePath());
+        LOG.error("could not calculate valid numberOfParts: " + plotFile.getFilePath());
       }
     }
   }
@@ -101,7 +101,7 @@ public class PlotDrive
       chunkPartStartNonces.putAll(plotFile.getChunkPartStartNonces());
       if(expectedSize != chunkPartStartNonces.size())
       {
-        LOG.error("possible overlapping plot-file '" + plotFile.getFilePath() + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+        LOG.warn("possible overlapping plot-file '" + plotFile.getFilePath() + "', please check your plots.");
       }
     }
     return chunkPartStartNonces;

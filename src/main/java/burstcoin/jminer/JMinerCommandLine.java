@@ -85,7 +85,7 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.4.6 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("     0.4.7 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
@@ -192,9 +192,6 @@ public class JMinerCommandLine
         if(event.getRemainingCapacity() < logStepCapacity * progressLogStep || event.getRemainingCapacity() == 0)
         {
           progressLogStep--;
-
-          // trigger garbage collection on every progress step
-          System.gc();
 
           BigDecimal totalCapacity = new BigDecimal(event.getCapacity());
           BigDecimal factor = BigDecimal.ONE.divide(totalCapacity, MathContext.DECIMAL32);

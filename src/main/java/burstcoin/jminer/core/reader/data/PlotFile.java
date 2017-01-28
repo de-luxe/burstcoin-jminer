@@ -97,7 +97,7 @@ public class PlotFile
         Long key = chunkPartStartNonces.put(chunkPartStartNonce, chunkPartSize);
         if(key != null)
         {
-          LOG.error("possible overlapping plot-file '" + filePath + "' please use 'https://bchain.info/BURST/tools/overlap' to check your plots.");
+          LOG.warn("possible overlapping plot-file '" + filePath + "', please check your plots.");
         }
       }
     }
@@ -217,15 +217,31 @@ public class PlotFile
   // to have steps of nearly same size
   private int calculateNumberOfParts(long staggeramt)
   {
+    int maxNumberOfParts = 100;
+
     long targetNoncesPerPart = chunkPartNonces != null ? chunkPartNonces : 320000; // 640000 works fine
 
     // calculate numberOfParts based on target
     int suggestedNumberOfParts = (int) (staggeramt / targetNoncesPerPart) + 1;
 
     // ensure stagger is dividable by numberOfParts, if not adjust numberOfParts
-    while(staggeramt % suggestedNumberOfParts != 0)
+    while(staggeramt % suggestedNumberOfParts != 0 && suggestedNumberOfParts < maxNumberOfParts)
     {
       suggestedNumberOfParts += 1;
+    }
+
+    // fallback if number of parts could not be calculated in acceptable range
+    if(suggestedNumberOfParts >= maxNumberOfParts)
+    {
+      // as stagger has to be a multiple of 8 we can at least use 8 parts
+      if(staggeramt % 8 == 0)
+      {
+        suggestedNumberOfParts = 8;
+      }
+      else
+      {
+        LOG.warn("staggersize '" + staggeramt + "' is not dividable by 8.");
+      }
     }
     return suggestedNumberOfParts;
   }

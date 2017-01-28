@@ -503,16 +503,3 @@ __kernel void reduce_best(__global unsigned long* deadlines, unsigned int length
 		best[get_group_id(0)] = best_pos[0];
 	}
 }
-
-__kernel void reduce_target(__global unsigned long* deadlines, unsigned int length, unsigned long target, __global unsigned int* results) {
-	int gid = get_global_id(0);
-	int gsize = get_global_size(0);
-	
-	for(int i = gid; i < length; i += gsize) {
-		unsigned long d = deadlines[i];
-		if(d < target) {
-			int index = atomic_inc(results) + 1;
-			results[index] = i;
-		}
-	}
-}
