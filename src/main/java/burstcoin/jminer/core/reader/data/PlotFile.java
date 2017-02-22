@@ -233,14 +233,10 @@ public class PlotFile
     // fallback if number of parts could not be calculated in acceptable range
     if(suggestedNumberOfParts >= maxNumberOfParts)
     {
-      // as stagger has to be a multiple of 8 we can at least use 8 parts
-      if(staggeramt % 8 == 0)
+      suggestedNumberOfParts = (int) Math.floor(Math.sqrt(staggeramt));
+      while(staggeramt % suggestedNumberOfParts != 0)
       {
-        suggestedNumberOfParts = 8;
-      }
-      else
-      {
-        LOG.warn("staggersize '" + staggeramt + "' is not dividable by 8.");
+        suggestedNumberOfParts--;
       }
     }
     return suggestedNumberOfParts;

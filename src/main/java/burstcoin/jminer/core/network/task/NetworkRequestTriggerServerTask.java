@@ -85,7 +85,7 @@ public class NetworkRequestTriggerServerTask
     }
     catch(Exception e)
     {
-      LOG.warn("Error: Failed to 'getBlockchainStatus' from 'soloServer' to trigger server.");
+      LOG.debug("Error: Failed to 'getBlockchainStatus' from 'soloServer' to trigger server.");
     }
     return blockchainStatus;
   }
@@ -105,7 +105,7 @@ public class NetworkRequestTriggerServerTask
     }
     catch(Exception e)
     {
-      LOG.warn("Error: Failed to 'getUnconfirmedTransactions' to trigger server.");
+      LOG.debug("Error: Failed to 'getUnconfirmedTransactions' to trigger server.");
     }
   }
 }

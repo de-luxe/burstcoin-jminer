@@ -63,6 +63,7 @@ public class CoreProperties
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
   private static final int DEFAULT_READER_THREADS = 0;
   private static final boolean DEFAULT_DEBUG = false;
+  private static final boolean DEFAULT_TRIGGER_SERVER = false;
   private static final boolean DEFAULT_WRITE_LOG_FILE = false;
   private static final String DEFAULT_LOG_FILE_PATH = "log/jminer.log.txt";
 
@@ -446,6 +447,15 @@ public class CoreProperties
     if(writeLogFile == null)
     {
       writeLogFile = asBoolean("writeLogFile", DEFAULT_WRITE_LOG_FILE);
+    }
+    return writeLogFile;
+  }
+
+  public static boolean isTriggerServer()
+  {
+    if(writeLogFile == null)
+    {
+      writeLogFile = asBoolean("triggerServer", DEFAULT_TRIGGER_SERVER);
     }
     return writeLogFile;
   }

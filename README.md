@@ -149,6 +149,12 @@ min. deadline to be committed.
 
     targetDeadline=750000
 
+### triggerServer (default: false)
+on 'true' miner emulates open wallet gui, to prevent wallet server from
+falling asleep (not sure if needed at all)
+
+    triggerServer=true
+
 
 
 

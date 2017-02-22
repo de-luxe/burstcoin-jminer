@@ -228,7 +228,7 @@ public class Network
     }, 100, CoreProperties.getRefreshInterval());
 
     // on solo mining
-    if(!CoreProperties.isPoolMining())
+    if(!CoreProperties.isPoolMining() && CoreProperties.isTriggerServer())
     {
       timer.schedule(new TimerTask()
       {

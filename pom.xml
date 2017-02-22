@@ -4,7 +4,7 @@
 
   <groupId>burstcoin</groupId>
   <artifactId>burstcoin-jminer</artifactId>
-  <version>0.4.7-SNAPSHOT</version>
+  <version>0.4.8-RELEASE</version>
   <packaging>jar</packaging>
 
   <name>burstcoin-jminer</name>
