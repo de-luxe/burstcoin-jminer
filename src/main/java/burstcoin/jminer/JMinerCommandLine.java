@@ -187,44 +187,48 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(ReaderProgressChangedEvent event)
       {
-        long logStepCapacity = event.getCapacity() / NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
-
-        if(event.getRemainingCapacity() < logStepCapacity * progressLogStep || event.getRemainingCapacity() == 0)
+        if(NUMBER_OF_PROGRESS_LOGS_PER_ROUND > 0)
         {
-          progressLogStep--;
+          long logStepCapacity = event.getCapacity() / NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
 
-          BigDecimal totalCapacity = new BigDecimal(event.getCapacity());
-          BigDecimal factor = BigDecimal.ONE.divide(totalCapacity, MathContext.DECIMAL32);
-          BigDecimal progress = factor.multiply(new BigDecimal(event.getCapacity() - event.getRemainingCapacity()));
-          int percentage = (int) Math.ceil(progress.doubleValue() * 100);
-          percentage = percentage > 100 ? 100 : percentage;
-
-          // calculate capacity
-          long effMBPerSec = 0;
-          if(previousRemainingCapacity > 0)
+          if(event.getRemainingCapacity() < logStepCapacity * progressLogStep || event.getRemainingCapacity() == 0)
           {
-            long effDoneBytes = previousRemainingCapacity - event.getRemainingCapacity();
+            progressLogStep--;
 
-            // calculate current reading speed (since last info)
-            long effBytesPerMs = (effDoneBytes / 4096) / (1 + (event.getElapsedTime() - previousElapsedTime));
-            effMBPerSec = (effBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
+            BigDecimal totalCapacity = new BigDecimal(event.getCapacity());
+            BigDecimal factor = BigDecimal.ONE.divide(totalCapacity, MathContext.DECIMAL32);
+            BigDecimal progress = factor.multiply(new BigDecimal(event.getCapacity() - event.getRemainingCapacity()));
+            int percentage = (int) Math.ceil(progress.doubleValue() * 100);
+            percentage = percentage > 100 ? 100 : percentage;
+
+            // calculate capacity
+            long effMBPerSec = 0;
+            if(previousRemainingCapacity > 0)
+            {
+              long effDoneBytes = previousRemainingCapacity - event.getRemainingCapacity();
+
+              // calculate current reading speed (since last info)
+              long elapsedTime = event.getElapsedTime() - previousElapsedTime;
+              long effBytesPerMs = (effDoneBytes / 4096) / (elapsedTime == 0 /*do not divide by zero*/ ? 1 : elapsedTime);
+              effMBPerSec = (effBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
+            }
+
+            // calculate capacity
+            long doneBytes = event.getCapacity() - event.getRemainingCapacity();
+            long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
+            long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
+
+            // calculate reading speed (average)
+            long averageBytesPerMs = (doneBytes / 4096) / event.getElapsedTime();
+            long averageMBPerSec = (averageBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
+
+            previousRemainingCapacity = event.getRemainingCapacity();
+            previousElapsedTime = event.getElapsedTime();
+
+            LOG.info(
+              String.valueOf(percentage) + "% done (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + "), avg.'" + averageMBPerSec + " " + M_UNIT + "/s'" +
+              (effMBPerSec > 0 ? ", eff.'" + effMBPerSec + " " + M_UNIT + "/s'" : ""));
           }
-
-          // calculate capacity
-          long doneBytes = event.getCapacity() - event.getRemainingCapacity();
-          long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
-          long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
-
-          // calculate reading speed (average)
-          long averageBytesPerMs = (doneBytes / 4096) / event.getElapsedTime();
-          long averageMBPerSec = (averageBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
-
-          previousRemainingCapacity = event.getRemainingCapacity();
-          previousElapsedTime = event.getElapsedTime();
-
-          LOG.info(
-            String.valueOf(percentage) + "% done (" + doneTB + T_UNIT + " " + doneGB + G_UNIT + "), avg.'" + averageMBPerSec + " " + M_UNIT + "/s'" +
-            (effMBPerSec > 0 ? ", eff.'" + effMBPerSec + " " + M_UNIT + "/s'" : ""));
         }
       }
     });
