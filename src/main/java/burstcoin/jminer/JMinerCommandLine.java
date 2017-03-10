@@ -85,7 +85,7 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.4.8 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("     0.4.9 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
@@ -279,6 +279,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(NetworkResultErrorEvent event)
       {
+        LOG.info("dl '" + event.getCalculatedDeadline() + "' NOT confirmed!  [ " + getDeadlineTime(event.getCalculatedDeadline()) + " ]");
         LOG.debug("strange dl result '" + event.getStrangeDeadline() + "', "
                   + "calculated '" + (event.getCalculatedDeadline() > 0 ? event.getCalculatedDeadline() : "N/A") + "' "
                   + "block '" + event.getBlockNumber() + "' nonce '" + event.getNonce() + "'");

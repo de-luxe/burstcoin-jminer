@@ -61,6 +61,7 @@ public class CoreProperties
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
+  private static final boolean DEFAULT_SHOW_SKIPPED_DEADLINES = true;
   private static final int DEFAULT_READER_THREADS = 0;
   private static final boolean DEFAULT_DEBUG = false;
   private static final boolean DEFAULT_TRIGGER_SERVER = false;
@@ -101,6 +102,7 @@ public class CoreProperties
   private static Boolean byteUnitDecimal;
   private static Boolean listPlotFiles;
   private static Boolean showDriveInfo;
+  private static Boolean showSkippedDeadlines;
   private static Integer readerThreads;
   private static Boolean writeLogFile;
   private static Boolean debug;
@@ -440,6 +442,15 @@ public class CoreProperties
       showDriveInfo = asBoolean("showDriveInfo", DEFAULT_SHOW_DRIVE_INFO);
     }
     return showDriveInfo;
+  }
+
+  public static boolean isShowSkippedDeadlines()
+  {
+    if(showSkippedDeadlines == null)
+    {
+      showSkippedDeadlines = asBoolean("showSkippedDeadlines", DEFAULT_SHOW_SKIPPED_DEADLINES);
+    }
+    return showSkippedDeadlines;
   }
 
   public static boolean isWriteLogFile()

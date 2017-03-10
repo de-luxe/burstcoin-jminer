@@ -14,14 +14,6 @@ This file has to be in the miner directory (same folder as '*.jar' file)
 > To get started, use one of the following examples. 
 > The min. required settings for the different mining-modes.
 
-# DevPool-Setup
-uses all deadlines below a given target per block to calculate shares.
-
-    devPool=true
-    plotPaths=D:/,C:/,E:/plots,F:/plots
-    numericAccountId=<YOUR NUMERIC ACCOUNT ID>
-    poolServer=http://pool.com:port
-    
 # Pool-Setup
 uses only the best deadline per block to calculate shares.
 
@@ -34,6 +26,16 @@ uses only the best deadline per block to calculate shares.
     plotPaths=D:/,C:/,E:/plots,F:/plots
     poolMining=false
     passPhrase=<YOUR PASS PHRASE>
+    
+# DevPool-Setup 
+uses all deadlines below a given target per block to calculate shares.
+DevPool http://178.62.39.204:8121 seams no longer available?! 
+Miner support will be removed in future versions.
+
+    devPool=true
+    plotPaths=D:/,C:/,E:/plots,F:/plots
+    numericAccountId=<YOUR NUMERIC ACCOUNT ID>
+    poolServer=http://pool.com:port
 
 
 
@@ -113,11 +115,15 @@ time to wait until next retry to get winner from walletServer
 ### devPool (default:false)
 'true' for using devPools (V1 or V2), 'false' or empty if not
 on using devPool please read NOTICE in description of 'chunkPartNonces'
+DevPool http://178.62.39.204:8121 seams no longer available?! 
+Miner support will be removed in future versions.
 
     devPool=true
 
 ### devPoolCommitsPerRound (default:3)
 how often the miner tries to commit shares to devPool not needed for other pools.
+DevPool http://178.62.39.204:8121 seams no longer available?! 
+Miner support will be removed in future versions.
 
     devPoolCommitsPerRound=6
 

@@ -64,7 +64,6 @@ public class CoreConfig
   public ThreadPoolTaskExecutor networkPool()
   {
     ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
-    pool.setMaxPoolSize(2);
     pool.setThreadPriority(Thread.NORM_PRIORITY + 1);
     return pool;
   }

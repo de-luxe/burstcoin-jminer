@@ -27,6 +27,7 @@ import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.model.ResponseError;
 import burstcoin.jminer.core.network.model.SubmitResultResponse;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.HttpContentResponse;
@@ -39,6 +40,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.EOFException;
 import java.math.BigInteger;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +55,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.8";
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.9";
 
   @Autowired
   private ApplicationEventPublisher publisher;
@@ -95,6 +97,7 @@ public class NetworkSubmitPoolNonceTask
   @Override
   public void run()
   {
+    String responseContentAsString = "N/A";
     try
     {
       long gb = totalCapacity / 1000 / 1000 / 1000;
@@ -108,12 +111,14 @@ public class NetworkSubmitPoolNonceTask
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
         .send();
 
+      responseContentAsString = response.getContentAsString();
+
       if(response.getContentAsString().contains("errorCode"))
       {
         ResponseError error = objectMapper.readValue(response.getContentAsString(), ResponseError.class);
         LOG.info("dl '" + calculatedDeadline + "' not accepted by pool!");
-        LOG.debug("Error code: '"+error.getErrorCode()+"'.");
-        LOG.debug("Error description: '"+error.getErrorDescription()+"'.");
+        LOG.debug("Error code: '" + error.getErrorCode() + "'.");
+        LOG.debug("Error description: '" + error.getErrorDescription() + "'.");
         publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, result));
       }
       else
@@ -159,13 +164,26 @@ public class NetworkSubmitPoolNonceTask
       }
       else
       {
-        LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
+        LOG.warn("Error: Failed to submit nonce to pool due ExecutionException.");
+        LOG.debug("ExecutionException: "+ e.getMessage(), e);
       }
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+    }
+    catch(EOFException e)
+    {
+      LOG.warn("Error: Failed to submit nonce to pool due EOFException.");
+      LOG.debug("EOFException: "+ e.getMessage(), e);
+      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+    }
+    catch(JsonMappingException e)
+    {
+      LOG.warn("Error: On submit nonce to pool, could not parse response: '" + responseContentAsString+"'");
       publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(Exception e)
     {
-      LOG.warn("Error: Failed to submit nonce to pool: " + e.getMessage());
+      LOG.warn("Error: Failed to submit nonce to pool due Exception.");
+      LOG.debug("Exception: "+ e.getMessage(), e);
       publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
   }

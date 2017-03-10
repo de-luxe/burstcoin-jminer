@@ -218,8 +218,11 @@ public class Round
             else
             {
               // ui event
-              fireEvent(new RoundSingleResultSkippedEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-                                                          targetDeadline, poolMining));
+              if(CoreProperties.isShowSkippedDeadlines())
+              {
+                fireEvent(new RoundSingleResultSkippedEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+                                                            targetDeadline, poolMining));
+              }
               // chunkPartStartNonce finished
               runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
               triggerFinishRoundEvent(event.getBlockNumber());
@@ -228,14 +231,14 @@ public class Round
           // remember next lowest in case that lowest fails to commit
           else if(calculatedDeadline < targetDeadline
                   && event.getResult().compareTo(lowestCommitted) < 0
-                  && (queuedEvent == null || event.getResult().compareTo(queuedEvent.getResult()) < 0 ))
+                  && (queuedEvent == null || event.getResult().compareTo(queuedEvent.getResult()) < 0))
           {
             if(queuedEvent != null)
             {
               // remove previous queued
               runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
             }
-            LOG.info("dl '" + calculatedDeadline +"' queued");
+            LOG.info("dl '" + calculatedDeadline + "' queued");
             queuedEvent = event;
 
             // todo not sure if / why needed?!
@@ -304,17 +307,21 @@ public class Round
       lowestCommitted = event.getResult();
 
       // if queuedLowest exist and is higher than lowestCommitted, remove queuedLowest
-      if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0 )
+      if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
       {
         BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
-        LOG.debug("dl '" + dl +"' removed from queue");
+        LOG.debug("dl '" + dl + "' removed from queue");
 
         runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
         queuedEvent = null;
       }
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-      bestCommittedDeadline = event.getDeadline();
+
+      if(bestCommittedDeadline > event.getDeadline())
+      {
+        bestCommittedDeadline = event.getDeadline();
+      }
       triggerFinishRoundEvent(event.getBlockNumber());
     }
   }
