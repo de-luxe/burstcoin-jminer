@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -62,7 +62,7 @@ public class Network
 
   @Autowired
   @Qualifier(value = "networkPool")
-  private ThreadPoolTaskExecutor networkPool;
+  private SimpleAsyncTaskExecutor networkPool;
 
   private String numericAccountId;
   private boolean poolMining;

@@ -22,7 +22,6 @@
 
 package burstcoin.jminer.core.network.task;
 
-import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.MiningInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -136,15 +135,18 @@ public class NetworkRequestMiningInfoTask
     {
       if(e instanceof ConnectException)
       {
-        LOG.warn(CoreProperties.isDebug() ? "Unable to get mining info from wallet: " + e.getMessage() : "Unable to get mining info from wallet due ConnectException.");
+        LOG.warn("Unable to get mining info from wallet due ConnectException.");
+        LOG.debug("Unable to get mining info from wallet due ConnectException:" + e.getMessage(), e);
       }
       else if(e instanceof EOFException)
       {
-        LOG.warn(CoreProperties.isDebug() ? "Unable to get mining info from wallet: " + e.getMessage() : "Unable to get mining info from wallet due EOFException.");
+        LOG.warn("Unable to get mining info from wallet due EOFException.");
+        LOG.debug("Unable to get mining info from wallet due EOFException:" + e.getMessage(), e);
       }
       else
       {
-        LOG.warn("Unable to get mining info from wallet: " + e.getMessage());
+        LOG.warn("Unable to get mining info from wallet.");
+        LOG.debug("Unable to get mining info from wallet: " + e.getMessage(), e);
       }
     }
   }

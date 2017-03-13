@@ -25,10 +25,10 @@ package burstcoin.jminer.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -61,9 +61,9 @@ public class CoreConfig
    * @return the thread pool task executor
    */
   @Bean(name = "networkPool")
-  public ThreadPoolTaskExecutor networkPool()
+  public SimpleAsyncTaskExecutor networkPool()
   {
-    ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
+    SimpleAsyncTaskExecutor pool = new SimpleAsyncTaskExecutor();
     pool.setThreadPriority(Thread.NORM_PRIORITY + 1);
     return pool;
   }
@@ -98,7 +98,7 @@ public class CoreConfig
   @Bean
   public HttpClient httpClient()
   {
-    HttpClient client = new HttpClient(new SslContextFactory(true));
+    HttpClient client = new HttpClient();
     try
     {
       client.start();

@@ -178,6 +178,7 @@ public class NetworkSubmitPoolNonceTask
     catch(JsonMappingException e)
     {
       LOG.warn("Error: On submit nonce to pool, could not parse response: '" + responseContentAsString+"'");
+      LOG.debug("JSONMappingException: "+ e.getMessage(), e);
       publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(Exception e)
