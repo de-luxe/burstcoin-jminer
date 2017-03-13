@@ -33,10 +33,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-
-/**
- * The type Core properties.
- */
 public class CoreProperties
 {
   private static final Logger LOG = LoggerFactory.getLogger(CoreProperties.class);
@@ -48,7 +44,6 @@ public class CoreProperties
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
-  private static final boolean DEFAULT_DEV_POOL = false;
   private static final long DEFAULT_TARGET_DEADLINE = Long.MAX_VALUE;
   private static final String DEFAULT_SOLO_SERVER = "http://localhost:8125";
   private static final int DEFAULT_READ_PROGRESS_PER_ROUND = 9;
@@ -57,7 +52,6 @@ public class CoreProperties
   private static final int DEFAULT_WINNER_RETRIES_ON_ASYNC = 4;
   private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 500;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = true;
-  private static final int DEFAULT_DEV_POOL_COMMITS_PER_ROUND = 3;
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
@@ -86,8 +80,6 @@ public class CoreProperties
   private static Integer winnerRetriesOnAsync;
   private static Long winnerRetryIntervalInMs;
   private static Boolean scanPathsEveryRound;
-  private static Integer devPoolCommitsPerRound;
-  private static Boolean devPool;
   private static Boolean poolMining;
   private static Long targetDeadline;
   private static List<String> plotPaths;
@@ -196,34 +188,6 @@ public class CoreProperties
       scanPathsEveryRound = asBoolean("scanPathsEveryRound", DEFAULT_SCAN_PATHS_EVERY_ROUND);
     }
     return scanPathsEveryRound;
-  }
-
-  /**
-   * Gets dev pool commits per round.
-   *
-   * @return the dev pool commits per round
-   */
-  public static int getDevPoolCommitsPerRound()
-  {
-    if(devPoolCommitsPerRound == null)
-    {
-      devPoolCommitsPerRound = asInteger("devPoolCommitsPerRound", DEFAULT_DEV_POOL_COMMITS_PER_ROUND);
-    }
-    return devPoolCommitsPerRound;
-  }
-
-  /**
-   * Is dev pool.
-   *
-   * @return the boolean
-   */
-  public static boolean isDevPool()
-  {
-    if(devPool == null)
-    {
-      devPool = asBoolean("devPool", DEFAULT_DEV_POOL);
-    }
-    return devPool;
   }
 
   /**

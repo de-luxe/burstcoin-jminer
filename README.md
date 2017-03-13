@@ -15,7 +15,6 @@ This file has to be in the miner directory (same folder as '*.jar' file)
 > The min. required settings for the different mining-modes.
 
 # Pool-Setup
-uses only the best deadline per block to calculate shares.
 
     plotPaths=D:/,C:/,E:/plots,F:/plots
     numericAccountId=<YOUR NUMERIC ACCOUNT ID>
@@ -26,20 +25,6 @@ uses only the best deadline per block to calculate shares.
     plotPaths=D:/,C:/,E:/plots,F:/plots
     poolMining=false
     passPhrase=<YOUR PASS PHRASE>
-    
-# DevPool-Setup 
-uses all deadlines below a given target per block to calculate shares.
-DevPool http://178.62.39.204:8121 seams no longer available?! 
-Miner support will be removed in future versions.
-
-    devPool=true
-    plotPaths=D:/,C:/,E:/plots,F:/plots
-    numericAccountId=<YOUR NUMERIC ACCOUNT ID>
-    poolServer=http://pool.com:port
-
-
-
-
 
 
 # List of all properties
@@ -111,28 +96,6 @@ number of retries to get winner from walletServer
 time to wait until next retry to get winner from walletServer
 
     winnerRetryIntervalInMs=250
-
-### devPool (default:false)
-'true' for using devPools (V1 or V2), 'false' or empty if not
-on using devPool please read NOTICE in description of 'chunkPartNonces'
-DevPool http://178.62.39.204:8121 seams no longer available?! 
-Miner support will be removed in future versions.
-
-    devPool=true
-
-### devPoolCommitsPerRound (default:3)
-how often the miner tries to commit shares to devPool not needed for other pools.
-DevPool http://178.62.39.204:8121 seams no longer available?! 
-Miner support will be removed in future versions.
-
-    devPoolCommitsPerRound=6
-
-
->    NOTICE: 'devPool' wants all deadlines below a given target, this miner will only deliver
->            one deadline per chunkPart, so it can happen, that not all shares can be delivered
->            i suggest using lower 'chunkPartNonces' e.g. 160000 ... (1 result per 160000 nonces)
->            play with that on same block to test if you get more shares with lower 'chunkPartNonces'.
-
 
 
 ## Solo-mining
@@ -259,12 +222,6 @@ if staggersize is smaller than chunkPartNonces, staggersize will be used.
 e.g. play with +/- 160000 steps
 
     chunkPartNonces=960000 
-
-
->    NOTICE: for 'devPool': only one result per chunkPart will be committed,
->            without 'optDevPool' (witch is not implemented, yet)
->            consider using low chunkPartNonces size, to commit more.
->            (guess, there will not be multiple dl below target in small chunkPart)
 
 ### readerThreads (default:0)
 normally '0' means, the miner takes one thread per drive (plotPath) this is recommend.

@@ -65,9 +65,8 @@ public class NetworkRequestMiningInfoTask
   private boolean poolMining;
   private long connectionTimeout;
   private long defaultTargetDeadline;
-  private boolean devV2Pool;
 
-  public void init(String server, long blockNumber, boolean poolMining, long connectionTimeout, long defaultTargetDeadline, boolean devV2Pool)
+  public void init(String server, long blockNumber, boolean poolMining, long connectionTimeout, long defaultTargetDeadline)
   {
     this.server = server;
     this.blockNumber = blockNumber;
@@ -75,7 +74,6 @@ public class NetworkRequestMiningInfoTask
     this.connectionTimeout = connectionTimeout;
 
     this.defaultTargetDeadline = defaultTargetDeadline;
-    this.devV2Pool = devV2Pool;
   }
 
   @Override
@@ -86,19 +84,9 @@ public class NetworkRequestMiningInfoTask
     MiningInfoResponse result;
     try
     {
-      ContentResponse response;
-      if(devV2Pool)
-      {
-        response = httpClient.newRequest(server + "/pool/getMiningInfo")
-          .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
-          .send();
-      }
-      else
-      {
-        response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
-          .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
-          .send();
-      }
+      ContentResponse response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
+        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+        .send();
 
       result = objectMapper.readValue(response.getContentAsString(), MiningInfoResponse.class);
 

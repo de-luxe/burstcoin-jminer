@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("singleton")
 public class Checker
-  implements ReaderLoadedPartEvent.Handler
 {
   private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
@@ -63,7 +62,6 @@ public class Checker
     this.generationSignature = generationSignature;
   }
 
-  @Override
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {

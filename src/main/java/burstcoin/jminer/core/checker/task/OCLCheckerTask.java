@@ -26,8 +26,6 @@ package burstcoin.jminer.core.checker.task;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
 import burstcoin.jminer.core.checker.util.OCLChecker;
 import fr.cryptohash.Shabal256;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
@@ -41,8 +39,6 @@ import java.math.BigInteger;
 public class OCLCheckerTask
   implements Runnable
 {
-  private static final Logger LOG = LoggerFactory.getLogger(OCLCheckerTask.class);
-
   private final ApplicationEventPublisher publisher;
   private final OCLChecker oclChecker;
 

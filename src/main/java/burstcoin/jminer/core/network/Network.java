@@ -24,12 +24,10 @@ package burstcoin.jminer.core.network;
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
-import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.network.task.NetworkRequestLastWinnerTask;
 import burstcoin.jminer.core.network.task.NetworkRequestMiningInfoTask;
 import burstcoin.jminer.core.network.task.NetworkRequestPoolInfoTask;
 import burstcoin.jminer.core.network.task.NetworkRequestTriggerServerTask;
-import burstcoin.jminer.core.network.task.NetworkSubmitDevPoolNoncesTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
 import org.slf4j.Logger;
@@ -45,15 +43,12 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 @Component
 @Scope("singleton")
 public class Network
-  implements NetworkStateChangeEvent.Handler
 {
   private static final Logger LOG = LoggerFactory.getLogger(Network.class);
 
@@ -66,7 +61,6 @@ public class Network
 
   private String numericAccountId;
   private boolean poolMining;
-  private boolean devPool;
 
   private String poolServer;
   private String walletServer;
@@ -101,8 +95,6 @@ public class Network
         this.walletServer = CoreProperties.getWalletServer();
         this.winnerRetriesOnAsync = CoreProperties.getWinnerRetriesOnAsync();
         this.winnerRetryIntervalInMs = CoreProperties.getWinnerRetryIntervalInMs();
-
-        this.devPool = CoreProperties.isDevPool();
       }
       else
       {
@@ -130,7 +122,6 @@ public class Network
     this.connectionTimeout = CoreProperties.getConnectionTimeout();
   }
 
-  @Override
   @EventListener
   public void handleMessage(NetworkStateChangeEvent event)
   {
@@ -143,7 +134,7 @@ public class Network
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, poolMining, connectionTimeout, defaultTargetDeadline, devPool);
+      networkRequestMiningInfoTask.init(server, blockNumber, poolMining, connectionTimeout, defaultTargetDeadline);
       networkPool.execute(networkRequestMiningInfoTask);
     }
   }
@@ -185,21 +176,10 @@ public class Network
   {
     if(poolMining)
     {
-      if(devPool)
-      {
-        NetworkSubmitDevPoolNoncesTask networkSubmitDevPoolNoncesTask = context.getBean(NetworkSubmitDevPoolNoncesTask.class);
-        List<DevPoolResult> devPoolResults = Collections.singletonList(new DevPoolResult(blockNumber, calculatedDeadline,
-                                                                                         nonce, chunkPartStartNonce));
-        networkSubmitDevPoolNoncesTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, devPoolResults);
-        networkPool.execute(networkSubmitDevPoolNoncesTask);
-      }
-      else
-      {
-        NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
-        networkSubmitPoolNonceTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, nonce,
-                                        chunkPartStartNonce, calculatedDeadline, totalCapacity, result);
-        networkPool.execute(networkSubmitPoolNonceTask);
-      }
+      NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
+      networkSubmitPoolNonceTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, nonce,
+                                      chunkPartStartNonce, calculatedDeadline, totalCapacity, result);
+      networkPool.execute(networkSubmitPoolNonceTask);
     }
     else
     {
@@ -207,13 +187,6 @@ public class Network
       networkSubmitSoloNonceTask.init(blockNumber, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline, result);
       networkPool.execute(networkSubmitSoloNonceTask);
     }
-  }
-
-  public void commitDevResult(long blockNumber, List<DevPoolResult> devPoolResults)
-  {
-    NetworkSubmitDevPoolNoncesTask networkSubmitDevPoolNoncesTask = context.getBean(NetworkSubmitDevPoolNoncesTask.class);
-    networkSubmitDevPoolNoncesTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, devPoolResults);
-    networkPool.execute(networkSubmitDevPoolNoncesTask);
   }
 
   public void startMining()

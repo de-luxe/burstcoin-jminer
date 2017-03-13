@@ -67,7 +67,6 @@ import java.util.Set;
 @Component
 @Scope("singleton")
 public class Reader
-  implements ReaderLoadedPartEvent.Handler, NetworkResultErrorEvent.Handler
 {
   private static final Logger LOG = LoggerFactory.getLogger(Reader.class);
 
@@ -215,7 +214,6 @@ public class Reader
     return false;
   }
 
-  @Override
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {
@@ -241,7 +239,6 @@ public class Reader
     }
   }
 
-  @Override
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {

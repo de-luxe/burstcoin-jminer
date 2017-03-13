@@ -24,13 +24,11 @@ package burstcoin.jminer;
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.Network;
-import burstcoin.jminer.core.network.event.NetworkDevResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkLastWinnerEvent;
 import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
-import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
@@ -257,20 +255,6 @@ public class JMinerCommandLine
       public void onApplicationEvent(NetworkResultConfirmedEvent event)
       {
         LOG.info("dl '" + event.getDeadline() + "' confirmed!  [ " + getDeadlineTime(event.getDeadline()) + " ]");
-      }
-    });
-
-    context.addApplicationListener(new ApplicationListener<NetworkDevResultConfirmedEvent>()
-    {
-      @Override
-      public void onApplicationEvent(NetworkDevResultConfirmedEvent event)
-      {
-        LOG.info("devPool response '" + event.getResponse() + "', block '" + event.getBlockNumber() + "'");
-        for(DevPoolResult devPoolResult : event.getDevPoolResults())
-        {
-          LOG.info(
-            "dl '" + devPoolResult.getCalculatedDeadline() + "' successful committed!  [ " + getDeadlineTime(devPoolResult.getCalculatedDeadline()) + " ]");
-        }
       }
     });
 

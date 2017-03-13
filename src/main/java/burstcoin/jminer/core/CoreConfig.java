@@ -40,11 +40,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan(basePackages = "burstcoin.jminer.core")
 public class CoreConfig
 {
-  /**
-   * Reader pool.
-   *
-   * @return the thread pool task executor
-   */
   @Bean(name = "readerPool")
   public ThreadPoolTaskExecutor readerPool()
   {
@@ -55,11 +50,6 @@ public class CoreConfig
     return pool;
   }
 
-  /**
-   * Network pool.
-   *
-   * @return the thread pool task executor
-   */
   @Bean(name = "networkPool")
   public SimpleAsyncTaskExecutor networkPool()
   {
@@ -68,33 +58,18 @@ public class CoreConfig
     return pool;
   }
 
-  /**
-   * Task executor.
-   *
-   * @return the sync task executor
-   */
   @Bean(name = "checkTaskExecutor")
   public SyncTaskExecutor taskExecutor()
   {
     return new SyncTaskExecutor();
   }
 
-  /**
-   * Round pool.
-   *
-   * @return the thread pool task executor
-   */
   @Bean(name = "roundPool")
   public ThreadPoolTaskExecutor roundPool()
   {
     return new ThreadPoolTaskExecutor();
   }
 
-  /**
-   * Http client.
-   *
-   * @return the http client
-   */
   @Bean
   public HttpClient httpClient()
   {
@@ -110,11 +85,6 @@ public class CoreConfig
     return client;
   }
 
-  /**
-   * Object mapper.
-   *
-   * @return the object mapper
-   */
   @Bean
   public ObjectMapper objectMapper()
   {

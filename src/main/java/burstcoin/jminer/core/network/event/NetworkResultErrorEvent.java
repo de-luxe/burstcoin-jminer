@@ -32,19 +32,6 @@ import java.math.BigInteger;
 public class NetworkResultErrorEvent
   extends ApplicationEvent
 {
-  /**
-   * The interface Handler.
-   */
-  public interface Handler
-  {
-    /**
-     * Handle message.
-     *
-     * @param event the event
-     */
-    void handleMessage(NetworkResultErrorEvent event);
-  }
-
   private long blockNumber;
   private BigInteger nonce;
 

@@ -26,14 +26,11 @@ import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.checker.Checker;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
 import burstcoin.jminer.core.network.Network;
-import burstcoin.jminer.core.network.event.NetworkDevResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
-import burstcoin.jminer.core.network.model.DevPoolResult;
 import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.Plots;
-import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
 import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
@@ -56,10 +53,8 @@ import pocminer.generate.MiningPlot;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -70,7 +65,6 @@ import java.util.TimerTask;
 @Component
 @Scope("singleton")
 public class Round
-  implements NetworkStateChangeEvent.Handler, NetworkResultErrorEvent.Handler
 {
   private static final Logger LOG = LoggerFactory.getLogger(Round.class);
 
@@ -100,12 +94,6 @@ public class Round
   private CheckerResultEvent queuedEvent;
   private BigInteger lowestCommitted;
 
-  // dev pool
-  private boolean devPool;
-  private List<DevPoolResult> devPoolResults;
-  private int devPoolCommitsThisRound;
-  private int devPoolCommitsPerRound;// one additional on finish round
-
   private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
 
@@ -117,16 +105,10 @@ public class Round
     this.network = network;
   }
 
-  /**
-   * Post construct.
-   */
   @PostConstruct
   protected void postConstruct()
   {
     this.poolMining = CoreProperties.isPoolMining();
-    this.devPool = CoreProperties.isDevPool();
-    this.devPoolCommitsPerRound = CoreProperties.getDevPoolCommitsPerRound();
-
     timer = new Timer();
   }
 
@@ -137,9 +119,7 @@ public class Round
     lowest = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
     lowestCommitted = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
     queuedEvent = null;
-    devPoolResults = new ArrayList<>();
     bestCommittedDeadline = Long.MAX_VALUE;
-    devPoolCommitsThisRound = devPoolCommitsPerRound;
   }
 
   @EventListener
@@ -190,66 +170,50 @@ public class Round
         BigInteger deadline = event.getResult().divide(BigInteger.valueOf(baseTarget));
         long calculatedDeadline = deadline.longValue();
 
-        if(devPool)
+        if(event.getResult().compareTo(lowest) < 0)
         {
-          if(calculatedDeadline <= targetDeadline)
+          lowest = event.getResult();
+          if(calculatedDeadline < targetDeadline)
           {
-            // remember for next triggered commit
-            devPoolResults.add(new DevPoolResult(event.getBlockNumber(), calculatedDeadline, event.getNonce(), event.getChunkPartStartNonce()));
+            network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), event.getResult());
+
+            // ui event
+            fireEvent(new RoundSingleResultEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline, poolMining));
           }
           else
           {
-            runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-            triggerFinishRoundEvent(event.getBlockNumber());
-          }
-        }
-        else
-        {
-          if(event.getResult().compareTo(lowest) < 0)
-          {
-            lowest = event.getResult();
-            if(calculatedDeadline < targetDeadline)
+            // ui event
+            if(CoreProperties.isShowSkippedDeadlines())
             {
-              network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), event.getResult());
-
-              // ui event
-              fireEvent(new RoundSingleResultEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline, poolMining));
+              fireEvent(new RoundSingleResultSkippedEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+                                                          targetDeadline, poolMining));
             }
-            else
-            {
-              // ui event
-              if(CoreProperties.isShowSkippedDeadlines())
-              {
-                fireEvent(new RoundSingleResultSkippedEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
-                                                            targetDeadline, poolMining));
-              }
-              // chunkPartStartNonce finished
-              runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-              triggerFinishRoundEvent(event.getBlockNumber());
-            }
-          }
-          // remember next lowest in case that lowest fails to commit
-          else if(calculatedDeadline < targetDeadline
-                  && event.getResult().compareTo(lowestCommitted) < 0
-                  && (queuedEvent == null || event.getResult().compareTo(queuedEvent.getResult()) < 0))
-          {
-            if(queuedEvent != null)
-            {
-              // remove previous queued
-              runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
-            }
-            LOG.info("dl '" + calculatedDeadline + "' queued");
-            queuedEvent = event;
-
-            // todo not sure if / why needed?!
-            triggerFinishRoundEvent(event.getBlockNumber());
-          }
-          else
-          {
             // chunkPartStartNonce finished
             runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
             triggerFinishRoundEvent(event.getBlockNumber());
           }
+        }
+        // remember next lowest in case that lowest fails to commit
+        else if(calculatedDeadline < targetDeadline
+                && event.getResult().compareTo(lowestCommitted) < 0
+                && (queuedEvent == null || event.getResult().compareTo(queuedEvent.getResult()) < 0))
+        {
+          if(queuedEvent != null)
+          {
+            // remove previous queued
+            runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
+          }
+          LOG.info("dl '" + calculatedDeadline + "' queued");
+          queuedEvent = event;
+
+          // todo not sure if / why needed?!
+          triggerFinishRoundEvent(event.getBlockNumber());
+        }
+        else
+        {
+          // chunkPartStartNonce finished
+          runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
+          triggerFinishRoundEvent(event.getBlockNumber());
         }
       }
       else
@@ -263,42 +227,6 @@ public class Round
     }
   }
 
-  /**
-   * triggers commit devPool nonces if needed, there will be 'numberOfDevPoolCommitsPerRound'
-   *
-   * @param event read progress
-   */
-  @EventListener
-  public void handleMessage(ReaderProgressChangedEvent event)
-  {
-    if(devPool && blockNumber == event.getBlockNumber())
-    {
-      if(devPoolCommitsPerRound == devPoolCommitsThisRound)
-      {
-        devPoolCommitsThisRound--;
-      }
-      else if(event.getRemainingCapacity() < (event.getCapacity() / devPoolCommitsPerRound) * devPoolCommitsThisRound)
-      {
-        devPoolCommitsThisRound--;
-        LOG.debug("trigger dev commit by progress #" + (devPoolCommitsPerRound - devPoolCommitsThisRound) + " this round.");
-
-        if(!devPoolResults.isEmpty())
-        {
-          commitDevPoolNonces(event.getBlockNumber());
-        }
-        else
-        {
-          LOG.info("no shares to commit to dev pool ...");
-        }
-      }
-    }
-  }
-
-  /**
-   * Handle message.
-   *
-   * @param event the event
-   */
   @EventListener
   public void handleMessage(NetworkResultConfirmedEvent event)
   {
@@ -326,34 +254,6 @@ public class Round
     }
   }
 
-  /**
-   * Handle message.
-   *
-   * @param event the event
-   */
-  @EventListener
-  public void handleMessage(NetworkDevResultConfirmedEvent event)
-  {
-    if(blockNumber == event.getBlockNumber())
-    {
-      for(DevPoolResult devPoolResult : event.getDevPoolResults())
-      {
-        if(!runningChunkPartStartNonces.remove(devPoolResult.getChunkPartStartNonce()))
-        {
-          LOG.error("unknown chunkPartStartNonce in devResult." + devPoolResult.getChunkPartStartNonce());
-        }
-        if(devPoolResult.getCalculatedDeadline() < bestCommittedDeadline)
-        {
-          // this is not really a committed just the calculated, cause devPool does not provide deadlines
-          // therefore no chance to validate a commit.
-          bestCommittedDeadline = devPoolResult.getCalculatedDeadline();
-        }
-      }
-      triggerFinishRoundEvent(event.getBlockNumber());
-    }
-  }
-
-  @Override
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {
@@ -390,11 +290,6 @@ public class Round
       if(runningChunkPartStartNonces.isEmpty())
       {
         onRoundFinish(blockNumber);
-      }
-      // commit last devPool results
-      else if(devPool && runningChunkPartStartNonces.size() == devPoolResults.size())
-      {
-        commitDevPoolNonces(blockNumber);
       }
     }
   }
@@ -438,15 +333,6 @@ public class Round
     {
       LOG.error("cleanup task already scheduled ...");
     }
-  }
-
-  private void commitDevPoolNonces(long blockNumber)
-  {
-    network.commitDevResult(blockNumber, new ArrayList<>(devPoolResults));
-    devPoolResults.clear();
-
-    // todo ui event
-    LOG.info("shares, committed to devPool ...");
   }
 
   // not needed, just to force java to free memory (depending on gc used)

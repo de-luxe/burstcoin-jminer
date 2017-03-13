@@ -31,19 +31,6 @@ import org.springframework.context.ApplicationEvent;
 public class NetworkStateChangeEvent
   extends ApplicationEvent
 {
-  /**
-   * The interface Handler.
-   */
-  public interface Handler
-  {
-    /**
-     * Handle message.
-     *
-     * @param event the event
-     */
-    void handleMessage(NetworkStateChangeEvent event);
-  }
-
   private long blockNumber;
   private byte[] generationSignature;
   private long baseTarget;
