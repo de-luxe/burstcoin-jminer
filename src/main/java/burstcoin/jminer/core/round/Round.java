@@ -68,12 +68,8 @@ public class Round
 {
   private static final Logger LOG = LoggerFactory.getLogger(Round.class);
 
-  @Autowired
-  private ApplicationContext context;
-
-  @Autowired
-  private ThreadPoolTaskExecutor roundPool;
-
+  private final ApplicationContext context;
+  private final ThreadPoolTaskExecutor roundPool;
   private final Reader reader;
   private final Checker checker;
   private final Network network;
@@ -98,11 +94,13 @@ public class Round
   private Plots plots;
 
   @Autowired
-  public Round(Reader reader, Checker checker, Network network)
+  public Round(Reader reader, Checker checker, Network network, ThreadPoolTaskExecutor roundPool, ApplicationContext context)
   {
     this.reader = reader;
     this.checker = checker;
     this.network = network;
+    this.roundPool = roundPool;
+    this.context = context;
   }
 
   @PostConstruct
@@ -166,7 +164,6 @@ public class Round
       // check new lowest result
       if(event.getResult() != null)
       {
-        BigInteger nonce = event.getNonce();
         BigInteger deadline = event.getResult().divide(BigInteger.valueOf(baseTarget));
         long calculatedDeadline = deadline.longValue();
 
@@ -175,17 +172,18 @@ public class Round
           lowest = event.getResult();
           if(calculatedDeadline < targetDeadline)
           {
-            network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), event.getResult());
+            network.commitResult(blockNumber, calculatedDeadline, event.getNonce(), event.getChunkPartStartNonce(), plots.getSize(), event.getResult());
 
             // ui event
-            fireEvent(new RoundSingleResultEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline, poolMining));
+            fireEvent(new RoundSingleResultEvent(event.getBlockNumber(), event.getNonce(), event.getChunkPartStartNonce(), calculatedDeadline,
+                                                 poolMining));
           }
           else
           {
             // ui event
             if(CoreProperties.isShowSkippedDeadlines())
             {
-              fireEvent(new RoundSingleResultSkippedEvent(this, event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+              fireEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), event.getNonce(), event.getChunkPartStartNonce(), calculatedDeadline,
                                                           targetDeadline, poolMining));
             }
             // chunkPartStartNonce finished
@@ -206,7 +204,6 @@ public class Round
           LOG.info("dl '" + calculatedDeadline + "' queued");
           queuedEvent = event;
 
-          // todo not sure if / why needed?!
           triggerFinishRoundEvent(event.getBlockNumber());
         }
         else
@@ -291,6 +288,12 @@ public class Round
       {
         onRoundFinish(blockNumber);
       }
+      // commit queued if exists ... and it is the only remaining in runningChunkPartStartNonces
+      else if(queuedEvent != null && runningChunkPartStartNonces.size() == 1 && runningChunkPartStartNonces.contains(queuedEvent.getChunkPartStartNonce()))
+      {
+        handleMessage(queuedEvent);
+        queuedEvent = null;
+      }
     }
   }
 
@@ -343,7 +346,7 @@ public class Round
       @Override
       public void run()
       {
-        LOG.debug("trigger garbage collection ... ");
+        LOG.trace("trigger garbage collection ... ");
         System.gc();
       }
     }, 1500);

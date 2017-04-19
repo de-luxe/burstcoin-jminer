@@ -22,7 +22,6 @@
 
 package burstcoin.jminer.core.round.event;
 
-import burstcoin.jminer.core.round.Round;
 import org.springframework.context.ApplicationEvent;
 
 import java.math.BigInteger;
@@ -44,7 +43,6 @@ public class RoundSingleResultSkippedEvent
   /**
    * Instantiates a new Round single result skipped event.
    *
-   * @param source the source
    * @param blockNumber the block number
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
@@ -52,10 +50,10 @@ public class RoundSingleResultSkippedEvent
    * @param targetDeadline the target deadline
    * @param poolMining the pool mining
    */
-  public RoundSingleResultSkippedEvent(Round source, long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, long targetDeadline,
+  public RoundSingleResultSkippedEvent(long blockNumber, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, long targetDeadline,
                                        boolean poolMining)
   {
-    super(source);
+    super(blockNumber);
 
     this.nonce = nonce;
     this.blockNumber = blockNumber;

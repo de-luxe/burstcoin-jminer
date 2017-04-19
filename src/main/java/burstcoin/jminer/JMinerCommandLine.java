@@ -83,7 +83,7 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.4.9 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("    0.4.10 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
@@ -236,7 +236,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(RoundSingleResultEvent event)
       {
-        LOG.info("dl '" + event.getCalculatedDeadline() + "' send (" + (event.isPoolMining() ? "pool" : "solo") + ")");
+        LOG.info("dl '" + event.getCalculatedDeadline() + "' send (" + (event.isPoolMining() ? "pool" : "solo") + ") [nonce '"+event.getNonce().toString()+"']");
       }
     });
 
@@ -275,7 +275,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(ReaderCorruptFileEvent event)
       {
-        LOG.debug("strange dl source '" + event.getFilePath() + "' (try replotting!?)");
+        LOG.debug("strange dl source '" + event.getFilePath() + "'");
         LOG.debug("strange dl file chunks '" + event.getNumberOfChunks() + "', "
                   + "parts per chunk '" + event.getNumberOfParts() + "', "
                   + "block '" + event.getBlockNumber() + "'");

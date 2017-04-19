@@ -41,26 +41,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-/**
- * The type Plots.
- *
- * formulas couple
- The chance of finding a sphere with a specified Deadline :
- * chance (per block) = MyNonces/(2^64/BaseTarget/Deadline)
-
- The average obtained from the specified deadline approaches Volume of rafts ( in terabytes )
- Deadline=2^42/BaseTarget/TB
-
- Burst block #0 BaseTarget = 18325193796
- 2^64 = 18446744073709551616
-
- netDiff = 18325193796 / baseTarget
-
- (с)Texel
-
- Well, a miner , if you specify "solo" mode shows your chance to find the unit ( in percent) ,
- based on the complexity of the current block
- */
 public class Plots
 {
   private static final Logger LOG = LoggerFactory.getLogger(Plots.class);
@@ -203,7 +183,7 @@ public class Plots
     {
       for(PlotFile plotFile : plotDrive.getPlotFiles())
       {
-        if(chunkPartStartNonces.containsKey(chunkPartStartNonce))
+        if(plotFile.getChunkPartStartNonces().containsKey(chunkPartStartNonce))
         {
           return plotFile;
         }

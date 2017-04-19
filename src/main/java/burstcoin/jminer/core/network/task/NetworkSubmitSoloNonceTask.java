@@ -68,17 +68,6 @@ public class NetworkSubmitSoloNonceTask
   private BigInteger result;
   private long connectionTimeout;
 
-  /**
-   * Init void.
-   *  @param blockNumber the block number
-   * @param passPhrase the pass phrase
-   * @param soloServer the solo server
-   * @param connectionTimeout the connection timeout
-   * @param nonce the nonce
-   * @param chunkPartStartNonce the chunk part start nonce
-   * @param calculatedDeadline the calculated deadline
-   * @param result
-   */
   public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
                    long calculatedDeadline, BigInteger result)
   {
@@ -127,7 +116,7 @@ public class NetworkSubmitSoloNonceTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Unable to commit solo nonce, caused by connectionTimeout, currently '" + (connectionTimeout/1000) + " sec.' try increasing it!");
+      LOG.warn("Unable to commit solo nonce, caused by connectionTimeout, currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

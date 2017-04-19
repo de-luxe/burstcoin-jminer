@@ -207,10 +207,10 @@ public class Reader
     {
       readerPool.setCorePoolSize(1);
       readerPool.setMaxPoolSize(1);
-      LOG.debug("cleanup was successful ...");
+      LOG.trace("cleanup was successful ...");
       return true;
     }
-    LOG.debug("cleanup skipped ... retry in 1s");
+    LOG.trace("cleanup skipped ... retry in 1s");
     return false;
   }
 

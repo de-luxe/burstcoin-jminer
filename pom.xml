@@ -4,7 +4,7 @@
 
   <groupId>burstcoin</groupId>
   <artifactId>burstcoin-jminer</artifactId>
-  <version>0.4.9-SNAPSHOT</version>
+  <version>0.4.10-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>burstcoin-jminer</name>
@@ -22,9 +22,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <start-class>burstcoin.jminer.JMinerApplication</start-class>
     <java.version>1.8</java.version>
-    <jocl.version>2.0.0</jocl.version>
+    <jocl-blast.version>0.10.0</jocl-blast.version>
     <saphir-hash.version>3.0.1</saphir-hash.version>
     <bcprov-jdk15on.version>1.56</bcprov-jdk15on.version>
+
+    <!-- only needed for older gpu -->
+    <!--<jocl.version>0.1.9</jocl.version>-->
+
   </properties>
 
   <dependencies>
@@ -39,10 +43,17 @@
       <artifactId>spring-boot-starter-jetty</artifactId>
     </dependency>
 
+    <!-- only needed for older gpu -->
+    <!--<dependency>-->
+    <!--<groupId>org.jocl</groupId>-->
+    <!--<artifactId>jocl</artifactId>-->
+    <!--<version>${jocl.version}</version>-->
+    <!--</dependency>-->
+
     <dependency>
       <groupId>org.jocl</groupId>
-      <artifactId>jocl</artifactId>
-      <version>${jocl.version}</version>
+      <artifactId>jocl-blast</artifactId>
+      <version>${jocl-blast.version}</version>
     </dependency>
 
     <dependency>

@@ -50,7 +50,7 @@ public class JMinerApplication
     {
       properties.put("logging.file", CoreProperties.getLogFilePath());
     }
-    properties.put("logging.level.burstcoin.jminer.core", CoreProperties.isDebug() ? "DEBUG" : "INFO");
+    properties.put("logging.level.burstcoin.jminer", CoreProperties.isDebug() ? "DEBUG" : "INFO");
 
     new SpringApplicationBuilder(JMinerApplication.class)
       .bannerMode(Banner.Mode.OFF) // turn off spring boot banner
