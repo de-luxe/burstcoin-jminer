@@ -97,6 +97,7 @@ public class CoreProperties
   private static Boolean showSkippedDeadlines;
   private static Integer readerThreads;
   private static Boolean writeLogFile;
+  private static Boolean triggerServer;
   private static Boolean debug;
   private static String logFilePath;
 
@@ -428,11 +429,11 @@ public class CoreProperties
 
   public static boolean isTriggerServer()
   {
-    if(writeLogFile == null)
+    if(triggerServer == null)
     {
-      writeLogFile = asBoolean("triggerServer", DEFAULT_TRIGGER_SERVER);
+      triggerServer = asBoolean("triggerServer", DEFAULT_TRIGGER_SERVER);
     }
-    return writeLogFile;
+    return triggerServer;
   }
 
   public static boolean isDebug()
