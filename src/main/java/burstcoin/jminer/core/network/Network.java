@@ -29,6 +29,7 @@ import burstcoin.jminer.core.network.task.NetworkRequestMiningInfoTask;
 import burstcoin.jminer.core.network.task.NetworkRequestPoolInfoTask;
 import burstcoin.jminer.core.network.task.NetworkRequestTriggerServerTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
+import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceFallbackTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -186,6 +187,24 @@ public class Network
       NetworkSubmitSoloNonceTask networkSubmitSoloNonceTask = context.getBean(NetworkSubmitSoloNonceTask.class);
       networkSubmitSoloNonceTask.init(blockNumber, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline, result);
       networkPool.execute(networkSubmitSoloNonceTask);
+
+      if(CoreProperties.isRecommitDeadlines() && calculatedDeadline < 1200)
+      {
+        // recommit #1 after 5 sec.
+        NetworkSubmitSoloNonceFallbackTask networkSubmitSoloNonceRecommitTask = context.getBean(NetworkSubmitSoloNonceFallbackTask.class);
+        networkSubmitSoloNonceRecommitTask.init(soloServer, 5000L,  passPhrase, connectionTimeout, nonce,  calculatedDeadline);
+        networkPool.execute(networkSubmitSoloNonceRecommitTask);
+
+        // recommit #2 after 10 sec.
+        NetworkSubmitSoloNonceFallbackTask networkSubmitSoloNonceRecommitTask2 = context.getBean(NetworkSubmitSoloNonceFallbackTask.class);
+        networkSubmitSoloNonceRecommitTask2.init(soloServer, 10000L, passPhrase, connectionTimeout, nonce, calculatedDeadline);
+        networkPool.execute(networkSubmitSoloNonceRecommitTask2);
+
+        // recommit #3 after 15 sec.
+        NetworkSubmitSoloNonceFallbackTask networkSubmitSoloNonceRecommitTask3 = context.getBean(NetworkSubmitSoloNonceFallbackTask.class);
+        networkSubmitSoloNonceRecommitTask3.init(soloServer, 15000L, passPhrase, connectionTimeout, nonce, calculatedDeadline);
+        networkPool.execute(networkSubmitSoloNonceRecommitTask3);
+      }
     }
   }
 

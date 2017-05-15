@@ -55,6 +55,7 @@ public class CoreProperties
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
   private static final boolean DEFAULT_SHOW_DRIVE_INFO = false;
+  private static final boolean DEFAULT_RECOMMIT_DEADLINES = false;
   private static final boolean DEFAULT_SHOW_SKIPPED_DEADLINES = true;
   private static final int DEFAULT_READER_THREADS = 0;
   private static final boolean DEFAULT_DEBUG = false;
@@ -94,6 +95,7 @@ public class CoreProperties
   private static Boolean byteUnitDecimal;
   private static Boolean listPlotFiles;
   private static Boolean showDriveInfo;
+  private static Boolean recommitDeadlines;
   private static Boolean showSkippedDeadlines;
   private static Integer readerThreads;
   private static Boolean writeLogFile;
@@ -407,6 +409,15 @@ public class CoreProperties
       showDriveInfo = asBoolean("showDriveInfo", DEFAULT_SHOW_DRIVE_INFO);
     }
     return showDriveInfo;
+  }
+
+  public static boolean isRecommitDeadlines()
+  {
+    if(recommitDeadlines == null)
+    {
+      recommitDeadlines = asBoolean("recommitDeadlines", DEFAULT_RECOMMIT_DEADLINES);
+    }
+    return recommitDeadlines;
   }
 
   public static boolean isShowSkippedDeadlines()
