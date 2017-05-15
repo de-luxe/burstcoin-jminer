@@ -123,9 +123,13 @@ on 'true' miner emulates open wallet gui, to prevent wallet server from
 falling asleep (not sure if needed at all)
 
     triggerServer=true
+    
+### recommitDeadlines (default: false)
+recommits deadlines below 1200 3 times in a interval of 5 sec.
+experimental feature to increase chance that deadline gets propagated
+e.g. on short disconnect or connected peers busy etc.
 
-
-
+    recommitDeadlines=true
 
 ## OpenCL
 The miner uses openCL for most of the mining calculations, ensure it is setup correctly.
