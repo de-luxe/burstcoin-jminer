@@ -25,6 +25,7 @@ package burstcoin.jminer.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -73,7 +74,7 @@ public class CoreConfig
   @Bean
   public HttpClient httpClient()
   {
-    HttpClient client = new HttpClient();
+    HttpClient client = new HttpClient(new SslContextFactory(true));
     try
     {
       client.start();

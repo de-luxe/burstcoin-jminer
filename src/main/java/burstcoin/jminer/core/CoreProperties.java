@@ -102,6 +102,8 @@ public class CoreProperties
   private static Boolean triggerServer;
   private static Boolean debug;
   private static String logFilePath;
+  private static String logPatternFile;
+  private static String logPatternConsole;
 
   private CoreProperties()
   {
@@ -463,6 +465,24 @@ public class CoreProperties
       logFilePath = asString("logFilePath", DEFAULT_LOG_FILE_PATH);
     }
     return logFilePath;
+  }
+
+  public static String getLogPatternConsole()
+  {
+    if(logPatternConsole == null)
+    {
+      logPatternConsole = asString("logPatternConsole", null);
+    }
+    return logPatternConsole;
+  }
+
+  public static String getLogPatternFile()
+  {
+    if(logPatternFile == null)
+    {
+      logPatternFile = asString("logPatternFile", null);
+    }
+    return logPatternFile;
   }
 
   private static Boolean asBoolean(String key, boolean defaultValue)
