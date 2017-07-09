@@ -34,6 +34,7 @@ public class NetworkResultConfirmedEvent
   extends ApplicationEvent
 {
   private long blockNumber;
+  private byte[] generationSignature;
   private long deadline;
   private BigInteger nonce;
 
@@ -48,11 +49,12 @@ public class NetworkResultConfirmedEvent
    * @param nonce the nonce
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultConfirmedEvent(long blockNumber, long deadline, BigInteger nonce, BigInteger chunkPartStartNonce, BigInteger result)
+  public NetworkResultConfirmedEvent(long blockNumber, byte[] generationSignature, long deadline, BigInteger nonce, BigInteger chunkPartStartNonce, BigInteger result)
   {
     super(blockNumber);
 
     this.blockNumber = blockNumber;
+    this.generationSignature = generationSignature;
     this.deadline = deadline;
     this.nonce = nonce;
 
@@ -103,5 +105,10 @@ public class NetworkResultConfirmedEvent
   public BigInteger getResult()
   {
     return result;
+  }
+
+  public byte[] getGenerationSignature()
+  {
+    return generationSignature;
   }
 }

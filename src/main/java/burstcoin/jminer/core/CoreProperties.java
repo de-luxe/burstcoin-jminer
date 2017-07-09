@@ -61,6 +61,7 @@ public class CoreProperties
   private static final boolean DEFAULT_DEBUG = false;
   private static final boolean DEFAULT_TRIGGER_SERVER = false;
   private static final boolean DEFAULT_WRITE_LOG_FILE = false;
+  private static final boolean DEFAULT_UPDATE_MINING_INFO = true;
   private static final String DEFAULT_LOG_FILE_PATH = "log/jminer.log.txt";
 
   static
@@ -104,6 +105,7 @@ public class CoreProperties
   private static String logFilePath;
   private static String logPatternFile;
   private static String logPatternConsole;
+  private static Boolean updateMiningInfo;
 
   private CoreProperties()
   {
@@ -402,6 +404,15 @@ public class CoreProperties
       listPlotFiles = asBoolean("listPlotFiles", DEFAULT_LIST_PLOT_FILES);
     }
     return listPlotFiles;
+  }
+
+  public static boolean isUpdateMiningInfo()
+  {
+    if(updateMiningInfo == null)
+    {
+      updateMiningInfo = asBoolean("updateMiningInfo", DEFAULT_UPDATE_MINING_INFO);
+    }
+    return updateMiningInfo;
   }
 
   public static boolean isShowDriveInfo()

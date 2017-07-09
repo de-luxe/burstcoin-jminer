@@ -35,6 +35,7 @@ public class RoundStartedEvent
   private long capacity;
   private long targetDeadline;
   private long baseTarget;
+  private boolean restart;
   private long blockNumber;
 
   /**
@@ -46,15 +47,21 @@ public class RoundStartedEvent
    * @param targetDeadline the target deadline
    * @param baseTarget the base target
    */
-  public RoundStartedEvent(long blockNumber, long scoopNumber, long capacity, long targetDeadline, long baseTarget)
+  public RoundStartedEvent(boolean restart, long blockNumber, long scoopNumber, long capacity, long targetDeadline, long baseTarget)
   {
     super(blockNumber);
 
+    this.restart = restart;
     this.blockNumber = blockNumber;
     this.scoopNumber = scoopNumber;
     this.capacity = capacity;
     this.targetDeadline = targetDeadline;
     this.baseTarget = baseTarget;
+  }
+
+  public boolean isRestart()
+  {
+    return restart;
   }
 
   /**

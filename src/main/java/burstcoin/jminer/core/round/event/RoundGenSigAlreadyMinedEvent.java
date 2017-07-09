@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2017 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -20,30 +20,23 @@
  *
  */
 
-package burstcoin.jminer.core.checker.event;
+package burstcoin.jminer.core.round.event;
 
-import java.math.BigInteger;
+import org.springframework.context.ApplicationEvent;
 
-/**
- * fired if chunk-part checked
- */
-public class CheckerResultEvent
+
+public class RoundGenSigAlreadyMinedEvent
+  extends ApplicationEvent
 {
   private byte[] generationSignature;
-  private BigInteger chunkPartStartNonce;
-
   private long blockNumber;
-  private BigInteger nonce;
-  private BigInteger result;
 
-  public CheckerResultEvent(long blockNumber, byte[] generationSignature, BigInteger chunkPartStartNonce, BigInteger nonce, BigInteger result)
+  public RoundGenSigAlreadyMinedEvent(long blockNumber, byte[] generationSignature)
   {
-    this.generationSignature = generationSignature;
-    this.chunkPartStartNonce = chunkPartStartNonce;
-    this.blockNumber = blockNumber;
+    super(blockNumber);
 
-    this.nonce = nonce;
-    this.result = result;
+    this.blockNumber = blockNumber;
+    this.generationSignature = generationSignature;
   }
 
   public long getBlockNumber()
@@ -51,23 +44,9 @@ public class CheckerResultEvent
     return blockNumber;
   }
 
-  public BigInteger getNonce()
-  {
-    return nonce;
-  }
-
-  public BigInteger getResult()
-  {
-    return result;
-  }
-
-  public BigInteger getChunkPartStartNonce()
-  {
-    return chunkPartStartNonce;
-  }
-
   public byte[] getGenerationSignature()
   {
     return generationSignature;
   }
 }
+

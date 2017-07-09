@@ -46,6 +46,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.Iterator;
@@ -64,15 +65,17 @@ public class ReaderLoadDriveTask
   @Autowired
   private ApplicationEventPublisher publisher;
 
+  private byte[] generationSignature;
   private PlotDrive plotDrive;
   private int scoopNumber;
   private long blockNumber;
   private boolean showDriveInfo;
 
-  public void init(int scoopNumber, long blockNumber, PlotDrive plotDrive)
+  public void init(int scoopNumber, long blockNumber, byte[] generationSignature, PlotDrive plotDrive)
   {
     this.scoopNumber = scoopNumber;
     this.blockNumber = blockNumber;
+    this.generationSignature = generationSignature;
     this.plotDrive = plotDrive;
 
     showDriveInfo = CoreProperties.isShowDriveInfo();
@@ -126,7 +129,7 @@ public class ReaderLoadDriveTask
         {
           sbc.read(partBuffer);
 
-          if(Reader.blockNumber != blockNumber)
+          if(Reader.blockNumber != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
           {
             LOG.trace("loadDriveThread stopped!");
             partBuffer.clear();
@@ -137,7 +140,7 @@ public class ReaderLoadDriveTask
           {
             BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(chunkNumber * plotFile.getStaggeramt() + partNumber * partSize));
             final byte[] scoops = partBuffer.array();
-            publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, scoops, chunkPartStartNonce));
+            publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce));
           }
           partBuffer.clear();
         }
@@ -155,7 +158,7 @@ public class ReaderLoadDriveTask
     }
     catch(IOException e)
     {
-      LOG.error("IOException in: " + plotFile.getFilePath().toString() +" -> " + e.getMessage());
+      LOG.error("IOException in: " + plotFile.getFilePath().toString() + " -> " + e.getMessage());
     }
     return false;
   }

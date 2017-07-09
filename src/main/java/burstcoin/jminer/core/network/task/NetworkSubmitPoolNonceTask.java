@@ -66,6 +66,7 @@ public class NetworkSubmitPoolNonceTask
   @Autowired
   private ObjectMapper objectMapper;
 
+  private byte[] generationSignature;
   private long connectionTimeout;
 
   private BigInteger nonce;
@@ -78,9 +79,10 @@ public class NetworkSubmitPoolNonceTask
   private long totalCapacity;
   private BigInteger result;
 
-  public void init(long blockNumber, String numericAccountId, String poolServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
-                   long calculatedDeadline, long totalCapacity, BigInteger result)
+  public void init(long blockNumber, byte[] generationSignature, String numericAccountId, String poolServer, long connectionTimeout, BigInteger nonce,
+                   BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity, BigInteger result)
   {
+    this.generationSignature = generationSignature;
     this.connectionTimeout = connectionTimeout;
 
     this.poolServer = poolServer;
@@ -119,7 +121,8 @@ public class NetworkSubmitPoolNonceTask
         LOG.info("dl '" + calculatedDeadline + "' not accepted by pool!");
         LOG.debug("Error code: '" + error.getErrorCode() + "'.");
         LOG.debug("Error description: '" + error.getErrorDescription() + "'.");
-        publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, result));
+        publisher.publishEvent(
+          new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, result));
       }
       else
       {
@@ -129,18 +132,21 @@ public class NetworkSubmitPoolNonceTask
         {
           if(calculatedDeadline == result.getDeadline())
           {
-            publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, result.getDeadline(), nonce, chunkPartStartNonce, this.result));
+            publisher
+              .publishEvent(new NetworkResultConfirmedEvent(blockNumber, generationSignature, result.getDeadline(), nonce, chunkPartStartNonce, this.result));
           }
           else
           {
             // in general if deadlines do not match, we end up in errorCode above
-            publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce, this.result));
+            publisher.publishEvent(
+              new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce, this.result));
           }
         }
         else
         {
           LOG.warn("Error: Submit nonce to pool not successful: " + response.getContentAsString());
-          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+          publisher.publishEvent(
+            new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
         }
       }
     }
@@ -148,7 +154,8 @@ public class NetworkSubmitPoolNonceTask
     {
       LOG.warn("Nonce was committed to pool, but not confirmed ... caused by connectionTimeout,"
                + " currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+      publisher.publishEvent(
+        new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(ExecutionException e)
     {
@@ -165,27 +172,31 @@ public class NetworkSubmitPoolNonceTask
       else
       {
         LOG.warn("Error: Failed to submit nonce to pool due ExecutionException.");
-        LOG.debug("ExecutionException: "+ e.getMessage(), e);
+        LOG.debug("ExecutionException: " + e.getMessage(), e);
       }
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+      publisher.publishEvent(
+        new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(EOFException e)
     {
       LOG.warn("Error: Failed to submit nonce to pool due EOFException.");
-      LOG.debug("EOFException: "+ e.getMessage(), e);
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+      LOG.debug("EOFException: " + e.getMessage(), e);
+      publisher.publishEvent(
+        new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(JsonMappingException e)
     {
-      LOG.warn("Error: On submit nonce to pool, could not parse response: '" + responseContentAsString+"'");
-      LOG.debug("JSONMappingException: "+ e.getMessage(), e);
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+      LOG.warn("Error: On submit nonce to pool, could not parse response: '" + responseContentAsString + "'");
+      LOG.debug("JSONMappingException: " + e.getMessage(), e);
+      publisher.publishEvent(
+        new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
     catch(Exception e)
     {
       LOG.warn("Error: Failed to submit nonce to pool due Exception.");
-      LOG.debug("Exception: "+ e.getMessage(), e);
-      publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
+      LOG.debug("Exception: " + e.getMessage(), e);
+      publisher.publishEvent(
+        new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, -1L /*not delivered*/, chunkPartStartNonce, this.result));
     }
   }
 }

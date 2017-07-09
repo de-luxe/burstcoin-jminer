@@ -77,6 +77,7 @@ public class Network
 
   private long blockNumber;
   private Timer timer;
+  private byte[] generationSignature;
 
   @PostConstruct
   protected void postConstruct()
@@ -127,6 +128,7 @@ public class Network
   public void handleMessage(NetworkStateChangeEvent event)
   {
     blockNumber = event.getBlockNumber();
+    generationSignature = event.getGenerationSignature();
   }
 
   public void checkNetworkState()
@@ -135,7 +137,7 @@ public class Network
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, poolMining, connectionTimeout, defaultTargetDeadline);
+      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, poolMining, connectionTimeout, defaultTargetDeadline);
       networkPool.execute(networkRequestMiningInfoTask);
     }
   }
@@ -178,14 +180,14 @@ public class Network
     if(poolMining)
     {
       NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
-      networkSubmitPoolNonceTask.init(blockNumber, numericAccountId, poolServer, connectionTimeout, nonce,
+      networkSubmitPoolNonceTask.init(blockNumber, generationSignature, numericAccountId, poolServer, connectionTimeout, nonce,
                                       chunkPartStartNonce, calculatedDeadline, totalCapacity, result);
       networkPool.execute(networkSubmitPoolNonceTask);
     }
     else
     {
       NetworkSubmitSoloNonceTask networkSubmitSoloNonceTask = context.getBean(NetworkSubmitSoloNonceTask.class);
-      networkSubmitSoloNonceTask.init(blockNumber, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline, result);
+      networkSubmitSoloNonceTask.init(blockNumber, generationSignature, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline, result);
       networkPool.execute(networkSubmitSoloNonceTask);
 
       if(CoreProperties.isRecommitDeadlines() && calculatedDeadline < 1200)

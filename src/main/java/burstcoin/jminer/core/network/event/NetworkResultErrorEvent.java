@@ -33,6 +33,7 @@ public class NetworkResultErrorEvent
   extends ApplicationEvent
 {
   private long blockNumber;
+  private byte[] generationSignature;
   private BigInteger nonce;
 
   private long calculatedDeadline;
@@ -50,11 +51,12 @@ public class NetworkResultErrorEvent
    * @param strangeDeadline the strange deadline
    * @param chunkPartStartNonce the chunk part start nonce
    */
-  public NetworkResultErrorEvent(long blockNumber, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce, BigInteger result)
+  public NetworkResultErrorEvent(long blockNumber, byte[] generationSignature, BigInteger nonce, long calculatedDeadline, long strangeDeadline, BigInteger chunkPartStartNonce, BigInteger result)
   {
     super(blockNumber);
 
     this.blockNumber = blockNumber;
+    this.generationSignature = generationSignature;
     this.nonce = nonce;
     this.calculatedDeadline = calculatedDeadline;
     this.strangeDeadline = strangeDeadline;
@@ -116,5 +118,10 @@ public class NetworkResultErrorEvent
   public BigInteger getResult()
   {
     return result;
+  }
+
+  public byte[] getGenerationSignature()
+  {
+    return generationSignature;
   }
 }

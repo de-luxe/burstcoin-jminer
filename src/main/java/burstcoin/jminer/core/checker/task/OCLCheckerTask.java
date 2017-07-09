@@ -73,7 +73,7 @@ public class OCLCheckerTask
     BigInteger nonce = chunkPartStartNonce.add(BigInteger.valueOf(lowestNonce));
 
     BigInteger result = calculateResult(scoops, generationSignature, lowestNonce);
-    publisher.publishEvent(new CheckerResultEvent(blockNumber, chunkPartStartNonce, nonce, result));
+    publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, nonce, result));
   }
 
   private BigInteger calculateResult(byte[] scoops, byte[] generationSignature, int nonce)

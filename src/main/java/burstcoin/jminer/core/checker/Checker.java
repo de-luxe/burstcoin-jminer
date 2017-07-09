@@ -33,6 +33,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 /**
  * The type Checker.
  */
@@ -65,7 +67,7 @@ public class Checker
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {
-    if(blockNumber == event.getBlockNumber())
+    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       OCLCheckerTask oclCheckerTask = context.getBean(OCLCheckerTask.class);
       oclCheckerTask.init(event.getBlockNumber(), generationSignature, event.getScoops(), event.getChunkPartStartNonce());
@@ -73,7 +75,7 @@ public class Checker
     }
     else
     {
-      LOG.trace("skipped check scoop ... old block ...");
+      LOG.trace("skipped check scoop ... outdated mining info...");
     }
   }
 }

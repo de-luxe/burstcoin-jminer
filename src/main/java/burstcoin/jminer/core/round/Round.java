@@ -33,12 +33,14 @@ import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.Plots;
 import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
+import burstcoin.jminer.core.round.event.RoundGenSigUpdatedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import burstcoin.jminer.core.round.task.RoundFireEventTask;
 import fr.cryptohash.Shabal256;
+import nxt.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,7 @@ import pocminer.generate.MiningPlot;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -92,6 +95,10 @@ public class Round
 
   private Set<BigInteger> runningChunkPartStartNonces;
   private Plots plots;
+  private byte[] generationSignature;
+
+  // generationSignature
+  private Set<String> finishedLookup;
 
   @Autowired
   public Round(Reader reader, Checker checker, Network network, ThreadPoolTaskExecutor roundPool, ApplicationContext context)
@@ -101,6 +108,8 @@ public class Round
     this.network = network;
     this.roundPool = roundPool;
     this.context = context;
+
+    finishedLookup = new HashSet<>();
   }
 
   @PostConstruct
@@ -123,10 +132,37 @@ public class Round
   @EventListener
   public void handleMessage(NetworkStateChangeEvent event)
   {
-    if(blockNumber < event.getBlockNumber())
+    boolean blockHeightIncreased = blockNumber < event.getBlockNumber();
+    boolean generationSignatureChanged = !Arrays.equals(event.getGenerationSignature(), generationSignature);
+    boolean restart = false;
+
+    boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
+    if(alreadyMined && CoreProperties.isUpdateMiningInfo())
     {
-      long previousBlockNumber = blockNumber;
+      fireEvent(new RoundGenSigUpdatedEvent(event.getBlockNumber(), event.getGenerationSignature()));
+    }
+
+    if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
+    {
+      restart = true;
+      // generationSignature for block updated
+      if(finishedBlockNumber == blockNumber)
+      {
+        finishedBlockNumber--;
+      }
+      // ui event
+      fireEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
+    }
+
+    long previousBlockNumber = event.getBlockNumber();
+    if(blockHeightIncreased)
+    {
+      previousBlockNumber = blockNumber;
       this.blockNumber = event.getBlockNumber();
+    }
+
+    if(blockHeightIncreased || (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
+    {
       this.baseTarget = event.getBaseTarget();
       this.targetDeadline = event.getTargetDeadline();
 
@@ -136,14 +172,15 @@ public class Round
       initNewRound(plots);
 
       // reconfigure checker
-      checker.reconfigure(blockNumber, event.getGenerationSignature());
+      generationSignature = event.getGenerationSignature();
+      checker.reconfigure(blockNumber, generationSignature);
 
       // start reader
       int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
-      reader.read(previousBlockNumber, blockNumber, scoopNumber, lastBestCommittedDeadline);
+      reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline);
 
       // ui event
-      fireEvent(new RoundStartedEvent(blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget));
+      fireEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget));
 
       timer.schedule(new TimerTask()
       {
@@ -152,14 +189,14 @@ public class Round
         {
           network.checkLastWinner(blockNumber);
         }
-      }, 0); // deferred
+      }, 0); // deferred}
     }
   }
 
   @EventListener
   public void handleMessage(CheckerResultEvent event)
   {
-    if(blockNumber == event.getBlockNumber())
+    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       // check new lowest result
       if(event.getResult() != null)
@@ -227,7 +264,7 @@ public class Round
   @EventListener
   public void handleMessage(NetworkResultConfirmedEvent event)
   {
-    if(blockNumber == event.getBlockNumber())
+    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       lowestCommitted = event.getResult();
 
@@ -254,7 +291,7 @@ public class Round
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {
-    if(blockNumber == event.getBlockNumber())
+    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       // reset lowest to lowestCommitted, as it does not commit successful.
       lowest = lowestCommitted;
@@ -300,6 +337,10 @@ public class Round
   private void onRoundFinish(long blockNumber)
   {
     finishedBlockNumber = blockNumber;
+
+    // remember finished genSig, to prevent mining it again
+    finishedLookup.add(Convert.toHexString(generationSignature));
+
     long elapsedRoundTime = new Date().getTime() - roundStartDate.getTime();
     triggerGarbageCollection();
     timer.schedule(new TimerTask()

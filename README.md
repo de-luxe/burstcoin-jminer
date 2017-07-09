@@ -131,6 +131,7 @@ e.g. on short disconnect or connected peers busy etc.
 
     recommitDeadlines=true
 
+
 ## OpenCL
 The miner uses openCL for most of the mining calculations, ensure it is setup correctly.
 Instructions can be found e.g. here (thanks cryo):
@@ -158,6 +159,14 @@ in most cases it will not be 100% used. (depends on capacity)
 interval of asking wallet/pool for mining info (in ms), to check for new block
 
     refreshInterval=2000
+
+### updateMiningInfo (default=true)
+restart round on new generationSignature for same round 
+as long as equal miningInfo was not already finished
+(it may happen that miningInfo changes, and changes back later)
+false value will disable this feature
+
+    updateMiningInfo=false
 
 ### connectionTimeout (default:12000)
 increase the 'connectionTimeout' on network problems. this timeout is used for all network requests.
@@ -211,7 +220,25 @@ e.g. you see in logs, that 'drive-c' and 'drive-d' slow down this mining setup:
     read 'C:/data/drive-c' (3TB 996GB) in '35s 390ms'
     read 'C:/data/drive-d' (3TB 996GB) in '35s 685ms'
 
+### logPatternConsole & logPatternFile
+patterns for logfile and cosole output can be different
+only needed if you want to configure your own log pattern e.g.
+following would show colored time and message on console:
 
+    logPatternConsole=%blue(%d{HH:mm:ss.SSS}) %green(%msg%n)
+    
+only time and message for logfile:
+    
+    logPatternFile=%d{HH:mm:ss.SSS} %msg%n
+    
+For all options please read from docs: 
+https://logback.qos.ch/manual/layouts.html#ClassicPatternLayout
+
+### showSkippedDeadlines (default:true) 
+set this to 'true' to show found deadlines below targetDeadline configure or 
+provided by pool (overwriting the targetDeadline specified in jminer.properties)
+
+    showSkippedDeadlines=false
 
 
 ## Miner Memory Usage

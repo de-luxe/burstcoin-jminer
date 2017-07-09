@@ -34,10 +34,13 @@ import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
+import burstcoin.jminer.core.round.event.RoundGenSigAlreadyMinedEvent;
+import burstcoin.jminer.core.round.event.RoundGenSigUpdatedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
+import nxt.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -61,6 +64,7 @@ public class JMinerCommandLine
   private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
 
   private static long blockNumber;
+  private static byte[] generationSignature;
   private static int progressLogStep;
   private static long previousRemainingCapacity = 0;
   private static long previousElapsedTime = 0;
@@ -160,6 +164,7 @@ public class JMinerCommandLine
       public void onApplicationEvent(NetworkStateChangeEvent event)
       {
         blockNumber = event.getBlockNumber();
+        generationSignature = event.getGenerationSignature();
       }
     });
 
@@ -171,12 +176,31 @@ public class JMinerCommandLine
         progressLogStep = NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
 
         LOG.info("-------------------------------------------------------");
-        LOG.info("START block '" + event.getBlockNumber() + "', "
-                 + "scoopNumber '" + event.getScoopNumber() + "', "
-                 + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'"
+        LOG.info(event.isRestart() ? "RE-" : "" + "START block '" + event.getBlockNumber() + "', "
+                                             + "scoopNumber '" + event.getScoopNumber() + "', "
+                                             + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'"
                 );
         String target = event.getTargetDeadline() == Long.MAX_VALUE ? "N/A" : String.valueOf(event.getTargetDeadline());
-        LOG.info("      targetDeadline '" + target + "', " + "baseTarget '" + String.valueOf(event.getBaseTarget()) + "'");
+        LOG.info("      targetDeadline '" + target + "', " + "baseTarget '" + String.valueOf(event.getBaseTarget()) + "', "
+                 + "genSig '" + Convert.toHexString(generationSignature).substring(0, 6) + "..'");
+      }
+    });
+
+    context.addApplicationListener(new ApplicationListener<RoundGenSigUpdatedEvent>()
+    {
+      @Override
+      public void onApplicationEvent(RoundGenSigUpdatedEvent event)
+      {
+        LOG.info("MiningInfo for block '" + event.getBlockNumber() + "' has changed, restarting round ...");
+      }
+    });
+
+    context.addApplicationListener(new ApplicationListener<RoundGenSigAlreadyMinedEvent>()
+    {
+      @Override
+      public void onApplicationEvent(RoundGenSigAlreadyMinedEvent event)
+      {
+        LOG.info("MiningInfo for block '" + event.getBlockNumber() + "' has changed back to previously successful mined.");
       }
     });
 
@@ -236,7 +260,8 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(RoundSingleResultEvent event)
       {
-        LOG.info("dl '" + event.getCalculatedDeadline() + "' send (" + (event.isPoolMining() ? "pool" : "solo") + ") [nonce '"+event.getNonce().toString()+"']");
+        LOG.info(
+          "dl '" + event.getCalculatedDeadline() + "' send (" + (event.isPoolMining() ? "pool" : "solo") + ") [nonce '" + event.getNonce().toString() + "']");
       }
     });
 

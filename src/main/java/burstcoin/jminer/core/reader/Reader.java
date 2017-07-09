@@ -53,6 +53,7 @@ import org.springframework.util.StringUtils;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -89,6 +90,7 @@ public class Reader
 
   // data
   public static volatile long blockNumber;
+  public static volatile byte[] generationSignature;
   private Plots plots;
   private Map<BigInteger, Long> capacityLookup;
   private long remainingCapacity;
@@ -152,13 +154,14 @@ public class Reader
 
   /**
    * starts reader (once per block)
-   *
-   * @param blockNumber the block number
+   *  @param blockNumber the block number
+   * @param generationSignature
    * @param scoopNumber the scoop number
    */
-  public void read(long previousBlockNumber, long blockNumber, int scoopNumber, long lastBestCommittedDeadline)
+  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int scoopNumber, long lastBestCommittedDeadline)
   {
     Reader.blockNumber = blockNumber;
+    Reader.generationSignature = generationSignature;
 
     // ensure plots are initialized
     plots = plots == null ? getPlots() : plots;
@@ -186,7 +189,7 @@ public class Reader
     for(PlotDrive plotDrive : plots.getPlotDrives())
     {
       ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
-      readerLoadDriveTask.init(scoopNumber, blockNumber, plotDrive);
+      readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
       readerPool.execute(readerLoadDriveTask);
     }
   }
@@ -217,7 +220,7 @@ public class Reader
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {
-    if(blockNumber == event.getBlockNumber())
+    if(blockNumber == event.getBlockNumber() && Arrays.equals(event.getGenerationSignature(), generationSignature))
     {
       // update progress
       Long removedCapacity = capacityLookup.remove(event.getChunkPartStartNonce());
@@ -242,7 +245,7 @@ public class Reader
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {
-    if(blockNumber == event.getBlockNumber())
+    if(blockNumber == event.getBlockNumber() && Arrays.equals(event.getGenerationSignature(), generationSignature))
     {
       // find maybe corrupt plot-file
       PlotFile plotFile = plots.getPlotFileByChunkPartStartNonce(event.getChunkPartStartNonce());

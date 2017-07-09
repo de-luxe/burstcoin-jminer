@@ -59,6 +59,7 @@ public class NetworkRequestMiningInfoTask
   @Autowired
   private ApplicationEventPublisher publisher;
 
+  private byte[] generationSignature;
   private long blockNumber;
   private String server;
 
@@ -66,9 +67,11 @@ public class NetworkRequestMiningInfoTask
   private long connectionTimeout;
   private long defaultTargetDeadline;
 
-  public void init(String server, long blockNumber, boolean poolMining, long connectionTimeout, long defaultTargetDeadline)
+  public void init(String server, long blockNumber, byte[] generationSignature, boolean poolMining, long connectionTimeout,
+                   long defaultTargetDeadline)
   {
     this.server = server;
+    this.generationSignature = generationSignature;
     this.blockNumber = blockNumber;
     this.poolMining = poolMining;
     this.connectionTimeout = connectionTimeout;

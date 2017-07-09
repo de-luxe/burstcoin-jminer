@@ -66,11 +66,14 @@ public class NetworkSubmitSoloNonceTask
   private BigInteger chunkPartStartNonce;
   private long calculatedDeadline;
   private BigInteger result;
+  private byte[] generationSignature;
   private long connectionTimeout;
 
-  public void init(long blockNumber, String passPhrase, String soloServer, long connectionTimeout, BigInteger nonce, BigInteger chunkPartStartNonce,
+  public void init(long blockNumber, byte[] generationSignature, String passPhrase, String soloServer, long connectionTimeout, BigInteger nonce,
+                   BigInteger chunkPartStartNonce,
                    long calculatedDeadline, BigInteger result)
   {
+    this.generationSignature = generationSignature;
     this.connectionTimeout = connectionTimeout;
 
     this.soloServer = soloServer;
@@ -102,11 +105,13 @@ public class NetworkSubmitSoloNonceTask
       {
         if(calculatedDeadline == result.getDeadline())
         {
-          publisher.publishEvent(new NetworkResultConfirmedEvent(blockNumber, result.getDeadline(), nonce, chunkPartStartNonce, this.result));
+          publisher
+            .publishEvent(new NetworkResultConfirmedEvent(blockNumber, generationSignature, result.getDeadline(), nonce, chunkPartStartNonce, this.result));
         }
         else
         {
-          publisher.publishEvent(new NetworkResultErrorEvent(blockNumber, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce, this.result));
+          publisher.publishEvent(
+            new NetworkResultErrorEvent(blockNumber, generationSignature, nonce, calculatedDeadline, result.getDeadline(), chunkPartStartNonce, this.result));
         }
       }
       else

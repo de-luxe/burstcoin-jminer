@@ -27,13 +27,15 @@ import java.math.BigInteger;
 
 public class ReaderLoadedPartEvent
 {
+  private byte[] generationSignature;
   private BigInteger chunkPartStartNonce;
   private long blockNumber;
 
   private byte[] scoops;
 
-  public ReaderLoadedPartEvent(long blockNumber, byte[] scoops, BigInteger chunkPartStartNonce)
+  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, BigInteger chunkPartStartNonce)
   {
+    this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
     this.scoops = scoops;
@@ -52,5 +54,10 @@ public class ReaderLoadedPartEvent
   public BigInteger getChunkPartStartNonce()
   {
     return chunkPartStartNonce;
+  }
+
+  public byte[] getGenerationSignature()
+  {
+    return generationSignature;
   }
 }
