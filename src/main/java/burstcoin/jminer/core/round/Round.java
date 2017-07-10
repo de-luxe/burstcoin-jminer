@@ -33,6 +33,7 @@ import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.Plots;
 import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
+import burstcoin.jminer.core.round.event.RoundGenSigAlreadyMinedEvent;
 import burstcoin.jminer.core.round.event.RoundGenSigUpdatedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
@@ -139,7 +140,7 @@ public class Round
     boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
     if(alreadyMined && CoreProperties.isUpdateMiningInfo())
     {
-      fireEvent(new RoundGenSigUpdatedEvent(event.getBlockNumber(), event.getGenerationSignature()));
+      fireEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
     }
 
     if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))

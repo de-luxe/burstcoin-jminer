@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.EOFException;
 import java.net.ConnectException;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -95,22 +96,22 @@ public class NetworkRequestMiningInfoTask
 
       if(result != null)
       {
-        long blockNumber = Convert.parseUnsignedLong(result.getHeight());
+        long newBlockNumber = Convert.parseUnsignedLong(result.getHeight());
+        byte[] newGenerationSignature = Convert.parseHexString(result.getGenerationSignature());
 
-        if(blockNumber > this.blockNumber)
+        if(newBlockNumber > blockNumber || !Arrays.equals(newGenerationSignature, generationSignature))
         {
-          byte[] generationSignature = Convert.parseHexString(result.getGenerationSignature());
           long baseTarget = Convert.parseUnsignedLong(result.getBaseTarget());
 
           // ensure default is not 0
           defaultTargetDeadline = defaultTargetDeadline > 0 ? defaultTargetDeadline : Long.MAX_VALUE;
           long targetDeadline = poolMining ? result.getTargetDeadline() > 0 ? result.getTargetDeadline() : defaultTargetDeadline : defaultTargetDeadline;
 
-          publisher.publishEvent(new NetworkStateChangeEvent(blockNumber, baseTarget, generationSignature, targetDeadline));
+          publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, targetDeadline));
         }
         else
         {
-          LOG.trace("not publish NetworkStateChangeEvent ... '" + blockNumber + " <= " + this.blockNumber + "'");
+          LOG.trace("not publish NetworkStateChangeEvent ... '" + newBlockNumber + " <= " + blockNumber + "'");
         }
       }
       else
