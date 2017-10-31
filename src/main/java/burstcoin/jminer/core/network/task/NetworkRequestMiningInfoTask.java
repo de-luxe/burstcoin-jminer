@@ -85,14 +85,22 @@ public class NetworkRequestMiningInfoTask
   {
     LOG.trace("start check network state");
 
-    MiningInfoResponse result;
+    MiningInfoResponse result = null;
     try
     {
       ContentResponse response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
         .send();
 
-      result = objectMapper.readValue(response.getContentAsString(), MiningInfoResponse.class);
+      // do not parse result if status code is error
+      if(response.getStatus() >= 400)
+      {
+        LOG.warn("Unable to parse mining info, received http status code " + response.getStatus());
+      }
+      else
+      {
+        result = objectMapper.readValue(response.getContentAsString(), MiningInfoResponse.class);
+      }
 
       if(result != null)
       {
