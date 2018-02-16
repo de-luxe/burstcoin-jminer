@@ -108,7 +108,7 @@ public class NetworkSubmitPoolNonceTask
         .param("requestType", "submitNonce")
         .param("accountId", numericAccountId)
         .param("nonce", nonce.toString())
-        .param("blockheight", blockNumber.toString())
+        .param("blockheight", String.valueOf(blockNumber))
         .header("X-Miner", HEADER_MINER_NAME)
         .header("X-Capacity", String.valueOf(gb))
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
