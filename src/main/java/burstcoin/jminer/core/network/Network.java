@@ -69,6 +69,7 @@ public class Network
   private String soloServer;
   private String passPhrase;
   private long defaultTargetDeadline;
+  private boolean forceLocalTargetDeadline;
 
   private long connectionTimeout;
 
@@ -120,7 +121,9 @@ public class Network
         LOG.error("jminer.properties: 'soloServer' or 'passPhrase' is missing?!");
       }
     }
+    /** IMPORTANT - Dont forget about me **/
     this.defaultTargetDeadline = CoreProperties.getTargetDeadline();
+    this.forceLocalTargetDeadline = CoreProperties.isForceLocalTargetDeadline();
     this.connectionTimeout = CoreProperties.getConnectionTimeout();
   }
 
@@ -137,7 +140,7 @@ public class Network
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, poolMining, connectionTimeout, defaultTargetDeadline);
+      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, poolMining, connectionTimeout, defaultTargetDeadline, forceLocalTargetDeadline);
       networkPool.execute(networkRequestMiningInfoTask);
     }
   }

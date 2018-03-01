@@ -65,11 +65,12 @@ public class NetworkRequestMiningInfoTask
   private String server;
 
   private boolean poolMining;
+  private boolean forceLocalTargetDeadline;
   private long connectionTimeout;
   private long defaultTargetDeadline;
 
   public void init(String server, long blockNumber, byte[] generationSignature, boolean poolMining, long connectionTimeout,
-                   long defaultTargetDeadline)
+                   long defaultTargetDeadline, boolean forceLocalTargetDeadline)
   {
     this.server = server;
     this.generationSignature = generationSignature;
@@ -77,6 +78,7 @@ public class NetworkRequestMiningInfoTask
     this.poolMining = poolMining;
     this.connectionTimeout = connectionTimeout;
 
+    this.forceLocalTargetDeadline = forceLocalTargetDeadline;
     this.defaultTargetDeadline = defaultTargetDeadline;
   }
 
@@ -112,8 +114,9 @@ public class NetworkRequestMiningInfoTask
           long baseTarget = Convert.parseUnsignedLong(result.getBaseTarget());
 
           // ensure default is not 0
+          // IMPORTANT
           defaultTargetDeadline = defaultTargetDeadline > 0 ? defaultTargetDeadline : Long.MAX_VALUE;
-          long targetDeadline = poolMining ? result.getTargetDeadline() > 0 ? result.getTargetDeadline() : defaultTargetDeadline : defaultTargetDeadline;
+          long targetDeadline = forceLocalTargetDeadline ? defaultTargetDeadline : poolMining ? result.getTargetDeadline() > 0 ? result.getTargetDeadline() : defaultTargetDeadline : defaultTargetDeadline;
 
           publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, targetDeadline));
         }
