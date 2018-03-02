@@ -22,15 +22,15 @@
 
 package burstcoin.jminer.core.checker;
 
-import burstcoin.jminer.core.checker.task.OCLCheckerTask;
+import burstcoin.jminer.core.checker.event.CheckerResultEvent;
+import burstcoin.jminer.core.checker.util.OCLChecker;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -44,18 +44,18 @@ public class Checker
 {
   private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
-  private final ApplicationContext context;
-  private final SyncTaskExecutor checkTaskExecutor;
+  private final ApplicationEventPublisher publisher;
+  private final OCLChecker oclChecker;
 
   // data
   private long blockNumber;
   private byte[] generationSignature;
 
   @Autowired
-  public Checker(ApplicationContext context, SyncTaskExecutor checkTaskExecutor)
+  public Checker(ApplicationEventPublisher publisher, OCLChecker oclChecker)
   {
-    this.context = context;
-    this.checkTaskExecutor = checkTaskExecutor;
+    this.publisher = publisher;
+    this.oclChecker = oclChecker;
   }
 
   public void reconfigure(long blockNumber, byte[] generationSignature)
@@ -69,9 +69,12 @@ public class Checker
   {
     if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
-      OCLCheckerTask oclCheckerTask = context.getBean(OCLCheckerTask.class);
-      oclCheckerTask.init(event.getBlockNumber(), generationSignature, event.getScoops(), event.getChunkPartStartNonce());
-      checkTaskExecutor.execute(oclCheckerTask);
+      synchronized(oclChecker)
+      {
+        int lowestNonce = oclChecker.findLowest(generationSignature, event.getScoops());
+        publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, event.getChunkPartStartNonce(), lowestNonce, event.getPlotFilePath(),
+                                                      event.getScoops()));
+      }
     }
     else
     {

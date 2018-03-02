@@ -29,6 +29,7 @@ import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
+import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
@@ -64,7 +65,6 @@ public class JMinerCommandLine
   private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
 
   private static long blockNumber;
-  private static byte[] generationSignature;
   private static int progressLogStep;
   private static long previousRemainingCapacity = 0;
   private static long previousElapsedTime = 0;
@@ -87,12 +87,17 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("    0.4.11 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("    0.4.12 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
     LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
 
+    // init drives/plotfiles
+    Reader reader = context.getBean(Reader.class);
+    reader.getPlots();
+
+    // start mining
     Network network = context.getBean(Network.class);
     network.checkPoolInfo();
     network.startMining();
@@ -164,7 +169,6 @@ public class JMinerCommandLine
       public void onApplicationEvent(NetworkStateChangeEvent event)
       {
         blockNumber = event.getBlockNumber();
-        generationSignature = event.getGenerationSignature();
       }
     });
 
@@ -175,14 +179,14 @@ public class JMinerCommandLine
       {
         progressLogStep = NUMBER_OF_PROGRESS_LOGS_PER_ROUND;
 
+        String action = event.isRestart() ? "RE-START" : "START";
         LOG.info("-------------------------------------------------------");
-        LOG.info(event.isRestart() ? "RE-" : "" + "START block '" + event.getBlockNumber() + "', "
-                                             + "scoopNumber '" + event.getScoopNumber() + "', "
-                                             + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'"
-                );
+        LOG.info(action + " block '" + event.getBlockNumber() + "', "
+                 + "scoopNumber '" + event.getScoopNumber() + "', "
+                 + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'");
         String target = event.getTargetDeadline() == Long.MAX_VALUE ? "N/A" : String.valueOf(event.getTargetDeadline());
         LOG.info("      targetDeadline '" + target + "', " + "baseTarget '" + String.valueOf(event.getBaseTarget()) + "', "
-                 + "genSig '" + Convert.toHexString(generationSignature).substring(0, 6) + "..'");
+                 + "genSig '" + Convert.toHexString(event.getGenerationSignature()).substring(0, 6) + "..'");
       }
     });
 
@@ -332,7 +336,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(ReaderDriveInterruptedEvent event)
       {
-        LOG.info("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
+        LOG.debug("stopped '" + event.getDirectory() + "' for block '" + event.getBlockNumber() + "'.");
       }
     });
 

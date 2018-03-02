@@ -46,19 +46,22 @@ public class NetworkRequestPoolInfoTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkRequestMiningInfoTask.class);
 
-  @Autowired
-  private HttpClient httpClient;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private ApplicationEventPublisher publisher;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
+  private final ApplicationEventPublisher publisher;
 
   private String accountId;
   private long connectionTimeout;
 
   private String walletServer;
+
+  @Autowired
+  public NetworkRequestPoolInfoTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
+  {
+    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
+    this.publisher = publisher;
+  }
 
   public void init(String walletServer, String accountId, long connectionTimeout)
   {

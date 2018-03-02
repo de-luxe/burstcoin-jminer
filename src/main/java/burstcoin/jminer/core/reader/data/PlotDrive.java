@@ -43,14 +43,7 @@ public class PlotDrive
   private Collection<PlotFile> plotFiles;
   private String directory;
 
-  /**
-   * Instantiates a new Plot drive.
-   *
-   * @param directory the directory
-   * @param plotFilePaths the plot file paths
-   * @param chunkPartNonces the chunk part nonces
-   */
-  public PlotDrive(String directory, Collection<Path> plotFilePaths, Long chunkPartNonces)
+  PlotDrive(String directory, Collection<Path> plotFilePaths, Long chunkPartNonces)
   {
     this.directory = directory;
 
@@ -67,32 +60,18 @@ public class PlotDrive
     }
   }
 
-  /**
-   * Gets plot files.
-   *
-   * @return the plot files
-   */
   public Collection<PlotFile> getPlotFiles()
   {
     return plotFiles;
   }
 
-  /**
-   * Gets directory.
-   *
-   * @return the directory
-   */
   public String getDirectory()
   {
     return directory;
   }
 
-  /**
-   * Collect chunk part start nonces.
-   *
-   * @return the map
-   */
-  public Map<BigInteger, Long> collectChunkPartStartNonces()
+  /* Collects chunk part start nonces.*/
+  Map<BigInteger, Long> collectChunkPartStartNonces()
   {
     Map<BigInteger, Long> chunkPartStartNonces = new HashMap<>();
     for(PlotFile plotFile : plotFiles)
@@ -107,12 +86,7 @@ public class PlotDrive
     return chunkPartStartNonces;
   }
 
-  /**
-   * Gets size.
-   *
-   * @return the size
-   */
-// returns total number of bytes of all plotFiles
+  /* returns total number of bytes of all plotFiles */
   public long getSize()
   {
     long size = 0;

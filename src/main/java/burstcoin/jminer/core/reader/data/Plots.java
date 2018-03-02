@@ -73,11 +73,6 @@ public class Plots
     }
   }
 
-  /**
-   * Gets plot drives.
-   *
-   * @return the plot drives
-   */
   public Collection<PlotDrive> getPlotDrives()
   {
     return plotDrives;
@@ -109,11 +104,7 @@ public class Plots
     return plotFilesLookup;
   }
 
-  /**
-   * Gets size.
-   *
-   * @return total number of bytes of all plotFiles
-   */
+  /* total number of bytes of all plotFiles */
   public long getSize()
   {
     long size = 0;
@@ -124,9 +115,6 @@ public class Plots
     return size;
   }
 
-  /**
-   * Print plot files.
-   */
   public void printPlotFiles()
   {
     for(PlotDrive plotDrive : getPlotDrives())
@@ -138,13 +126,7 @@ public class Plots
     }
   }
 
-  /**
-   * Gets plot file by plot file start nonce.
-   *
-   * @param plotFileStartNonce the plot file start nonce
-   *
-   * @return the plot file by plot file start nonce
-   */
+  /* gets plot file by plot file start nonce. */
   public PlotFile getPlotFileByPlotFileStartNonce(long plotFileStartNonce)
   {
     for(PlotDrive plotDrive : getPlotDrives())
@@ -160,23 +142,13 @@ public class Plots
     return null;
   }
 
-  /**
-   * Gets chunk part start nonces.
-   *
-   * @return the chunk part start nonces
-   */
+  /* gets chunk part start nonces. */
   public Map<BigInteger, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;
   }
 
-  /**
-   * Gets plot file by chunk part start nonce.
-   *
-   * @param chunkPartStartNonce the chunk part start nonce
-   *
-   * @return the plot file by chunk part start nonce
-   */
+  /* gets plot file by chunk part start nonce. */
   public PlotFile getPlotFileByChunkPartStartNonce(BigInteger chunkPartStartNonce)
   {
     for(PlotDrive plotDrive : getPlotDrives())

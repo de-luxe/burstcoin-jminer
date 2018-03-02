@@ -32,9 +32,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * The type Plot file.
- */
 public class PlotFile
 {
   private static final Logger LOG = LoggerFactory.getLogger(PlotFile.class);
@@ -55,13 +52,7 @@ public class PlotFile
 
   private long size;
 
-  /**
-   * Instantiates a new Plot file.
-   *
-   * @param filePath        the file path
-   * @param chunkPartNonces the chunk part nonces
-   */
-  public PlotFile(Path filePath, Long chunkPartNonces)
+  PlotFile(Path filePath, Long chunkPartNonces)
   {
     this.filePath = filePath;
     this.chunkPartNonces = chunkPartNonces;
@@ -103,112 +94,57 @@ public class PlotFile
     }
   }
 
-  /**
-   * Gets size.
-   *
-   * @return the size
-   */
   public long getSize()
   {
     return size;
   }
 
-  /**
-   * Gets file path.
-   *
-   * @return the file path
-   */
   public Path getFilePath()
   {
     return filePath;
   }
 
-  /**
-   * Gets filename.
-   *
-   * @return the filename
-   */
-  public String getFilename()
+  String getFilename()
   {
     return filename;
   }
 
-  /**
-   * Gets address.
-   *
-   * @return the address
-   */
   public long getAddress()
   {
     return address;
   }
 
-  /**
-   * Gets startnonce.
-   *
-   * @return the startnonce
-   */
   public BigInteger getStartnonce()
   {
     return startnonce;
   }
 
-  /**
-   * Gets plots.
-   *
-   * @return the plots
-   */
   public long getPlots()
   {
     return plots;
   }
 
-  /**
-   * Gets staggeramt.
-   *
-   * @return the staggeramt
-   */
   public long getStaggeramt()
   {
     return staggeramt;
   }
 
-  /**
-   * Gets number of chunks.
-   *
-   * @return the number of chunks
-   */
   public long getNumberOfChunks()
   {
     return numberOfChunks;
   }
 
-  /**
-   * Gets number of parts.
-   *
-   * @return the number of parts
-   */
   public int getNumberOfParts()
   {
     return numberOfParts;
   }
 
-  /**
-   * Sets number of parts.
-   *
-   * @param numberOfParts the number of parts
-   */
   public void setNumberOfParts(int numberOfParts)
   {
     this.numberOfParts = numberOfParts;
   }
 
-  /**
-   * Gets chunk part start nonces.
-   *
-   * @return the chunk part start nonces
-   */
-  public Map<BigInteger, Long> getChunkPartStartNonces()
+  Map<BigInteger, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;
   }
@@ -219,7 +155,7 @@ public class PlotFile
   {
     int maxNumberOfParts = 100;
 
-    long targetNoncesPerPart = chunkPartNonces != null ? chunkPartNonces : 320000; // 640000 works fine
+    long targetNoncesPerPart = chunkPartNonces != null ? chunkPartNonces : 320000;
 
     // calculate numberOfParts based on target
     int suggestedNumberOfParts = (int) (staggeramt / targetNoncesPerPart) + 1;

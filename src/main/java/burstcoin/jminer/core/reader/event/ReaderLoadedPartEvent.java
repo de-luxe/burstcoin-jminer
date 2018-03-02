@@ -32,13 +32,20 @@ public class ReaderLoadedPartEvent
   private long blockNumber;
 
   private byte[] scoops;
+  private String plotFilePath;
 
-  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, BigInteger chunkPartStartNonce)
+  public ReaderLoadedPartEvent(long blockNumber, byte[] generationSignature, byte[] scoops, BigInteger chunkPartStartNonce, String plotFilePath)
   {
     this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
     this.scoops = scoops;
+    this.plotFilePath = plotFilePath;
+  }
+
+  public String getPlotFilePath()
+  {
+    return plotFilePath;
   }
 
   public long getBlockNumber()

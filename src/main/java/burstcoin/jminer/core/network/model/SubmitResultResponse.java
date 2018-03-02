@@ -22,11 +22,14 @@
 
 package burstcoin.jminer.core.network.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.io.Serializable;
 
 /**
  * The type Submit result response.
  */
+@JsonIgnoreProperties(ignoreUnknown = true) // prevent future incompatible values
 public class SubmitResultResponse
   implements Serializable
 {
@@ -36,23 +39,17 @@ public class SubmitResultResponse
 
   // pool response
   private long block;
+
+  // one or the other is used
   private String deadlineString;
+  private String deadlineText;
+
   private long targetDeadline;
 
-  /**
-   * Instantiates a new Submit result response.
-   */
   protected SubmitResultResponse()
   {
   }
 
-  /**
-   * Instantiates a new Submit result response.
-   *
-   * @param result the result
-   * @param requestProcessingTime the request processing time
-   * @param deadline the deadline
-   */
   public SubmitResultResponse(String result, long requestProcessingTime, long deadline)
   {
     this.result = result;
@@ -158,6 +155,16 @@ public class SubmitResultResponse
   public void setDeadlineString(String deadlineString)
   {
     this.deadlineString = deadlineString;
+  }
+
+  public String getDeadlineText()
+  {
+    return deadlineText;
+  }
+
+  public void setDeadlineText(String deadlineText)
+  {
+    this.deadlineText = deadlineText;
   }
 
   /**

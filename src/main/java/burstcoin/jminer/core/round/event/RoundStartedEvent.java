@@ -35,19 +35,20 @@ public class RoundStartedEvent
   private long capacity;
   private long targetDeadline;
   private long baseTarget;
+  private byte[] generationSignature;
   private boolean restart;
   private long blockNumber;
 
   /**
    * Instantiates a new Round started event.
-   *
-   * @param blockNumber the block number
+   *  @param blockNumber the block number
    * @param scoopNumber the scoop number
    * @param capacity the capacity
    * @param targetDeadline the target deadline
    * @param baseTarget the base target
+   * @param generationSignature
    */
-  public RoundStartedEvent(boolean restart, long blockNumber, long scoopNumber, long capacity, long targetDeadline, long baseTarget)
+  public RoundStartedEvent(boolean restart, long blockNumber, long scoopNumber, long capacity, long targetDeadline, long baseTarget, byte[] generationSignature)
   {
     super(blockNumber);
 
@@ -57,6 +58,12 @@ public class RoundStartedEvent
     this.capacity = capacity;
     this.targetDeadline = targetDeadline;
     this.baseTarget = baseTarget;
+    this.generationSignature = generationSignature;
+  }
+
+  public byte[] getGenerationSignature()
+  {
+    return generationSignature;
   }
 
   public boolean isRestart()

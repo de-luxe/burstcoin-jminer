@@ -33,17 +33,24 @@ public class CheckerResultEvent
   private BigInteger chunkPartStartNonce;
 
   private long blockNumber;
-  private BigInteger nonce;
   private BigInteger result;
+  private String plotFilePath;
+  private byte[] scoops;
+  private int lowestNonce;
 
-  public CheckerResultEvent(long blockNumber, byte[] generationSignature, BigInteger chunkPartStartNonce, BigInteger nonce, BigInteger result)
+  public CheckerResultEvent(long blockNumber, byte[] generationSignature, BigInteger chunkPartStartNonce, int lowestNonce, String plotFilePath, byte[] scoops)
   {
     this.generationSignature = generationSignature;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.blockNumber = blockNumber;
+    this.lowestNonce = lowestNonce;
+    this.plotFilePath = plotFilePath;
+    this.scoops = scoops;
+  }
 
-    this.nonce = nonce;
-    this.result = result;
+  public String getPlotFilePath()
+  {
+    return plotFilePath;
   }
 
   public long getBlockNumber()
@@ -51,14 +58,24 @@ public class CheckerResultEvent
     return blockNumber;
   }
 
-  public BigInteger getNonce()
-  {
-    return nonce;
-  }
-
   public BigInteger getResult()
   {
     return result;
+  }
+
+  public void setResult(BigInteger result)
+  {
+    this.result = result;
+  }
+
+  public byte[] getScoops()
+  {
+    return scoops;
+  }
+
+  public int getLowestNonce()
+  {
+    return lowestNonce;
   }
 
   public BigInteger getChunkPartStartNonce()

@@ -25,20 +25,26 @@ package burstcoin.jminer.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.aop.interceptor.SimpleAsyncUncaughtExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.SyncTaskExecutor;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.Executor;
 
 /**
  * The type Core config.
  */
 @Configuration
+@EnableAsync
 @ComponentScan(basePackages = {"burstcoin.jminer.core"})
 public class CoreConfig
+  implements AsyncConfigurer
 {
   @Bean(name = "readerPool")
   public ThreadPoolTaskExecutor readerPool()
@@ -47,6 +53,7 @@ public class CoreConfig
     pool.setThreadPriority(Thread.NORM_PRIORITY);
     // false-> triggers interrupt exception at shutdown
     pool.setWaitForTasksToCompleteOnShutdown(true);
+    pool.initialize();
     return pool;
   }
 
@@ -56,18 +63,6 @@ public class CoreConfig
     SimpleAsyncTaskExecutor pool = new SimpleAsyncTaskExecutor();
     pool.setThreadPriority(Thread.NORM_PRIORITY + 1);
     return pool;
-  }
-
-  @Bean(name = "checkTaskExecutor")
-  public SyncTaskExecutor taskExecutor()
-  {
-    return new SyncTaskExecutor();
-  }
-
-  @Bean(name = "roundPool")
-  public ThreadPoolTaskExecutor roundPool()
-  {
-    return new ThreadPoolTaskExecutor();
   }
 
   @Bean
@@ -89,5 +84,19 @@ public class CoreConfig
   public ObjectMapper objectMapper()
   {
     return new ObjectMapper();
+  }
+
+  @Override
+  public Executor getAsyncExecutor()
+  {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.initialize();
+    return executor;
+  }
+
+  @Override
+  public AsyncUncaughtExceptionHandler getAsyncUncaughtExceptionHandler()
+  {
+    return new SimpleAsyncUncaughtExceptionHandler();
   }
 }

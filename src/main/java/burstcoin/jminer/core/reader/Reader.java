@@ -34,8 +34,8 @@ import burstcoin.jminer.core.reader.data.Plots;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
-import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.reader.task.ReaderLoadDriveTask;
+import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import nxt.crypto.Crypto;
 import nxt.util.Convert;
 import org.slf4j.Logger;
@@ -152,12 +152,7 @@ public class Reader
     }
   }
 
-  /**
-   * starts reader (once per block)
-   *  @param blockNumber the block number
-   * @param generationSignature
-   * @param scoopNumber the scoop number
-   */
+  /* starts reader (once per block) */
   public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int scoopNumber, long lastBestCommittedDeadline)
   {
     Reader.blockNumber = blockNumber;
@@ -169,7 +164,7 @@ public class Reader
     if(readerPool.getActiveCount() > 0)
     {
       long elapsedTime = new Date().getTime() - readerStartTime;
-      context.publishEvent(new ReaderStoppedEvent(previousBlockNumber, capacity, remainingCapacity, elapsedTime, lastBestCommittedDeadline));
+      context.publishEvent(new RoundStoppedEvent(previousBlockNumber, lastBestCommittedDeadline, capacity, remainingCapacity, elapsedTime));
     }
 
     // update reader thread count

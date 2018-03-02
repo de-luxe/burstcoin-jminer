@@ -44,14 +44,9 @@ public class NetworkRequestLastWinnerTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkRequestLastWinnerTask.class);
 
-  @Autowired
-  private HttpClient httpClient;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private ApplicationEventPublisher publisher;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
+  private final ApplicationEventPublisher publisher;
 
   // data
   private long blockNumber; // updated on new round
@@ -59,6 +54,14 @@ public class NetworkRequestLastWinnerTask
   private long connectionTimeout;
   private int winnerRetriesOnAsync;
   private long winnerRetryIntervalInMs;
+
+  @Autowired
+  public NetworkRequestLastWinnerTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
+  {
+    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
+    this.publisher = publisher;
+  }
 
   public void init(String server, long blockNumber, long connectionTimeout, int winnerRetriesOnAsync, long winnerRetryIntervalInMs)
   {

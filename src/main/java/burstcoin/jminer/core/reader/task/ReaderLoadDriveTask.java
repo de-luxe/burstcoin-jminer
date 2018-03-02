@@ -62,14 +62,19 @@ public class ReaderLoadDriveTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(ReaderLoadDriveTask.class);
 
-  @Autowired
-  private ApplicationEventPublisher publisher;
+  private final ApplicationEventPublisher publisher;
 
   private byte[] generationSignature;
   private PlotDrive plotDrive;
   private int scoopNumber;
   private long blockNumber;
   private boolean showDriveInfo;
+
+  @Autowired
+  public ReaderLoadDriveTask(ApplicationEventPublisher publisher)
+  {
+    this.publisher = publisher;
+  }
 
   public void init(int scoopNumber, long blockNumber, byte[] generationSignature, PlotDrive plotDrive)
   {
@@ -103,10 +108,12 @@ public class ReaderLoadDriveTask
     {
       if(interrupted)
       {
+        // ui-event
         publisher.publishEvent(new ReaderDriveInterruptedEvent(blockNumber, plotDrive.getDirectory()));
       }
       else
       {
+        // ui event
         publisher.publishEvent(new ReaderDriveFinishEvent(plotDrive.getDirectory(), plotDrive.getSize(), new Date().getTime() - startTime, blockNumber));
       }
     }
@@ -140,7 +147,7 @@ public class ReaderLoadDriveTask
           {
             BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(chunkNumber * plotFile.getStaggeramt() + partNumber * partSize));
             final byte[] scoops = partBuffer.array();
-            publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce));
+            publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce, plotFile.getFilePath().toString()));
           }
           partBuffer.clear();
         }

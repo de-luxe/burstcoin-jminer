@@ -47,19 +47,21 @@ public class NetworkRequestAccountBlocksTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkRequestLastWinnerTask.class);
 
-  @Autowired
-  private HttpClient httpClient;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private ApplicationEventPublisher publisher;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
+  private final ApplicationEventPublisher publisher;
 
   // data
-
   private String accountId;
   private String server;
+
+  @Autowired
+  public NetworkRequestAccountBlocksTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
+  {
+    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
+    this.publisher = publisher;
+  }
 
   public void init(String accountId, String server)
   {

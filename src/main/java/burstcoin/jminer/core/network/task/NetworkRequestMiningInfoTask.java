@@ -51,14 +51,9 @@ public class NetworkRequestMiningInfoTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkRequestMiningInfoTask.class);
 
-  @Autowired
-  private HttpClient httpClient;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  @Autowired
-  private ApplicationEventPublisher publisher;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
+  private final ApplicationEventPublisher publisher;
 
   private byte[] generationSignature;
   private long blockNumber;
@@ -67,6 +62,14 @@ public class NetworkRequestMiningInfoTask
   private boolean poolMining;
   private long connectionTimeout;
   private long defaultTargetDeadline;
+
+  @Autowired
+  public NetworkRequestMiningInfoTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
+  {
+    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
+    this.publisher = publisher;
+  }
 
   public void init(String server, long blockNumber, byte[] generationSignature, boolean poolMining, long connectionTimeout,
                    long defaultTargetDeadline)

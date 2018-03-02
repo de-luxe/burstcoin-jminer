@@ -44,6 +44,10 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,12 +57,8 @@ public class Network
 {
   private static final Logger LOG = LoggerFactory.getLogger(Network.class);
 
-  @Autowired
-  private ApplicationContext context;
-
-  @Autowired
-  @Qualifier(value = "networkPool")
-  private SimpleAsyncTaskExecutor networkPool;
+  private final ApplicationContext context;
+  private final SimpleAsyncTaskExecutor networkPool;
 
   private String numericAccountId;
   private boolean poolMining;
@@ -78,10 +78,19 @@ public class Network
   private long blockNumber;
   private Timer timer;
   private byte[] generationSignature;
+  private String mac; // unique system id
+
+  @Autowired
+  public Network(ApplicationContext context, @Qualifier(value = "networkPool") SimpleAsyncTaskExecutor networkPool)
+  {
+    this.context = context;
+    this.networkPool = networkPool;
+  }
 
   @PostConstruct
   protected void postConstruct()
   {
+    mac = getMac();
     timer = new Timer();
     poolMining = CoreProperties.isPoolMining();
     if(poolMining)
@@ -124,6 +133,28 @@ public class Network
     this.connectionTimeout = CoreProperties.getConnectionTimeout();
   }
 
+  private String getMac()
+  {
+    InetAddress ip;
+    StringBuilder sb = new StringBuilder();
+    try
+    {
+      ip = InetAddress.getLocalHost();
+      NetworkInterface network = NetworkInterface.getByInetAddress(ip);
+      byte[] mac = network.getHardwareAddress();
+      sb = new StringBuilder();
+      for(int i = 0; i < mac.length; i++)
+      {
+        sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
+      }
+    }
+    catch(UnknownHostException | SocketException e)
+    {
+      LOG.debug("Could not create MAC address as unique id for mining system. Fallback capacity used.");
+    }
+    return sb.toString();
+  }
+
   @EventListener
   public void handleMessage(NetworkStateChangeEvent event)
   {
@@ -156,7 +187,7 @@ public class Network
   public void checkLastWinner(long blockNumber)
   {
     // find winner of lastBlock on new round, if server available
-    String server = !poolMining ? soloServer : walletServer != null ? walletServer : null;
+    String server = !poolMining ? soloServer : walletServer;
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestLastWinnerTask networkRequestLastWinnerTask = context.getBean(NetworkRequestLastWinnerTask.class);
@@ -175,26 +206,28 @@ public class Network
     }
   }
 
-  public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity, BigInteger result)
+  public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity,
+                           BigInteger result, String plotFilePath)
   {
     if(poolMining)
     {
       NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
       networkSubmitPoolNonceTask.init(blockNumber, generationSignature, numericAccountId, poolServer, connectionTimeout, nonce,
-                                      chunkPartStartNonce, calculatedDeadline, totalCapacity, result);
+                                      chunkPartStartNonce, calculatedDeadline, totalCapacity, result, plotFilePath, mac);
       networkPool.execute(networkSubmitPoolNonceTask);
     }
     else
     {
       NetworkSubmitSoloNonceTask networkSubmitSoloNonceTask = context.getBean(NetworkSubmitSoloNonceTask.class);
-      networkSubmitSoloNonceTask.init(blockNumber, generationSignature, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce, calculatedDeadline, result);
+      networkSubmitSoloNonceTask.init(blockNumber, generationSignature, passPhrase, soloServer, connectionTimeout, nonce, chunkPartStartNonce,
+                                      calculatedDeadline, result);
       networkPool.execute(networkSubmitSoloNonceTask);
 
       if(CoreProperties.isRecommitDeadlines() && calculatedDeadline < 1200)
       {
         // recommit #1 after 5 sec.
         NetworkSubmitSoloNonceFallbackTask networkSubmitSoloNonceRecommitTask = context.getBean(NetworkSubmitSoloNonceFallbackTask.class);
-        networkSubmitSoloNonceRecommitTask.init(soloServer, 5000L,  passPhrase, connectionTimeout, nonce,  calculatedDeadline);
+        networkSubmitSoloNonceRecommitTask.init(soloServer, 5000L, passPhrase, connectionTimeout, nonce, calculatedDeadline);
         networkPool.execute(networkSubmitSoloNonceRecommitTask);
 
         // recommit #2 after 10 sec.
@@ -208,6 +241,7 @@ public class Network
         networkPool.execute(networkSubmitSoloNonceRecommitTask3);
       }
     }
+
   }
 
   public void startMining()

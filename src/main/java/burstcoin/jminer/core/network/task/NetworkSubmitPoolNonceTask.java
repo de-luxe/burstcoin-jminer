@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.EOFException;
 import java.math.BigInteger;
@@ -55,16 +56,11 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.11";
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.12";
 
-  @Autowired
-  private ApplicationEventPublisher publisher;
-
-  @Autowired
-  private HttpClient httpClient;
-
-  @Autowired
-  private ObjectMapper objectMapper;
+  private final ApplicationEventPublisher publisher;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
 
   private byte[] generationSignature;
   private long connectionTimeout;
@@ -78,9 +74,19 @@ public class NetworkSubmitPoolNonceTask
   private long calculatedDeadline;
   private long totalCapacity;
   private BigInteger result;
+  private String plotFilePath;
+  private String mac;
+
+  @Autowired
+  public NetworkSubmitPoolNonceTask(ApplicationEventPublisher publisher, HttpClient httpClient, ObjectMapper objectMapper)
+  {
+    this.publisher = publisher;
+    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
+  }
 
   public void init(long blockNumber, byte[] generationSignature, String numericAccountId, String poolServer, long connectionTimeout, BigInteger nonce,
-                   BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity, BigInteger result)
+                   BigInteger chunkPartStartNonce, long calculatedDeadline, long totalCapacity, BigInteger result, String plotFilePath, String mac)
   {
     this.generationSignature = generationSignature;
     this.connectionTimeout = connectionTimeout;
@@ -94,6 +100,8 @@ public class NetworkSubmitPoolNonceTask
     this.calculatedDeadline = calculatedDeadline;
     this.totalCapacity = totalCapacity;
     this.result = result;
+    this.plotFilePath = plotFilePath;
+    this.mac = mac;
   }
 
   @Override
@@ -111,6 +119,12 @@ public class NetworkSubmitPoolNonceTask
         .param("blockheight", String.valueOf(blockNumber))
         .header("X-Miner", HEADER_MINER_NAME)
         .header("X-Capacity", String.valueOf(gb))
+
+        // thanks @systemofapwne
+        .header("X-PlotsHash", StringUtils.isEmpty(mac)? String.valueOf(gb) : mac) //For CreepMiner: Unique id for system
+        .header("X-Deadline", String.valueOf(calculatedDeadline)) //For CreepMiner proxy: Numerical value of this deadline
+        .header("X-Plotfile", plotFilePath) //For CreepMiner proxy: Plotfile this deadline origins from
+
         .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
         .send();
 

@@ -31,25 +31,21 @@ import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.Plots;
-import burstcoin.jminer.core.reader.event.ReaderStoppedEvent;
 import burstcoin.jminer.core.round.event.RoundFinishedEvent;
 import burstcoin.jminer.core.round.event.RoundGenSigAlreadyMinedEvent;
 import burstcoin.jminer.core.round.event.RoundGenSigUpdatedEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultEvent;
 import burstcoin.jminer.core.round.event.RoundSingleResultSkippedEvent;
 import burstcoin.jminer.core.round.event.RoundStartedEvent;
-import burstcoin.jminer.core.round.event.RoundStoppedEvent;
-import burstcoin.jminer.core.round.task.RoundFireEventTask;
 import fr.cryptohash.Shabal256;
 import nxt.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import pocminer.generate.MiningPlot;
 
@@ -72,11 +68,10 @@ public class Round
 {
   private static final Logger LOG = LoggerFactory.getLogger(Round.class);
 
-  private final ApplicationContext context;
-  private final ThreadPoolTaskExecutor roundPool;
   private final Reader reader;
   private final Checker checker;
   private final Network network;
+  private final ApplicationEventPublisher publisher;
 
   private boolean poolMining;
   private long targetDeadline;
@@ -102,13 +97,12 @@ public class Round
   private Set<String> finishedLookup;
 
   @Autowired
-  public Round(Reader reader, Checker checker, Network network, ThreadPoolTaskExecutor roundPool, ApplicationContext context)
+  public Round(Reader reader, Checker checker, Network network, ApplicationEventPublisher publisher)
   {
     this.reader = reader;
     this.checker = checker;
     this.network = network;
-    this.roundPool = roundPool;
-    this.context = context;
+    this.publisher = publisher;
 
     finishedLookup = new HashSet<>();
   }
@@ -140,7 +134,7 @@ public class Round
     boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
     if(alreadyMined && CoreProperties.isUpdateMiningInfo())
     {
-      fireEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
+      publisher.publishEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
     }
 
     if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
@@ -152,7 +146,7 @@ public class Round
         finishedBlockNumber--;
       }
       // ui event
-      fireEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
+      publisher.publishEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
     }
 
     long previousBlockNumber = event.getBlockNumber();
@@ -181,79 +175,69 @@ public class Round
       reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline);
 
       // ui event
-      fireEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget));
+      publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
 
-      timer.schedule(new TimerTask()
-      {
-        @Override
-        public void run()
-        {
-          network.checkLastWinner(blockNumber);
-        }
-      }, 0); // deferred}
+      network.checkLastWinner(blockNumber);
     }
   }
 
+  @Async
   @EventListener
   public void handleMessage(CheckerResultEvent event)
   {
-    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
+    if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
-      // check new lowest result
-      if(event.getResult() != null)
+      BigInteger nonce = event.getChunkPartStartNonce().add(BigInteger.valueOf(event.getLowestNonce()));
+      BigInteger result = calculateResult(event.getScoops(), generationSignature, event.getLowestNonce());
+      event.setResult(result);
+
+      BigInteger deadline = result.divide(BigInteger.valueOf(baseTarget));
+      long calculatedDeadline = deadline.longValue();
+
+      if(result.compareTo(lowest) < 0)
       {
-        BigInteger deadline = event.getResult().divide(BigInteger.valueOf(baseTarget));
-        long calculatedDeadline = deadline.longValue();
-
-        if(event.getResult().compareTo(lowest) < 0)
+        lowest = result;
+        if(calculatedDeadline < targetDeadline)
         {
-          lowest = event.getResult();
-          if(calculatedDeadline < targetDeadline)
-          {
-            network.commitResult(blockNumber, calculatedDeadline, event.getNonce(), event.getChunkPartStartNonce(), plots.getSize(), event.getResult());
+          network.commitResult(blockNumber, calculatedDeadline, nonce, event.getChunkPartStartNonce(), plots.getSize(), result, event.getPlotFilePath());
 
-            // ui event
-            fireEvent(new RoundSingleResultEvent(event.getBlockNumber(), event.getNonce(), event.getChunkPartStartNonce(), calculatedDeadline,
-                                                 poolMining));
-          }
-          else
-          {
-            // ui event
-            if(CoreProperties.isShowSkippedDeadlines())
-            {
-              fireEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), event.getNonce(), event.getChunkPartStartNonce(), calculatedDeadline,
-                                                          targetDeadline, poolMining));
-            }
-            // chunkPartStartNonce finished
-            runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
-            triggerFinishRoundEvent(event.getBlockNumber());
-          }
-        }
-        // remember next lowest in case that lowest fails to commit
-        else if(calculatedDeadline < targetDeadline
-                && event.getResult().compareTo(lowestCommitted) < 0
-                && (queuedEvent == null || event.getResult().compareTo(queuedEvent.getResult()) < 0))
-        {
-          if(queuedEvent != null)
-          {
-            // remove previous queued
-            runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
-          }
-          LOG.info("dl '" + calculatedDeadline + "' queued");
-          queuedEvent = event;
-
-          triggerFinishRoundEvent(event.getBlockNumber());
+          // ui event
+          publisher.publishEvent(new RoundSingleResultEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+                                                            poolMining));
         }
         else
         {
+          // ui event
+          if(CoreProperties.isShowSkippedDeadlines())
+          {
+            publisher.publishEvent(new RoundSingleResultSkippedEvent(event.getBlockNumber(), nonce, event.getChunkPartStartNonce(), calculatedDeadline,
+                                                                     targetDeadline, poolMining));
+          }
           // chunkPartStartNonce finished
           runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
           triggerFinishRoundEvent(event.getBlockNumber());
         }
       }
+      // remember next lowest in case that lowest fails to commit
+      else if(calculatedDeadline < targetDeadline
+              && result.compareTo(lowestCommitted) < 0
+              && (queuedEvent == null || result.compareTo(queuedEvent.getResult()) < 0))
+      {
+        if(queuedEvent != null)
+        {
+          // remove previous queued
+          runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
+        }
+        LOG.info("dl '" + calculatedDeadline + "' queued");
+        queuedEvent = event;
+
+        triggerFinishRoundEvent(event.getBlockNumber());
+      }
       else
       {
-        LOG.error("CheckerResultEvent result == null");
+        // chunkPartStartNonce finished
+        runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
+        triggerFinishRoundEvent(event.getBlockNumber());
       }
     }
     else
@@ -265,7 +249,7 @@ public class Round
   @EventListener
   public void handleMessage(NetworkResultConfirmedEvent event)
   {
-    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
+    if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
       lowestCommitted = event.getResult();
 
@@ -292,7 +276,7 @@ public class Round
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {
-    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
+    if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
       // reset lowest to lowestCommitted, as it does not commit successful.
       lowest = lowestCommitted;
@@ -308,14 +292,6 @@ public class Round
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());
       triggerFinishRoundEvent(event.getBlockNumber());
     }
-  }
-
-  @EventListener
-  public void handleMessage(ReaderStoppedEvent event)
-  {
-    System.gc();
-    fireEvent(new RoundStoppedEvent(event.getBlockNumber(), event.getLastBestCommittedDeadline(), event.getCapacity(), event.getRemainingCapacity(),
-                                    event.getElapsedTime()));
   }
 
   private void triggerFinishRoundEvent(long blockNumber)
@@ -343,13 +319,13 @@ public class Round
     finishedLookup.add(Convert.toHexString(generationSignature));
 
     long elapsedRoundTime = new Date().getTime() - roundStartDate.getTime();
-    triggerGarbageCollection();
+
     timer.schedule(new TimerTask()
     {
       @Override
       public void run()
       {
-        fireEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime));
+        publisher.publishEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime));
       }
     }, 250); // fire deferred
 
@@ -367,6 +343,10 @@ public class Round
         {
           triggerCleanup();
         }
+        else
+        {
+          System.gc();
+        }
       }
     };
 
@@ -380,25 +360,10 @@ public class Round
     }
   }
 
-  // not needed, just to force java to free memory (depending on gc used)
-  private void triggerGarbageCollection()
+  private boolean isCurrentRound(long currentBlockNumber, byte[] currentGenerationSignature)
   {
-    timer.schedule(new TimerTask()
-    {
-      @Override
-      public void run()
-      {
-        LOG.trace("trigger garbage collection ... ");
-        System.gc();
-      }
-    }, 1500);
-  }
-
-  private <EVENT extends ApplicationEvent> void fireEvent(EVENT event)
-  {
-    RoundFireEventTask roundFireEventTask = context.getBean(RoundFireEventTask.class);
-    roundFireEventTask.init(event);
-    roundPool.execute(roundFireEventTask);
+    return blockNumber == currentBlockNumber
+           && Arrays.equals(generationSignature, currentGenerationSignature);
   }
 
   private static int calcScoopNumber(long blockNumber, byte[] generationSignature)
@@ -417,5 +382,15 @@ public class Round
       return hashnum.mod(BigInteger.valueOf(MiningPlot.SCOOPS_PER_PLOT)).intValue();
     }
     return 0;
+  }
+
+  private static BigInteger calculateResult(byte[] scoops, byte[] generationSignature, int nonce)
+  {
+    Shabal256 md = new Shabal256();
+    md.reset();
+    md.update(generationSignature);
+    md.update(scoops, nonce * MiningPlot.SCOOP_SIZE, MiningPlot.SCOOP_SIZE);
+    byte[] hash = md.digest();
+    return new BigInteger(1, new byte[]{hash[7], hash[6], hash[5], hash[4], hash[3], hash[2], hash[1], hash[0]});
   }
 }

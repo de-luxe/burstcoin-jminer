@@ -40,32 +40,52 @@ public class JMinerApplication
 {
   private static final Logger LOG = LoggerFactory.getLogger(JMinerApplication.class);
 
+  private static double JAVA_VERSION;
+
+  static
+  {
+    String version = System.getProperty("java.version");
+    int pos = version.indexOf('.');
+    pos = version.indexOf('.', pos + 1);
+    JAVA_VERSION = Double.parseDouble(version.substring(0, pos));
+  }
+
   public static void main(String[] args)
   {
-    LOG.info("Starting the engines ... please wait!");
+    // inform users with java9, that jminer will not function with it.
+    if(1.8d != JAVA_VERSION)
+    {
+      LOG.error("jminer needs Java8 (1.8)");
+      LOG.error("java version '" + JAVA_VERSION + "' is not supported!");
+      LOG.error("Uninstall your java '" + JAVA_VERSION + "' and install Java8!");
+    }
+    else
+    {
+      LOG.info("Starting the engines ... please wait!");
 
-    // overwritten by application.properties
-    Map<String, Object> properties = new HashMap<>();
-    if(CoreProperties.isWriteLogFile())
-    {
-      properties.put("logging.file", CoreProperties.getLogFilePath());
-    }
-    properties.put("logging.level.burstcoin.jminer", CoreProperties.isDebug() ? "DEBUG" : "INFO");
-    if(CoreProperties.getLogPatternConsole() != null)
-    {
-      properties.put("logging.pattern.console", CoreProperties.getLogPatternConsole());
-    }
-    if(CoreProperties.getLogPatternFile() != null)
-    {
-      properties.put("logging.pattern.file", CoreProperties.getLogPatternFile());
-    }
+      // overwritten by application.properties
+      Map<String, Object> properties = new HashMap<>();
+      if(CoreProperties.isWriteLogFile())
+      {
+        properties.put("logging.file", CoreProperties.getLogFilePath());
+      }
+      properties.put("logging.level.burstcoin.jminer", CoreProperties.isDebug() ? "DEBUG" : "INFO");
+      if(CoreProperties.getLogPatternConsole() != null)
+      {
+        properties.put("logging.pattern.console", CoreProperties.getLogPatternConsole());
+      }
+      if(CoreProperties.getLogPatternFile() != null)
+      {
+        properties.put("logging.pattern.file", CoreProperties.getLogPatternFile());
+      }
 
-    new SpringApplicationBuilder(JMinerApplication.class)
-      .bannerMode(Banner.Mode.OFF) // turn off spring boot banner
-      .logStartupInfo(false)
-      .properties(properties) // add application.properties
-      .build(args)
-      .run();
+      new SpringApplicationBuilder(JMinerApplication.class)
+        .bannerMode(Banner.Mode.OFF) // turn off spring boot banner
+        .logStartupInfo(false)
+        .properties(properties) // add application.properties
+        .build(args)
+        .run();
+    }
   }
 
   @Bean
