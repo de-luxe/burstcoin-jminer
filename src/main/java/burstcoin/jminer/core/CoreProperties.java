@@ -45,6 +45,7 @@ public class CoreProperties
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
   private static final boolean DEFAULT_FORCE_LOCAL_TARGET_DEADLINE = false;
+  private static final boolean DEFAULT_DYNAMIC_TARGET_DEADLINE = false;
   private static final long DEFAULT_TARGET_DEADLINE = Long.MAX_VALUE;
   private static final String DEFAULT_SOLO_SERVER = "http://localhost:8125";
   private static final int DEFAULT_READ_PROGRESS_PER_ROUND = 9;
@@ -85,6 +86,7 @@ public class CoreProperties
   private static Boolean scanPathsEveryRound;
   private static Boolean poolMining;
   private static Boolean forceLocalTargetDeadline;
+  private static Boolean dynamicTargetDeadline;
   private static Long targetDeadline;
   private static List<String> plotPaths;
   private static Long chunkPartNonces;
@@ -225,6 +227,15 @@ public class CoreProperties
     	forceLocalTargetDeadline = asBoolean("forceLocalTargetDeadline", DEFAULT_FORCE_LOCAL_TARGET_DEADLINE);
     }
     return forceLocalTargetDeadline;
+  }
+
+  public static boolean isDynamicTargetDeadline()
+  {
+    if(dynamicTargetDeadline == null)
+    {
+      dynamicTargetDeadline = asBoolean("dynamicTargetDeadline", DEFAULT_DYNAMIC_TARGET_DEADLINE);
+    }
+    return dynamicTargetDeadline;
   }
 
   /**

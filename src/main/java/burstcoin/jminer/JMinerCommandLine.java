@@ -29,7 +29,6 @@ import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
-import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
@@ -92,10 +91,6 @@ public class JMinerCommandLine
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
     LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
-
-    // init drives/plotfiles
-    Reader reader = context.getBean(Reader.class);
-    reader.getPlots();
 
     // start mining
     Network network = context.getBean(Network.class);
@@ -185,7 +180,7 @@ public class JMinerCommandLine
                  + "scoopNumber '" + event.getScoopNumber() + "', "
                  + "capacity '" + event.getCapacity() / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR + " " + G_UNIT + "'");
         String target = event.getTargetDeadline() == Long.MAX_VALUE ? "N/A" : String.valueOf(event.getTargetDeadline());
-        LOG.info("      targetDeadline '" + target + "', " + "baseTarget '" + String.valueOf(event.getBaseTarget()) + "', "
+        LOG.info("      targetDeadline '" + target + "', " + "netDiff '" + String.valueOf(18325193796L / event.getBaseTarget()) + "', "
                  + "genSig '" + Convert.toHexString(event.getGenerationSignature()).substring(0, 6) + "..'");
       }
     });

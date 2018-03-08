@@ -31,6 +31,8 @@ import burstcoin.jminer.core.network.task.NetworkRequestTriggerServerTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitPoolNonceTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceFallbackTask;
 import burstcoin.jminer.core.network.task.NetworkSubmitSoloNonceTask;
+import burstcoin.jminer.core.reader.Reader;
+import burstcoin.jminer.core.reader.data.Plots;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,15 +63,12 @@ public class Network
   private final SimpleAsyncTaskExecutor networkPool;
 
   private String numericAccountId;
-  private boolean poolMining;
 
   private String poolServer;
   private String walletServer;
 
   private String soloServer;
   private String passPhrase;
-  private long defaultTargetDeadline;
-  private boolean forceLocalTargetDeadline;
 
   private long connectionTimeout;
 
@@ -80,6 +79,7 @@ public class Network
   private Timer timer;
   private byte[] generationSignature;
   private String mac; // unique system id
+  private Plots plots;
 
   @Autowired
   public Network(ApplicationContext context, @Qualifier(value = "networkPool") SimpleAsyncTaskExecutor networkPool)
@@ -91,10 +91,14 @@ public class Network
   @PostConstruct
   protected void postConstruct()
   {
+    // init drives/plotfiles ... ensure miner starts after that
+    Reader reader = context.getBean(Reader.class);
+    plots = reader.getPlots();
+
     mac = getMac();
     timer = new Timer();
-    poolMining = CoreProperties.isPoolMining();
-    if(poolMining)
+
+    if(CoreProperties.isPoolMining())
     {
       String poolServer = CoreProperties.getPoolServer();
       String numericAccountId = CoreProperties.getNumericAccountId();
@@ -130,9 +134,6 @@ public class Network
         LOG.error("jminer.properties: 'soloServer' or 'passPhrase' is missing?!");
       }
     }
-    /** IMPORTANT - Dont forget about me **/
-    this.defaultTargetDeadline = CoreProperties.getTargetDeadline();
-    this.forceLocalTargetDeadline = CoreProperties.isForceLocalTargetDeadline();
     this.connectionTimeout = CoreProperties.getConnectionTimeout();
   }
 
@@ -167,11 +168,11 @@ public class Network
 
   public void checkNetworkState()
   {
-    String server = poolMining ? poolServer : soloServer;
+    String server = CoreProperties.isPoolMining() ? poolServer : soloServer;
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestMiningInfoTask networkRequestMiningInfoTask = context.getBean(NetworkRequestMiningInfoTask.class);
-      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, poolMining, connectionTimeout, defaultTargetDeadline, forceLocalTargetDeadline);
+      networkRequestMiningInfoTask.init(server, blockNumber, generationSignature, connectionTimeout, plots.getSize());
       networkPool.execute(networkRequestMiningInfoTask);
     }
   }
@@ -190,7 +191,7 @@ public class Network
   public void checkLastWinner(long blockNumber)
   {
     // find winner of lastBlock on new round, if server available
-    String server = !poolMining ? soloServer : walletServer;
+    String server = !CoreProperties.isPoolMining() ? soloServer : walletServer;
     if(!StringUtils.isEmpty(server))
     {
       NetworkRequestLastWinnerTask networkRequestLastWinnerTask = context.getBean(NetworkRequestLastWinnerTask.class);
@@ -212,7 +213,7 @@ public class Network
   public void commitResult(long blockNumber, long calculatedDeadline, BigInteger nonce, BigInteger chunkPartStartNonce, long totalCapacity,
                            BigInteger result, String plotFilePath)
   {
-    if(poolMining)
+    if(CoreProperties.isPoolMining())
     {
       NetworkSubmitPoolNonceTask networkSubmitPoolNonceTask = context.getBean(NetworkSubmitPoolNonceTask.class);
       networkSubmitPoolNonceTask.init(blockNumber, generationSignature, numericAccountId, poolServer, connectionTimeout, nonce,

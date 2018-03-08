@@ -22,6 +22,7 @@
 
 package burstcoin.jminer.core.network.task;
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.MiningInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,10 +60,8 @@ public class NetworkRequestMiningInfoTask
   private long blockNumber;
   private String server;
 
-  private boolean poolMining;
-  private boolean forceLocalTargetDeadline;
   private long connectionTimeout;
-  private long defaultTargetDeadline;
+  private long plotSizeInByte;
 
   @Autowired
   public NetworkRequestMiningInfoTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
@@ -72,17 +71,13 @@ public class NetworkRequestMiningInfoTask
     this.publisher = publisher;
   }
 
-  public void init(String server, long blockNumber, byte[] generationSignature, boolean poolMining, long connectionTimeout,
-                   long defaultTargetDeadline, boolean forceLocalTargetDeadline)
+  public void init(String server, long blockNumber, byte[] generationSignature, long connectionTimeout, long plotSizeInByte)
   {
     this.server = server;
     this.generationSignature = generationSignature;
     this.blockNumber = blockNumber;
-    this.poolMining = poolMining;
     this.connectionTimeout = connectionTimeout;
-
-    this.forceLocalTargetDeadline = forceLocalTargetDeadline;
-    this.defaultTargetDeadline = defaultTargetDeadline;
+    this.plotSizeInByte = plotSizeInByte;
   }
 
   @Override
@@ -115,12 +110,7 @@ public class NetworkRequestMiningInfoTask
         if(newBlockNumber > blockNumber || !Arrays.equals(newGenerationSignature, generationSignature))
         {
           long baseTarget = Convert.parseUnsignedLong(result.getBaseTarget());
-
-          // ensure default is not 0
-          // IMPORTANT
-          defaultTargetDeadline = defaultTargetDeadline > 0 ? defaultTargetDeadline : Long.MAX_VALUE;
-          long targetDeadline = forceLocalTargetDeadline ? defaultTargetDeadline : poolMining ? result.getTargetDeadline() > 0 ? result.getTargetDeadline() : defaultTargetDeadline : defaultTargetDeadline;
-
+          long targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
           publisher.publishEvent(new NetworkStateChangeEvent(newBlockNumber, baseTarget, newGenerationSignature, targetDeadline));
         }
         else
@@ -155,5 +145,33 @@ public class NetworkRequestMiningInfoTask
         LOG.debug("Unable to get mining info from wallet: " + e.getMessage(), e);
       }
     }
+  }
+
+  private long getTargetDeadline(long deadlineProvidedByPool, long baseTarget)
+  {
+    long targetDeadline;
+    long defaultTargetDeadline = CoreProperties.getTargetDeadline();
+    // ensure default is not 0
+    defaultTargetDeadline = defaultTargetDeadline > 0 ? defaultTargetDeadline : Long.MAX_VALUE;
+
+    // 'poolMining' and dynamic deadline
+    if(CoreProperties.isPoolMining() && CoreProperties.isDynamicTargetDeadline())
+    {
+      // please give feedback, in case this is not optimal
+      long netDiff = 18325193796L / baseTarget;
+      float plotSizeInTiB = plotSizeInByte / 1024 / 1024 / 1024 / 1024;
+      targetDeadline = (long) (720 * netDiff / (plotSizeInTiB > 1.0 ? plotSizeInTiB : 1.0));
+    }
+    // 'soloMining' or 'poolMining and force local deadline'
+    else if(!CoreProperties.isPoolMining() || CoreProperties.isForceLocalTargetDeadline())
+    {
+      targetDeadline = defaultTargetDeadline;
+    }
+    // 'poolMining'
+    else
+    {
+      targetDeadline = deadlineProvidedByPool > 0 ? deadlineProvidedByPool : defaultTargetDeadline;
+    }
+    return targetDeadline;
   }
 }
