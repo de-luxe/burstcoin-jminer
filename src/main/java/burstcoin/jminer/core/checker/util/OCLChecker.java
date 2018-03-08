@@ -141,10 +141,10 @@ public class OCLChecker
     clGetDeviceInfo(devices[deviceId], CL_DEVICE_MAX_COMPUTE_UNITS, 8, Pointer.to(maxComputeUnits), null);
 
     gensigMem = clCreateBuffer(context, CL_MEM_READ_ONLY, 32, null, null);
-    bestMem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 400, null, null); // org 400 // tested 5000
+    bestMem = clCreateBuffer(context, CL_MEM_WRITE_ONLY, 400, null, null);
 
     LOG.info("");
-    LOG.info("(*) openCL context successfully started! (platformId: "+platformId+", deviceId: "+deviceId+")");
+    LOG.info("(*) openCL context successfully started! (platformId: " + platformId + ", deviceId: " + deviceId + ")");
     LOG.info("-------------------------------------------------------");
   }
 

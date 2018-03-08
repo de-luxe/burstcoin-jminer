@@ -71,16 +71,9 @@ public class Reader
 {
   private static final Logger LOG = LoggerFactory.getLogger(Reader.class);
 
-  @Autowired
-  private ApplicationContext context;
-
-  @Autowired
-  @Qualifier(value = "readerPool")
-  private ThreadPoolTaskExecutor readerPool;
-
-  @Autowired
-  @Qualifier(value = "networkPool")
-  private SimpleAsyncTaskExecutor networkPool;
+  private final ApplicationContext context;
+  private final ThreadPoolTaskExecutor readerPool;
+  private final SimpleAsyncTaskExecutor networkPool;
 
   // config
   private String numericAccountId;
@@ -98,16 +91,20 @@ public class Reader
   private long readerStartTime;
   private int readerThreads;
 
-  /**
-   * Post construct.
-   */
+  @Autowired
+  public Reader(ApplicationContext context, @Qualifier(value = "readerPool") ThreadPoolTaskExecutor readerPool,
+                @Qualifier(value = "networkPool") SimpleAsyncTaskExecutor networkPool)
+  {
+    this.context = context;
+    this.readerPool = readerPool;
+    this.networkPool = networkPool;
+  }
+
   @PostConstruct
   protected void postConstruct()
   {
-    Boolean poolMining = CoreProperties.isPoolMining();
-
     String numericAccountId;
-    if(poolMining)
+    if(CoreProperties.isPoolMining())
     {
       numericAccountId = CoreProperties.getNumericAccountId();
     }
@@ -138,7 +135,7 @@ public class Reader
     if(CoreProperties.isListPlotFiles())
     {
       // find winner of lastBlock on new round, if server available
-      String server = !poolMining ? CoreProperties.getSoloServer() : CoreProperties.getWalletServer() != null ? CoreProperties.getWalletServer() : null;
+      String server = !CoreProperties.isPoolMining() ? CoreProperties.getSoloServer() : CoreProperties.getWalletServer();
       if(!StringUtils.isEmpty(server))
       {
         NetworkRequestAccountBlocksTask networkRequestAccountBlocksTask = context.getBean(NetworkRequestAccountBlocksTask.class);

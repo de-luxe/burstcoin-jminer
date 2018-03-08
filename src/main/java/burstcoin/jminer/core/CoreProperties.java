@@ -40,7 +40,7 @@ public class CoreProperties
   private static final Properties PROPS = new Properties();
 
   // default values
-  private static final int DEFAULT_CHUNK_PART_NONCES = 320000;
+  private static final int DEFAULT_CHUNK_PART_NONCES = 960000;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
@@ -50,7 +50,7 @@ public class CoreProperties
   private static final String DEFAULT_SOLO_SERVER = "http://localhost:8125";
   private static final int DEFAULT_READ_PROGRESS_PER_ROUND = 9;
   private static final int DEFAULT_REFRESH_INTERVAL = 2000;
-  private static final int DEFAULT_CONNECTION_TIMEOUT = 6000;
+  private static final int DEFAULT_CONNECTION_TIMEOUT = 18000;
   private static final int DEFAULT_WINNER_RETRIES_ON_ASYNC = 4;
   private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 500;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = true;

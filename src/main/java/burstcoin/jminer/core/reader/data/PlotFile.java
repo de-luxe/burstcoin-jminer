@@ -155,7 +155,7 @@ public class PlotFile
   {
     int maxNumberOfParts = 100;
 
-    long targetNoncesPerPart = chunkPartNonces != null ? chunkPartNonces : 320000;
+    long targetNoncesPerPart = chunkPartNonces != null ? chunkPartNonces : 960000;
 
     // calculate numberOfParts based on target
     int suggestedNumberOfParts = (int) (staggeramt / targetNoncesPerPart) + 1;

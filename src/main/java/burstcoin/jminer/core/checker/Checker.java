@@ -69,12 +69,13 @@ public class Checker
   {
     if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
+      int lowestNonce;
       synchronized(oclChecker)
       {
-        int lowestNonce = oclChecker.findLowest(generationSignature, event.getScoops());
-        publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, event.getChunkPartStartNonce(), lowestNonce, event.getPlotFilePath(),
-                                                      event.getScoops()));
+        lowestNonce = oclChecker.findLowest(generationSignature, event.getScoops());
       }
+      publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, event.getChunkPartStartNonce(), lowestNonce, event.getPlotFilePath(),
+                                                    event.getScoops()));
     }
     else
     {

@@ -2,7 +2,7 @@
 GPU assisted Proof of Capacity (PoC) Miner for Burstcoin (BURST)
 
 1. edit 'jminer.properties' with text editor to configure miner
-2. ensure java8 (64bit) and openCL driver/sdk is installed
+2. ensure java8 (64bit) and openCL driver/sdk is installed (java9 will not work)
 3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.4.x-RELEASE.jar' or run the *.bat/*.sh file
 
 > '-d64' to ensure 64bit java (remove for 32bit)
@@ -54,7 +54,7 @@ it will show mined blocks and drive seeks/chunks of plotfile, too.
 
 
 
-## Mining Mode
+## Mining Mode and Target Deadline
 
 ### poolMining (default:true)
 'true' for pool mining, 'false' for solo mining. ensure to configure the chosen mining-mode below.
@@ -62,6 +62,24 @@ For solo-mining you need to set
 
     poolMining=false
 
+### targetDeadline (optinal)
+min. deadline to be committed. Will be used for pool mining if 'forceLocalTargetDeadline=true'
+
+    targetDeadline=750000
+
+### forceLocalTargetDeadline (default:false)
+'true' will force jminer to use the targetDeadline specified below, 
+even if the pool says otherwise.  Only for pool mining! 'false' uses the default behavior for targetDeadline.
+https://www.youtube.com/watch?v=9lwogE31SiI
+
+    forceLocalTargetDeadline=true
+
+### dynamicTargetDeadline (default:false)
+'true' will overrule 'targetDeadline' and 'forceLocalTargetDeadline' settings.
+the miner will calculate the targetDeadline dynamic on poolMining.
+
+    dynamicTargetDeadline=true
+    
 
 
 
@@ -112,11 +130,6 @@ Solo means you send your PASS on commit results!
 secretPhrase/password of solo mining burst-account
 
     passPhrase=xxxxxxxxxxxxxx
-
-### targetDeadline (optinal)
-min. deadline to be committed. 
-
-    targetDeadline=750000
 
 ### triggerServer (default: false)
 on 'true' miner emulates open wallet gui, to prevent wallet server from
@@ -243,7 +256,7 @@ provided by pool (overwriting the targetDeadline specified in jminer.properties)
 
 ## Miner Memory Usage
  
-### chunkPartNonces (default:320000)
+### chunkPartNonces (default:960000)
 staggerSize defines number of nonces per chunk.
 the miner will split chunks in smaller pieces called chunkParts.
 this makes sense, to save memory and optimize speed.
