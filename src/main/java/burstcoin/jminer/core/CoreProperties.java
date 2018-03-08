@@ -44,6 +44,7 @@ public class CoreProperties
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
+  private static final boolean DEFAULT_FORCE_LOCAL_TARGET_DEADLINE = false;
   private static final long DEFAULT_TARGET_DEADLINE = Long.MAX_VALUE;
   private static final String DEFAULT_SOLO_SERVER = "http://localhost:8125";
   private static final int DEFAULT_READ_PROGRESS_PER_ROUND = 9;
@@ -83,6 +84,7 @@ public class CoreProperties
   private static Long winnerRetryIntervalInMs;
   private static Boolean scanPathsEveryRound;
   private static Boolean poolMining;
+  private static Boolean forceLocalTargetDeadline;
   private static Long targetDeadline;
   private static List<String> plotPaths;
   private static Long chunkPartNonces;
@@ -209,6 +211,20 @@ public class CoreProperties
       poolMining = asBoolean("poolMining", DEFAULT_POOL_MINING);
     }
     return poolMining;
+  }
+  
+  /**
+   * Is force local target deadline (instead of using the pool's).
+   *
+   * @return the boolean
+   */
+  public static boolean isForceLocalTargetDeadline()
+  {
+    if(forceLocalTargetDeadline == null)
+    {
+    	forceLocalTargetDeadline = asBoolean("forceLocalTargetDeadline", DEFAULT_FORCE_LOCAL_TARGET_DEADLINE);
+    }
+    return forceLocalTargetDeadline;
   }
 
   /**
