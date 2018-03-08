@@ -29,7 +29,7 @@ This file has to be in the miner directory (same folder as '*.jar' file)
 
 # List of all properties
 your 'jminer.properties' hasn't got to contain all properties listed here,
-most of them are optinal or there is a fallback/default value for it.
+most of them are optional or there is a fallback/default value for it.
 
 
 ## Plot-Files
