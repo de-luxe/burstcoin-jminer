@@ -48,8 +48,6 @@ import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -152,7 +150,7 @@ public class Network
         sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
       }
     }
-    catch(UnknownHostException | SocketException e)
+    catch(Exception e)
     {
       LOG.debug("Could not create MAC address as unique id for mining system. Fallback capacity used.");
     }
