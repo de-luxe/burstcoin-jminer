@@ -96,4 +96,22 @@ public class PlotDrive
     }
     return size;
   }
+
+  /* returns null if drive has mixed poc versions */
+  public PocVersion getDrivePocVersion()
+  {
+    PocVersion drivePocVersion = null;
+    for(PlotFile plotFile : plotFiles)
+    {
+      if(drivePocVersion == null)
+      {
+        drivePocVersion = plotFile.getPocVersion();
+      }
+      else if(!drivePocVersion.equals(plotFile.getPocVersion()))
+      {
+        return null;
+      }
+    }
+    return drivePocVersion;
+  }
 }

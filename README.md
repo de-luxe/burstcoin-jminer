@@ -3,7 +3,7 @@ GPU assisted Proof of Capacity (PoC) Miner for Burstcoin (BURST)
 
 1. edit 'jminer.properties' with text editor to configure miner
 2. ensure java8 (64bit) and openCL driver/sdk is installed (java9 will not work)
-3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.4.x-RELEASE.jar' or run the *.bat/*.sh file
+3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.5.x-RELEASE.jar' or run the *.bat/*.sh file
 
 > '-d64' to ensure 64bit java (remove for 32bit)
 > '-XX:+UseG1GC' to free memory after round finished.
@@ -25,6 +25,16 @@ This file has to be in the miner directory (same folder as '*.jar' file)
     plotPaths=D:/,C:/,E:/plots,F:/plots
     poolMining=false
     passPhrase=<YOUR PASS PHRASE>
+
+# POC1 and POC2 - NOTICE
+jminer supports POC2 since version 0.5.x
+
+only use one type, POC1 or POC2 on one drive ('plotPath'), mixed will be skipped for now.
+
+ensure your POC2 plotfiles do not have staggersize in filename, or they will be treated like POC1.
+
+      POC1 filename: 'numericAccountId_startNonce_numberOfNonces_staggersize'
+      POC2 filename: 'numericAccountId_startNonce_numberOfNonces'
 
 
 # List of all properties
@@ -274,6 +284,15 @@ For example, if you mine on 4 drives (plotPaths), you can reduce the memory usag
 by setting 'readerThreads=2', this will reduce mining speed but save memory.
 
     readerThreads=10
+    
+    
+    
+## POC2 
+
+###  poc2ActivationBlockHeight - (default:500000)  
+only adjust if the POC2 release fork gets delayed to a later block
+
+    poc2ActivationBlockHeight=500000
 
 
 

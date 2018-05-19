@@ -31,9 +31,11 @@ import burstcoin.jminer.core.network.task.NetworkRequestAccountBlocksTask;
 import burstcoin.jminer.core.reader.data.PlotDrive;
 import burstcoin.jminer.core.reader.data.PlotFile;
 import burstcoin.jminer.core.reader.data.Plots;
+import burstcoin.jminer.core.reader.data.PocVersion;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
 import burstcoin.jminer.core.reader.event.ReaderProgressChangedEvent;
+import burstcoin.jminer.core.reader.task.ReaderConvertLoadDriveTask;
 import burstcoin.jminer.core.reader.task.ReaderLoadDriveTask;
 import burstcoin.jminer.core.round.event.RoundStoppedEvent;
 import nxt.crypto.Crypto;
@@ -180,9 +182,39 @@ public class Reader
 
     for(PlotDrive plotDrive : plots.getPlotDrives())
     {
-      ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
-      readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
-      readerPool.execute(readerLoadDriveTask);
+      PocVersion drivePocVersion = plotDrive.getDrivePocVersion();
+      if(drivePocVersion == null)
+      {
+        LOG.warn("Skipped '" + plotDrive.getDirectory()
+                 + "', different POC versions on one drive is not supported! (Workaround: put them in different directories and add them to 'plotFilePaths')");
+      }
+      else
+      {
+        if(isCompatibleWithCurrentPoc(blockNumber, drivePocVersion))
+        {
+          ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
+          readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
+          readerPool.execute(readerLoadDriveTask);
+        }
+        else
+        {
+          ReaderConvertLoadDriveTask readerConvertLoadDriveTask = context.getBean(ReaderConvertLoadDriveTask.class);
+          readerConvertLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
+          readerPool.execute(readerConvertLoadDriveTask);
+        }
+      }
+    }
+  }
+
+  private Boolean isCompatibleWithCurrentPoc(long blockNumber, PocVersion drivePocVersion)
+  {
+    switch(drivePocVersion)
+    {
+      case POC_2:
+        return blockNumber >= CoreProperties.getPoc2ActivationBlockHeight();
+      case POC_1:
+      default:
+        return blockNumber < CoreProperties.getPoc2ActivationBlockHeight();
     }
   }
 
@@ -225,7 +257,7 @@ public class Reader
       else
       {
         LOG.error("Error: ReaderPartLoadedEvent for unknown chunkPartStartNonce: '" + event.getChunkPartStartNonce() + "'!"
-                  + " Please check for plot-file duplicate or overlapping plots e.g. use https://bchain.info/BURST/tools/overlap");
+                  + " Please check for plot-file duplicate or overlapping plots.");
       }
     }
     else

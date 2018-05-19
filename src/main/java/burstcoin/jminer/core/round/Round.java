@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import pocminer.generate.MiningPlot;
 
@@ -181,7 +180,6 @@ public class Round
     }
   }
 
-  @Async
   @EventListener
   public void handleMessage(CheckerResultEvent event)
   {

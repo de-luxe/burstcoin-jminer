@@ -56,7 +56,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.4.12";
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.5.0";
 
   private final ApplicationEventPublisher publisher;
   private final HttpClient httpClient;
@@ -121,7 +121,7 @@ public class NetworkSubmitPoolNonceTask
         .header("X-Capacity", String.valueOf(gb))
 
         // thanks @systemofapwne
-        .header("X-PlotsHash", StringUtils.isEmpty(mac)? String.valueOf(gb) : mac) //For CreepMiner: Unique id for system
+        .header("X-PlotsHash", StringUtils.isEmpty(mac) ? String.valueOf(gb) : mac) //For CreepMiner: Unique id for system
         .header("X-Deadline", String.valueOf(calculatedDeadline)) //For CreepMiner proxy: Numerical value of this deadline
         .header("X-Plotfile", plotFilePath) //For CreepMiner proxy: Plotfile this deadline origins from
 

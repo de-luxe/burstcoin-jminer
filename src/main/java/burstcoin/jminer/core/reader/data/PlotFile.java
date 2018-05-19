@@ -52,6 +52,8 @@ public class PlotFile
 
   private long size;
 
+  private PocVersion pocVersion;
+
   PlotFile(Path filePath, Long chunkPartNonces)
   {
     this.filePath = filePath;
@@ -61,9 +63,22 @@ public class PlotFile
     this.address = Convert.parseUnsignedLong(parts[0]);
     this.startnonce = new BigInteger(parts[1]);
     this.plots = Long.valueOf(parts[2]);
-    staggeramt = Long.valueOf(parts[3]);
-    this.numberOfParts = calculateNumberOfParts(staggeramt);
-    this.numberOfChunks = plots / staggeramt;
+
+    // todo this may be weak, requires that poc2 file names do not have staggersize
+    if(parts.length > 3)
+    {
+      pocVersion = PocVersion.POC_1;
+      staggeramt = Long.valueOf(parts[3]);
+      this.numberOfParts = calculateNumberOfParts(staggeramt);
+      this.numberOfChunks = plots / staggeramt;
+    }
+    else
+    {
+      pocVersion = PocVersion.POC_2;
+      staggeramt = plots;
+      this.numberOfParts = calculateNumberOfParts(staggeramt);
+      this.numberOfChunks = 1;
+    }
 
     chunkPartStartNonces = new HashMap<>();
 
@@ -147,6 +162,11 @@ public class PlotFile
   Map<BigInteger, Long> getChunkPartStartNonces()
   {
     return chunkPartStartNonces;
+  }
+
+  PocVersion getPocVersion()
+  {
+    return pocVersion;
   }
 
   // splitting into parts is not needed, but it seams to improve speed and enables us

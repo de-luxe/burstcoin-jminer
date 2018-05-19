@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2016 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
+ * Copyright (c) 2018 by luxe - https://github.com/de-luxe - BURST-LUXE-RED2-G6JW-H4HG5
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -21,7 +21,6 @@
  */
 
 package burstcoin.jminer.core.reader.task;
-
 
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.reader.Reader;
@@ -51,16 +50,19 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.Iterator;
 
-
 /**
+ * This reader can handle POC2 plotfiles as long as POC1 is active (tested)
+ * and POC1 plotfiles if POC2 is active (todo Not tested yet).
+ * To archive compatibility, twice the amount of data needs to be read. Also memory and cpu usage is higher.
+ *
  * Executed once for every block ... reads scoops of drive plots
  */
 @Component
 @Scope("prototype")
-public class ReaderLoadDriveTask
+public class ReaderConvertLoadDriveTask
   implements Runnable
 {
-  private static final Logger LOG = LoggerFactory.getLogger(ReaderLoadDriveTask.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ReaderConvertLoadDriveTask.class);
 
   private final ApplicationEventPublisher publisher;
 
@@ -71,7 +73,7 @@ public class ReaderLoadDriveTask
   private boolean showDriveInfo;
 
   @Autowired
-  public ReaderLoadDriveTask(ApplicationEventPublisher publisher)
+  public ReaderConvertLoadDriveTask(ApplicationEventPublisher publisher)
   {
     this.publisher = publisher;
   }
@@ -121,38 +123,59 @@ public class ReaderLoadDriveTask
 
   private boolean load(PlotFile plotFile)
   {
-    try (SeekableByteChannel sbc = Files.newByteChannel(plotFile.getFilePath(), EnumSet.of(StandardOpenOption.READ)))
+    // using two channels to avoid positioning manually
+    try (SeekableByteChannel sbc1 = Files.newByteChannel(plotFile.getFilePath(), EnumSet.of(StandardOpenOption.READ));
+         SeekableByteChannel sbc2 = Files.newByteChannel(plotFile.getFilePath(), EnumSet.of(StandardOpenOption.READ)))
     {
-      long currentScoopPosition = scoopNumber * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
-
       long partSize = plotFile.getStaggeramt() / plotFile.getNumberOfParts();
-      ByteBuffer partBuffer = ByteBuffer.allocate((int) (partSize * MiningPlot.SCOOP_SIZE));
+      long currentScoopPosition1 = scoopNumber * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
+      int partBufferSize = (int) (partSize * MiningPlot.SCOOP_SIZE);
+      ByteBuffer partBuffer1 = ByteBuffer.allocate(partBufferSize);
+
+      long currentScoopPosition2 = (4095 - scoopNumber) * plotFile.getStaggeramt() * MiningPlot.SCOOP_SIZE;
+      ByteBuffer partBuffer2 = ByteBuffer.allocate(partBufferSize);
+
       // optimized plotFiles only have one chunk!
       for(int chunkNumber = 0; chunkNumber < plotFile.getNumberOfChunks(); chunkNumber++)
       {
         long currentChunkPosition = chunkNumber * plotFile.getStaggeramt() * MiningPlot.PLOT_SIZE;
-        sbc.position(currentScoopPosition + currentChunkPosition);
+        sbc1.position(currentScoopPosition1 + currentChunkPosition);
+        sbc2.position(currentScoopPosition2 + currentChunkPosition);
         for(int partNumber = 0; partNumber < plotFile.getNumberOfParts(); partNumber++)
         {
-          sbc.read(partBuffer);
+          sbc1.read(partBuffer1);
+          sbc2.read(partBuffer2);
 
           if(Reader.blockNumber != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
           {
             LOG.trace("loadDriveThread stopped!");
-            partBuffer.clear();
-            sbc.close();
+            partBuffer1.clear();
+            partBuffer2.clear();
+            sbc1.close();
+            sbc2.close();
             return true;
           }
           else
           {
+            byte[] scoops1 = partBuffer1.array();
+            byte[] scoops2 = partBuffer2.array();
+
+            partBuffer1.clear();
+            partBuffer2.clear();
+
+            // copy every other 32 bytes from scoops2 to scoops1
+            for(int pos = 0; pos < partSize; pos++)
+            {
+              int copyPosition = pos * MiningPlot.SCOOP_SIZE + MiningPlot.HASH_SIZE;
+              System.arraycopy(scoops2, copyPosition, scoops1, copyPosition, MiningPlot.HASH_SIZE);
+            }
             BigInteger chunkPartStartNonce = plotFile.getStartnonce().add(BigInteger.valueOf(chunkNumber * plotFile.getStaggeramt() + partNumber * partSize));
-            final byte[] scoops = partBuffer.array();
-            partBuffer.clear();
-            publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce, plotFile.getFilePath().toString()));
+            publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops1, chunkPartStartNonce, plotFile.getFilePath().toString()));
           }
         }
       }
-      sbc.close();
+      sbc1.close();
+      sbc2.close();
     }
     catch(NoSuchFileException exception)
     {

@@ -40,6 +40,7 @@ public class CoreProperties
   private static final Properties PROPS = new Properties();
 
   // default values
+  private static final int DEFAULT_POC2_ACTIVATION_BLOCK_HEIGHT = 500000;
   private static final int DEFAULT_CHUNK_PART_NONCES = 960000;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
@@ -78,6 +79,7 @@ public class CoreProperties
     }
   }
 
+  private static Integer poc2ActivationBlockHeight;
   private static Integer readProgressPerRound;
   private static Long refreshInterval;
   private static Long connectionTimeout;
@@ -413,6 +415,15 @@ public class CoreProperties
       chunkPartNonces = asLong("chunkPartNonces", DEFAULT_CHUNK_PART_NONCES);
     }
     return chunkPartNonces;
+  }
+
+  public static int getPoc2ActivationBlockHeight()
+  {
+    if(poc2ActivationBlockHeight == null)
+    {
+      poc2ActivationBlockHeight = asInteger("poc2ActivationBlockHeight", DEFAULT_POC2_ACTIVATION_BLOCK_HEIGHT);
+    }
+    return poc2ActivationBlockHeight;
   }
 
   public static boolean isByteUnitDecimal()
