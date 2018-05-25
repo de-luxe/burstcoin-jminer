@@ -289,10 +289,13 @@ by setting 'readerThreads=2', this will reduce mining speed but save memory.
     
 ## POC2 
 
-###  poc2ActivationBlockHeight - (default:500000)  
+###  poc2ActivationBlockHeight - (default:502000)  
 only adjust if the POC2 release fork gets delayed to a later block
+>you can btw. test how your setup will behave after the POC2 fork 
+>with your current plotfiles. Just use a blockHeight from the past.
+>No deadline will be confirmed! Just to check your read-times, cpu and memory usage.
 
-    poc2ActivationBlockHeight=500000
+    poc2ActivationBlockHeight=502000
 
 
 

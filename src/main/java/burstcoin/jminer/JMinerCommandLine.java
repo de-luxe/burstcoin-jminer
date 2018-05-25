@@ -86,16 +86,16 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.5.0 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("     0.5.1 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
     LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
     LOG.info("-------------------------------------------------------");
-    LOG.info("NOTICE:");
-    LOG.info("1. Only use POC1 or POC2 per drive (plotPaths), mixed is not supported, yet!");
-    LOG.info("2. POC2 plotfiles are detected by not having 'staggersize' in filename.");
-    LOG.info("   If you use JohnnyFFM/Poc1to2Converter you need to remove it manually.");
+//    LOG.info("NOTICE:");
+//    LOG.info("1. Only use POC1 or POC2 per drive (plotPaths), mixed is not supported, yet!");
+//    LOG.info("2. POC2 plotfiles are detected by not having 'staggersize' in filename.");
+//    LOG.info("   If you use JohnnyFFM/Poc1to2Converter you need to remove it manually.");
 
     // start mining
     Network network = context.getBean(Network.class);

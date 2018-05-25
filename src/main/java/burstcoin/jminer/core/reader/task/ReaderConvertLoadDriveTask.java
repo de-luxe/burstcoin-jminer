@@ -51,8 +51,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 
 /**
- * This reader can handle POC2 plotfiles as long as POC1 is active (tested)
- * and POC1 plotfiles if POC2 is active (todo Not tested yet).
+ * This reader can handle POC2 plotfiles as long as POC1 is active and POC1 plotfiles if POC2 is active.
  * To archive compatibility, twice the amount of data needs to be read. Also memory and cpu usage is higher.
  *
  * Executed once for every block ... reads scoops of drive plots

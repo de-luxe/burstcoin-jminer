@@ -40,7 +40,7 @@ public class CoreProperties
   private static final Properties PROPS = new Properties();
 
   // default values
-  private static final int DEFAULT_POC2_ACTIVATION_BLOCK_HEIGHT = 500000;
+  private static final int DEFAULT_POC2_ACTIVATION_BLOCK_HEIGHT = 502000;
   private static final int DEFAULT_CHUNK_PART_NONCES = 960000;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
