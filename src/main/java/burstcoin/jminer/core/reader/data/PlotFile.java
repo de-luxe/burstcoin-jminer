@@ -164,7 +164,7 @@ public class PlotFile
     return chunkPartStartNonces;
   }
 
-  PocVersion getPocVersion()
+  public PocVersion getPocVersion()
   {
     return pocVersion;
   }

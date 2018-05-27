@@ -57,6 +57,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,9 +88,15 @@ public class Reader
   public static volatile long blockNumber;
   public static volatile byte[] generationSignature;
   private Plots plots;
+
+  private Map<BigInteger, Long> realCapacityLookup;
+  private long realRemainingCapacity;
+  private long realCapacity;
+
   private Map<BigInteger, Long> capacityLookup;
   private long remainingCapacity;
   private long capacity;
+
   private long readerStartTime;
   private int readerThreads;
 
@@ -133,6 +140,7 @@ public class Reader
     scanPathsEveryRound = CoreProperties.isScanPathsEveryRound();
     readerThreads = CoreProperties.getReaderThreads();
     capacityLookup = new HashMap<>();
+    realCapacityLookup = new HashMap<>();
 
     if(CoreProperties.isListPlotFiles())
     {
@@ -175,12 +183,30 @@ public class Reader
     capacityLookup.clear();
     capacityLookup.putAll(plots.getChunkPartStartNonces());
 
+    realCapacityLookup.clear();
+    realCapacity = 0;
+    for(BigInteger chunkPartNonces : capacityLookup.keySet())
+    {
+      PlotFile plotFile = plots.getPlotFileByChunkPartStartNonce(chunkPartNonces);
+      long realChunkPartNoncesCapacity = isCompatibleWithCurrentPoc(blockNumber, plotFile.getPocVersion())
+                   ? capacityLookup.get(chunkPartNonces)
+                   : 2 * capacityLookup.get(chunkPartNonces);
+      realCapacityLookup.put(chunkPartNonces, realChunkPartNoncesCapacity);
+      realCapacity+=realChunkPartNoncesCapacity;
+    }
+
     remainingCapacity = plots.getSize();
     capacity = plots.getSize();
 
+    realRemainingCapacity = realCapacity;
     readerStartTime = new Date().getTime();
 
-    for(PlotDrive plotDrive : plots.getPlotDrives())
+    // order by slowest and biggest drives first
+    List<PlotDrive> orderedPlotDrives = new ArrayList<>(plots.getPlotDrives());
+    orderedPlotDrives.sort((o1, o2) -> Long.compare(o2.getSize(), o1.getSize())); // order by size
+    orderedPlotDrives.sort(Comparator.comparing(o -> isCompatibleWithCurrentPoc(blockNumber, o.getDrivePocVersion()))); // order by poc version
+
+    for(PlotDrive plotDrive : orderedPlotDrives)
     {
       PocVersion drivePocVersion = plotDrive.getDrivePocVersion();
       if(drivePocVersion == null)
@@ -248,11 +274,14 @@ public class Reader
     {
       // update progress
       Long removedCapacity = capacityLookup.remove(event.getChunkPartStartNonce());
+      Long realRemovedCapacity = realCapacityLookup.remove(event.getChunkPartStartNonce());
       if(removedCapacity != null)
       {
         remainingCapacity -= removedCapacity;
+        realRemainingCapacity -= realRemovedCapacity;
         long elapsedTime = new Date().getTime() - readerStartTime;
-        context.publishEvent(new ReaderProgressChangedEvent(this, event.getBlockNumber(), capacity, remainingCapacity, elapsedTime));
+        context.publishEvent(new ReaderProgressChangedEvent(this, event.getBlockNumber(), capacity, remainingCapacity,
+                                                            realCapacity, realRemainingCapacity, elapsedTime));
       }
       else
       {

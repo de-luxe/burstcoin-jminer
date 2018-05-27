@@ -34,64 +34,50 @@ public class ReaderProgressChangedEvent
   private long blockNumber;
   private long capacity;
   private long remainingCapacity;
+  private long realCapacity;
+  private long realRemainingCapacity;
   private long elapsedTime;
 
-  /**
-   * Instantiates a new Reader progress changed event.
-   *
-   * @param source the source
-   * @param blockNumber the block number
-   * @param capacity the capacity
-   * @param remainingCapacity the remaining capacity
-   * @param elapsedTime the elapsed time
-   */
-  public ReaderProgressChangedEvent(Reader source, long blockNumber, long capacity, long remainingCapacity, long elapsedTime)
+  public ReaderProgressChangedEvent(Reader source, long blockNumber, long capacity, long remainingCapacity,long realCapacity, long realRemainingCapacity,
+                                    long elapsedTime)
   {
     super(source);
 
     this.blockNumber = blockNumber;
     this.capacity = capacity;
     this.remainingCapacity = remainingCapacity;
+    this.realCapacity = realCapacity;
+    this.realRemainingCapacity = realRemainingCapacity;
     this.elapsedTime = elapsedTime;
   }
 
-  /**
-   * Gets block number.
-   *
-   * @return the block number
-   */
   public long getBlockNumber()
   {
     return blockNumber;
   }
 
-  /**
-   * Gets remaining capacity.
-   *
-   * @return the remaining capacity
-   */
   public long getRemainingCapacity()
   {
     return remainingCapacity;
   }
 
-  /**
-   * Gets capacity.
-   *
-   * @return the capacity
-   */
   public long getCapacity()
   {
     return capacity;
   }
 
-  /**
-   * Gets elapsed time.
-   *
-   * @return the elapsed time
-   */
   public long getElapsedTime()
   {
     return elapsedTime;
+  }
+
+  public long getRealCapacity()
+  {
+    return realCapacity;
+  }
+
+  public long getRealRemainingCapacity()
+  {
+    return realRemainingCapacity;
   }
 }

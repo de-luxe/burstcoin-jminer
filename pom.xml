@@ -43,6 +43,11 @@
       <artifactId>spring-boot-starter-jetty</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+    </dependency>
+
     <!-- add for older gpu -->
     <!--<dependency>-->
     <!--<groupId>org.jocl</groupId>-->
@@ -83,6 +88,12 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
     </dependency>
+
+    <!--<dependency>-->
+      <!--<groupId>junit</groupId>-->
+      <!--<artifactId>junit</artifactId>-->
+      <!--<scope>test</scope>-->
+    <!--</dependency>-->
 
   </dependencies>
 

@@ -220,17 +220,24 @@ public class JMinerCommandLine
           {
             progressLogStep--;
 
+            // done nonces percentage
             BigDecimal totalCapacity = new BigDecimal(event.getCapacity());
             BigDecimal factor = BigDecimal.ONE.divide(totalCapacity, MathContext.DECIMAL32);
             BigDecimal progress = factor.multiply(new BigDecimal(event.getCapacity() - event.getRemainingCapacity()));
             int percentage = (int) Math.ceil(progress.doubleValue() * 100);
             percentage = percentage > 100 ? 100 : percentage;
 
-            // calculate capacity
+            // done nonce capacity
+            long doneBytes = event.getCapacity() - event.getRemainingCapacity();
+            long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
+            long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
+
+
+            // read speed
             long effMBPerSec = 0;
             if(previousRemainingCapacity > 0)
             {
-              long effDoneBytes = previousRemainingCapacity - event.getRemainingCapacity();
+              long effDoneBytes = previousRemainingCapacity - event.getRealRemainingCapacity();
 
               // calculate current reading speed (since last info)
               long elapsedTime = event.getElapsedTime() - previousElapsedTime;
@@ -238,16 +245,13 @@ public class JMinerCommandLine
               effMBPerSec = (effBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
             }
 
-            // calculate capacity
-            long doneBytes = event.getCapacity() - event.getRemainingCapacity();
-            long doneTB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR;
-            long doneGB = doneBytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR;
+            long realDoneBytes = event.getRealCapacity() - event.getRealRemainingCapacity();
 
             // calculate reading speed (average)
-            long averageBytesPerMs = (doneBytes / 4096) / event.getElapsedTime();
+            long averageBytesPerMs = (realDoneBytes / 4096) / event.getElapsedTime();
             long averageMBPerSec = (averageBytesPerMs * 1000) / SIZE_DIVISOR / SIZE_DIVISOR;
 
-            previousRemainingCapacity = event.getRemainingCapacity();
+            previousRemainingCapacity = event.getRealRemainingCapacity();
             previousElapsedTime = event.getElapsedTime();
 
             LOG.info(
