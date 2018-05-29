@@ -203,10 +203,11 @@ public class Reader
 
     // order by slowest and biggest drives first
     List<PlotDrive> orderedPlotDrives = new ArrayList<>(plots.getPlotDrives());
+    orderedPlotDrives.removeIf(plotDrive -> plotDrive.getDrivePocVersion() == null);
     orderedPlotDrives.sort((o1, o2) -> Long.compare(o2.getSize(), o1.getSize())); // order by size
     orderedPlotDrives.sort(Comparator.comparing(o -> isCompatibleWithCurrentPoc(blockNumber, o.getDrivePocVersion()))); // order by poc version
 
-    for(PlotDrive plotDrive : orderedPlotDrives)
+    for(PlotDrive plotDrive : plots.getPlotDrives())
     {
       PocVersion drivePocVersion = plotDrive.getDrivePocVersion();
       if(drivePocVersion == null)

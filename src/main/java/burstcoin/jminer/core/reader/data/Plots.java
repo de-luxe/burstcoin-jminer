@@ -61,13 +61,20 @@ public class Plots
     for(Map.Entry<String, Collection<Path>> entry : plotFilesLookup.entrySet())
     {
       PlotDrive plotDrive = new PlotDrive(entry.getKey(), entry.getValue(), chunkPartNonces);
-      plotDrives.add(plotDrive);
-
-      int expectedSize = chunkPartStartNonces.size() + plotDrive.collectChunkPartStartNonces().size();
-      chunkPartStartNonces.putAll(plotDrive.collectChunkPartStartNonces());
-      if(expectedSize != chunkPartStartNonces.size())
+      if(!plotDrive.getPlotFiles().isEmpty())
       {
-        LOG.error("possible duplicate/overlapping polt-file on drive '" + plotDrive.getDirectory() + "' please check your plots.");
+        plotDrives.add(plotDrive);
+
+        int expectedSize = chunkPartStartNonces.size() + plotDrive.collectChunkPartStartNonces().size();
+        chunkPartStartNonces.putAll(plotDrive.collectChunkPartStartNonces());
+        if(expectedSize != chunkPartStartNonces.size())
+        {
+          LOG.error("possible duplicate/overlapping polt-file on drive '" + plotDrive.getDirectory() + "' please check your plots.");
+        }
+      }
+      else
+      {
+        LOG.info("No plotfiles found at: '" + plotDrive.getDirectory() + "' ... will be ignored.");
       }
     }
   }

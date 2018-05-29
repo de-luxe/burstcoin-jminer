@@ -22,14 +22,11 @@
 
 package burstcoin.jminer.core.network.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.io.Serializable;
 
 /**
  * The type Mining info response.
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class MiningInfoResponse
   implements Serializable
 {
