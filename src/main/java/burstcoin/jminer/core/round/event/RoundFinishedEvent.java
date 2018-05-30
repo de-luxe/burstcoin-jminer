@@ -34,48 +34,34 @@ public class RoundFinishedEvent
   private long bestCommittedDeadline;
   private long roundTime;
 
-  /**
-   * Instantiates a new Round finished event.
-   *
-   * @param blockNumber the block number
-   * @param bestCommittedDeadline the best committed deadline
-   * @param roundTime the round time
-   */
-  public RoundFinishedEvent(long blockNumber, long bestCommittedDeadline, long roundTime)
+  private int networkQuality;
+
+  public RoundFinishedEvent(long blockNumber, long bestCommittedDeadline, long roundTime, int networkQuality)
   {
     super(blockNumber);
     this.blockNumber = blockNumber;
     this.bestCommittedDeadline = bestCommittedDeadline;
     this.roundTime = roundTime;
+    this.networkQuality = networkQuality;
   }
 
-  /**
-   * Gets block number.
-   *
-   * @return the block number
-   */
   public long getBlockNumber()
   {
     return blockNumber;
   }
 
-  /**
-   * Gets best committed deadline.
-   *
-   * @return the best committed deadline
-   */
   public long getBestCommittedDeadline()
   {
     return bestCommittedDeadline;
   }
 
-  /**
-   * Gets round time.
-   *
-   * @return the round time
-   */
   public long getRoundTime()
   {
     return roundTime;
+  }
+
+  public int getNetworkQuality()
+  {
+    return networkQuality;
   }
 }

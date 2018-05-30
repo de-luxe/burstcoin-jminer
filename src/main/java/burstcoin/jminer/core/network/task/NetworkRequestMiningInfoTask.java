@@ -23,6 +23,7 @@
 package burstcoin.jminer.core.network.task;
 
 import burstcoin.jminer.core.CoreProperties;
+import burstcoin.jminer.core.network.event.NetworkQualityChangeEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
 import burstcoin.jminer.core.network.model.MiningInfoResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -63,6 +64,8 @@ public class NetworkRequestMiningInfoTask
   private long connectionTimeout;
   private long plotSizeInByte;
 
+  private boolean success;
+
   @Autowired
   public NetworkRequestMiningInfoTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
   {
@@ -78,6 +81,8 @@ public class NetworkRequestMiningInfoTask
     this.blockNumber = blockNumber;
     this.connectionTimeout = connectionTimeout;
     this.plotSizeInByte = plotSizeInByte;
+
+    success = false;
   }
 
   @Override
@@ -95,7 +100,7 @@ public class NetworkRequestMiningInfoTask
       // do not parse result if status code is error
       if(response.getStatus() >= 400)
       {
-        LOG.warn("Unable to parse mining info, received http status code " + response.getStatus());
+        LOG.debug("Unable to parse mining info, received http status code " + response.getStatus());
       }
       else
       {
@@ -104,6 +109,7 @@ public class NetworkRequestMiningInfoTask
 
       if(result != null)
       {
+        success = true;
         long newBlockNumber = Convert.parseUnsignedLong(result.getHeight());
         byte[] newGenerationSignature = Convert.parseHexString(result.getGenerationSignature());
 
@@ -120,31 +126,32 @@ public class NetworkRequestMiningInfoTask
       }
       else
       {
-        LOG.warn("Unable to parse mining info: " + response.getContentAsString());
+        LOG.debug("Unable to parse mining info: " + response.getContentAsString());
       }
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Unable to get mining info from wallet, caused by connectionTimeout, currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
+      LOG.debug("Unable to get mining info from wallet, caused by connectionTimeout, currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {
       if(e instanceof ConnectException)
       {
-        LOG.warn("Unable to get mining info from wallet due ConnectException.");
-        LOG.debug("Unable to get mining info from wallet due ConnectException:" + e.getMessage(), e);
+        LOG.debug("Unable to get mining info from wallet due ConnectException.");
+        LOG.trace("Unable to get mining info from wallet due ConnectException:" + e.getMessage(), e);
       }
       else if(e instanceof EOFException)
       {
-        LOG.warn("Unable to get mining info from wallet due EOFException.");
-        LOG.debug("Unable to get mining info from wallet due EOFException:" + e.getMessage(), e);
+        LOG.debug("Unable to get mining info from wallet due EOFException.");
+        LOG.trace("Unable to get mining info from wallet due EOFException:" + e.getMessage(), e);
       }
       else
       {
-        LOG.warn("Unable to get mining info from wallet.");
-        LOG.debug("Unable to get mining info from wallet: " + e.getMessage(), e);
+        LOG.debug("Unable to get mining info from wallet.");
+        LOG.trace("Unable to get mining info from wallet: " + e.getMessage(), e);
       }
     }
+    publisher.publishEvent(new NetworkQualityChangeEvent(success));
   }
 
   private long getTargetDeadline(long deadlineProvidedByPool, long baseTarget)

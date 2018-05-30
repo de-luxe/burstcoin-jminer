@@ -160,7 +160,7 @@ public class Reader
   }
 
   /* starts reader (once per block) */
-  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int scoopNumber, long lastBestCommittedDeadline)
+  public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int scoopNumber, long lastBestCommittedDeadline, int networkQuality)
   {
     Reader.blockNumber = blockNumber;
     Reader.generationSignature = generationSignature;
@@ -171,7 +171,7 @@ public class Reader
     if(readerPool.getActiveCount() > 0)
     {
       long elapsedTime = new Date().getTime() - readerStartTime;
-      context.publishEvent(new RoundStoppedEvent(previousBlockNumber, lastBestCommittedDeadline, capacity, remainingCapacity, elapsedTime));
+      context.publishEvent(new RoundStoppedEvent(previousBlockNumber, lastBestCommittedDeadline, capacity, remainingCapacity, elapsedTime, networkQuality));
     }
 
     // update reader thread count
@@ -207,7 +207,7 @@ public class Reader
     orderedPlotDrives.sort((o1, o2) -> Long.compare(o2.getSize(), o1.getSize())); // order by size
     orderedPlotDrives.sort(Comparator.comparing(o -> isCompatibleWithCurrentPoc(blockNumber, o.getDrivePocVersion()))); // order by poc version
 
-    for(PlotDrive plotDrive : plots.getPlotDrives())
+    for(PlotDrive plotDrive : orderedPlotDrives)
     {
       PocVersion drivePocVersion = plotDrive.getDrivePocVersion();
       if(drivePocVersion == null)

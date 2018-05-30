@@ -86,14 +86,14 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.5.1 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("     0.5.2 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
     LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
     LOG.info("-------------------------------------------------------");
     LOG.info("NOTICE:");
-    LOG.info("1. Only use POC1 or POC2 per drive (plotPaths), mixed is not supported, yet!");
+    LOG.info("1. Only use POC1 or POC2 per drive (plotPaths), mixed is not supported!");
     LOG.info("2. POC2 plotfiles are detected by not having 'staggersize' in filename.");
 
     // start mining
@@ -118,7 +118,10 @@ public class JMinerCommandLine
         String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
         LOG.info("FINISH block '" + event.getBlockNumber() + "', "
                  + "best deadline '" + bestDeadline + "', "
-                 + "round time '" + s + "s " + ms + "ms'");
+                 + "connection '" + event.getNetworkQuality() + "%', "
+                 + "time '" + s + "s " + ms + "ms'");
+
+        showNetworkQualityInfo(event.getNetworkQuality());
       }
     });
 
@@ -142,7 +145,10 @@ public class JMinerCommandLine
         String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
         LOG.info("STOP block '" + event.getBlockNumber() + "', " + String.valueOf(percentage) + "% done, "
                  + "best deadline '" + bestDeadline + "', "
-                 + "elapsed time '" + s + "s " + ms + "ms'");
+                 + "connection '" + event.getNetworkQuality() + "%', "
+                 + "time '" + s + "s " + ms + "ms'");
+
+        showNetworkQualityInfo(event.getNetworkQuality());
       }
     });
 
@@ -357,6 +363,14 @@ public class JMinerCommandLine
         LOG.info("     balance '" + amount + " BURST', total mined '" + totalForget + " BURST'");
       }
     });
+  }
+
+  private void showNetworkQualityInfo(int networkQuality)
+  {
+    if(networkQuality < 50)
+    {
+      LOG.info("More than 50% of 'mining info' requests failed, please set 'debug=true' for detailed info.");
+    }
   }
 
   private String getDeadlineTime(Long calculatedDeadline)

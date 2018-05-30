@@ -26,6 +26,7 @@ import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.checker.Checker;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
 import burstcoin.jminer.core.network.Network;
+import burstcoin.jminer.core.network.event.NetworkQualityChangeEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
@@ -49,7 +50,9 @@ import org.springframework.stereotype.Component;
 import pocminer.generate.MiningPlot;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Date;
@@ -95,6 +98,9 @@ public class Round
   // generationSignature
   private Set<String> finishedLookup;
 
+  private long networkSuccessCount;
+  private long networkFailCount;
+
   @Autowired
   public Round(Reader reader, Checker checker, Network network, ApplicationEventPublisher publisher)
   {
@@ -115,6 +121,8 @@ public class Round
 
   private void initNewRound(Plots plots)
   {
+    networkFailCount = 0;
+    networkSuccessCount = 0;
     runningChunkPartStartNonces = new HashSet<>(plots.getChunkPartStartNonces().keySet());
     roundStartDate = new Date();
     lowest = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
@@ -126,61 +134,67 @@ public class Round
   @EventListener
   public void handleMessage(NetworkStateChangeEvent event)
   {
-    synchronized(network)
+    // ensure other handlers have executed first
+    timer.schedule(new TimerTask()
     {
-      boolean blockHeightIncreased = blockNumber < event.getBlockNumber();
-      boolean generationSignatureChanged = !Arrays.equals(event.getGenerationSignature(), generationSignature);
-      boolean restart = false;
-
-      boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
-      if(alreadyMined && CoreProperties.isUpdateMiningInfo())
+      @Override
+      public void run()
       {
-        publisher.publishEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
-      }
+        boolean blockHeightIncreased = blockNumber < event.getBlockNumber();
+        boolean generationSignatureChanged = generationSignature != null && !Arrays.equals(event.getGenerationSignature(), generationSignature);
+        boolean restart = false;
 
-      if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
-      {
-        restart = true;
-        // generationSignature for block updated
-        if(finishedBlockNumber == blockNumber)
+        boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
+        if(alreadyMined && CoreProperties.isUpdateMiningInfo())
         {
-          finishedBlockNumber--;
+          publisher.publishEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
         }
-        // ui event
-        publisher.publishEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
+
+        if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
+        {
+          restart = true;
+          // generationSignature for block updated
+          if(finishedBlockNumber == blockNumber)
+          {
+            finishedBlockNumber--;
+          }
+          // ui event
+          publisher.publishEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
+        }
+
+        long previousBlockNumber = event.getBlockNumber();
+        if(blockHeightIncreased)
+        {
+          previousBlockNumber = blockNumber;
+          Round.this.blockNumber = event.getBlockNumber();
+        }
+
+        if(blockHeightIncreased || (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
+        {
+          Round.this.baseTarget = event.getBaseTarget();
+          Round.this.targetDeadline = event.getTargetDeadline();
+
+          long lastBestCommittedDeadline = bestCommittedDeadline;
+
+          plots = reader.getPlots();
+          int networkQuality = getNetworkQuality();
+          initNewRound(plots);
+
+          // reconfigure checker
+          generationSignature = event.getGenerationSignature();
+          checker.reconfigure(blockNumber, generationSignature);
+
+          // start reader
+          int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
+          reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline, networkQuality);
+
+          // ui event
+          publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
+
+          network.checkLastWinner(blockNumber);
+        }
       }
-
-      long previousBlockNumber = event.getBlockNumber();
-      if(blockHeightIncreased)
-      {
-        previousBlockNumber = blockNumber;
-        this.blockNumber = event.getBlockNumber();
-      }
-
-      if(blockHeightIncreased || (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
-      {
-        this.baseTarget = event.getBaseTarget();
-        this.targetDeadline = event.getTargetDeadline();
-
-        long lastBestCommittedDeadline = bestCommittedDeadline;
-
-        plots = reader.getPlots();
-        initNewRound(plots);
-
-        // reconfigure checker
-        generationSignature = event.getGenerationSignature();
-        checker.reconfigure(blockNumber, generationSignature);
-
-        // start reader
-        int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
-        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline);
-
-        // ui event
-        publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
-
-        network.checkLastWinner(blockNumber);
-      }
-    }
+    }, 1);
   }
 
   @EventListener
@@ -295,6 +309,19 @@ public class Round
     }
   }
 
+  @EventListener
+  public void handleMessage(NetworkQualityChangeEvent event)
+  {
+    if(event.isSuccess())
+    {
+      networkSuccessCount++;
+    }
+    else
+    {
+      networkFailCount++;
+    }
+  }
+
   private void triggerFinishRoundEvent(long blockNumber)
   {
     if(finishedBlockNumber < blockNumber)
@@ -320,17 +347,25 @@ public class Round
     finishedLookup.add(Convert.toHexString(generationSignature));
 
     long elapsedRoundTime = new Date().getTime() - roundStartDate.getTime();
-
+    int networkQuality = getNetworkQuality();
     timer.schedule(new TimerTask()
     {
       @Override
       public void run()
       {
-        publisher.publishEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime));
+        publisher.publishEvent(new RoundFinishedEvent(blockNumber, bestCommittedDeadline, elapsedRoundTime, networkQuality));
       }
     }, 250); // fire deferred
 
     triggerCleanup();
+  }
+
+  private int getNetworkQuality()
+  {
+    BigDecimal factor = BigDecimal.ONE.divide(new BigDecimal(networkSuccessCount + networkFailCount), MathContext.DECIMAL32);
+    BigDecimal progress = factor.multiply(new BigDecimal(networkSuccessCount));
+    int percentage = (int) Math.ceil(progress.doubleValue() * 100);
+    return percentage > 100 ? 100 : percentage;
   }
 
   private void triggerCleanup()

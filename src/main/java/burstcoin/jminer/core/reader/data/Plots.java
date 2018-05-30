@@ -74,7 +74,7 @@ public class Plots
       }
       else
       {
-        LOG.info("No plotfiles found at: '" + plotDrive.getDirectory() + "' ... will be ignored.");
+        LOG.info("No plotfiles found at '" + plotDrive.getDirectory() + "' ... will be ignored.");
       }
     }
   }

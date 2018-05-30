@@ -36,17 +36,9 @@ public class RoundStoppedEvent
   private long capacity;
   private long remainingCapacity;
   private long elapsedTime;
+  private int networkQuality;
 
-  /**
-   * Instantiates a new Round stopped event.
-   *
-   * @param blockNumber the block number
-   * @param bestCommittedDeadline the best committed deadline
-   * @param capacity the capacity
-   * @param remainingCapacity the remaining capacity
-   * @param elapsedTime the elapsed time
-   */
-  public RoundStoppedEvent(long blockNumber, long bestCommittedDeadline, long capacity, long remainingCapacity, long elapsedTime)
+  public RoundStoppedEvent(long blockNumber, long bestCommittedDeadline, long capacity, long remainingCapacity, long elapsedTime, int networkQuality)
   {
     super(blockNumber);
 
@@ -55,56 +47,37 @@ public class RoundStoppedEvent
     this.capacity = capacity;
     this.remainingCapacity = remainingCapacity;
     this.elapsedTime = elapsedTime;
+    this.networkQuality = networkQuality;
   }
 
-  /**
-   * Gets block number.
-   *
-   * @return the block number
-   */
   public long getBlockNumber()
   {
     return blockNumber;
   }
 
-  /**
-   * Gets best committed deadline.
-   *
-   * @return the best committed deadline
-   */
   public long getBestCommittedDeadline()
   {
     return bestCommittedDeadline;
   }
 
-  /**
-   * Gets capacity.
-   *
-   * @return the capacity
-   */
   public long getCapacity()
   {
     return capacity;
   }
 
-  /**
-   * Gets remaining capacity.
-   *
-   * @return the remaining capacity
-   */
   public long getRemainingCapacity()
   {
     return remainingCapacity;
   }
 
-  /**
-   * Gets elapsed time.
-   *
-   * @return the elapsed time
-   */
   public long getElapsedTime()
   {
     return elapsedTime;
+  }
+
+  public int getNetworkQuality()
+  {
+    return networkQuality;
   }
 }
 

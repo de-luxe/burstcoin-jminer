@@ -255,7 +255,7 @@ public class Network
       {
         checkNetworkState();
       }
-    }, 100, CoreProperties.getRefreshInterval());
+    }, 1000, CoreProperties.getRefreshInterval());
 
     // on solo mining
     if(!CoreProperties.isPoolMining() && CoreProperties.isTriggerServer())
