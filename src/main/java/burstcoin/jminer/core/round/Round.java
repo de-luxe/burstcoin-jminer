@@ -362,8 +362,8 @@ public class Round
 
   private int getNetworkQuality()
   {
-    BigDecimal factor = BigDecimal.ONE.divide(new BigDecimal(networkSuccessCount + networkFailCount), MathContext.DECIMAL32);
-    BigDecimal progress = factor.multiply(new BigDecimal(networkSuccessCount));
+    BigDecimal factor = BigDecimal.ONE.divide(new BigDecimal(networkSuccessCount + networkFailCount + 1), MathContext.DECIMAL32);
+    BigDecimal progress = factor.multiply(new BigDecimal(networkSuccessCount + 1));
     int percentage = (int) Math.ceil(progress.doubleValue() * 100);
     return percentage > 100 ? 100 : percentage;
   }
