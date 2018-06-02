@@ -276,7 +276,7 @@ public class Reader
       // update progress
       Long removedCapacity = capacityLookup.remove(event.getChunkPartStartNonce());
       Long realRemovedCapacity = realCapacityLookup.remove(event.getChunkPartStartNonce());
-      if(removedCapacity != null)
+      if(removedCapacity != null && realRemovedCapacity != null)
       {
         remainingCapacity -= removedCapacity;
         realRemainingCapacity -= realRemovedCapacity;
@@ -286,8 +286,8 @@ public class Reader
       }
       else
       {
-        LOG.error("Error: ReaderPartLoadedEvent for unknown chunkPartStartNonce: '" + event.getChunkPartStartNonce() + "'!"
-                  + " Please check for plot-file duplicate or overlapping plots.");
+        // just on debug, update progress is not 'mission' critical.
+        LOG.debug("Error on update progress: ReaderPartLoadedEvent for unknown chunkPartStartNonce: '" + event.getChunkPartStartNonce() + "'!");
       }
     }
     else
