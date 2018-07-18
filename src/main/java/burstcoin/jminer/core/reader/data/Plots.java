@@ -69,7 +69,7 @@ public class Plots
         chunkPartStartNonces.putAll(plotDrive.collectChunkPartStartNonces());
         if(expectedSize != chunkPartStartNonces.size())
         {
-          LOG.error("possible duplicate/overlapping polt-file on drive '" + plotDrive.getDirectory() + "' please check your plots.");
+          LOG.error("possible duplicate/overlapping plot-file on drive '" + plotDrive.getDirectory() + "' please check your plots.");
         }
       }
       else
