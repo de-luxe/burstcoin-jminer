@@ -34,6 +34,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The type Checker.
@@ -48,34 +49,43 @@ public class Checker
   private final OCLChecker oclChecker;
 
   // data
-  private long blockNumber;
-  private byte[] generationSignature;
+  private volatile AtomicLong blockNumber;
+  private volatile byte[] generationSignature;
 
   @Autowired
   public Checker(ApplicationEventPublisher publisher, OCLChecker oclChecker)
   {
     this.publisher = publisher;
     this.oclChecker = oclChecker;
+
+    blockNumber = new AtomicLong();
   }
 
   public void reconfigure(long blockNumber, byte[] generationSignature)
   {
-    this.blockNumber = blockNumber;
+    this.blockNumber.set(blockNumber);
     this.generationSignature = generationSignature;
   }
 
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {
-    if(blockNumber == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
+    if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       int lowestNonce;
       synchronized(oclChecker)
       {
         lowestNonce = oclChecker.findLowest(generationSignature, event.getScoops());
       }
-      publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, event.getChunkPartStartNonce(), lowestNonce, event.getPlotFilePath(),
-                                                    event.getScoops()));
+      if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
+      {
+        publisher.publishEvent(new CheckerResultEvent(blockNumber.get(), generationSignature, event.getChunkPartStartNonce(), lowestNonce,
+                                                      event.getPlotFilePath(), event.getScoops()));
+      }
+      else
+      {
+        LOG.trace("skipped handle result ... outdated mining info...");
+      }
     }
     else
     {

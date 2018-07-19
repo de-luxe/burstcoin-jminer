@@ -22,6 +22,7 @@
 
 package burstcoin.jminer.core.network.task;
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.model.SubmitResultResponse;
@@ -49,37 +50,29 @@ public class NetworkSubmitSoloNonceTask
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitSoloNonceTask.class);
 
-  @Autowired
-  private ApplicationEventPublisher publisher;
+  private final ApplicationEventPublisher publisher;
+  private final HttpClient httpClient;
+  private final ObjectMapper objectMapper;
 
-  @Autowired
-  private HttpClient httpClient;
-
-  @Autowired
-  private ObjectMapper objectMapper;
-
-  private String soloServer;
-  private String passPhrase;
   private BigInteger nonce;
-
   private long blockNumber;
   private BigInteger chunkPartStartNonce;
   private long calculatedDeadline;
   private BigInteger result;
   private byte[] generationSignature;
-  private long connectionTimeout;
 
-  public void init(long blockNumber, byte[] generationSignature, String passPhrase, String soloServer, long connectionTimeout, BigInteger nonce,
-                   BigInteger chunkPartStartNonce,
-                   long calculatedDeadline, BigInteger result)
+  @Autowired
+  public NetworkSubmitSoloNonceTask(ApplicationEventPublisher publisher, HttpClient httpClient, ObjectMapper objectMapper)
+  {
+    this.publisher = publisher;
+    this.httpClient = httpClient;
+    this.objectMapper = objectMapper;
+  }
+
+  public void init(long blockNumber, byte[] generationSignature, BigInteger nonce, BigInteger chunkPartStartNonce, long calculatedDeadline, BigInteger result)
   {
     this.generationSignature = generationSignature;
-    this.connectionTimeout = connectionTimeout;
-
-    this.soloServer = soloServer;
-    this.passPhrase = passPhrase;
     this.nonce = nonce;
-
     this.blockNumber = blockNumber;
     this.chunkPartStartNonce = chunkPartStartNonce;
     this.calculatedDeadline = calculatedDeadline;
@@ -91,12 +84,11 @@ public class NetworkSubmitSoloNonceTask
   {
     try
     {
-      ContentResponse response = httpClient.POST(soloServer + "/burst")
+      ContentResponse response = httpClient.POST(CoreProperties.getSoloServer() + "/burst")
         .param("requestType", "submitNonce")
-        .param("secretPhrase", passPhrase)
-//        .param("nonce", Convert.toUnsignedLong(nonce))
+        .param("secretPhrase", CoreProperties.getPassPhrase())
         .param("nonce", nonce.toString())
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       SubmitResultResponse result = objectMapper.readValue(response.getContentAsString(), SubmitResultResponse.class);
@@ -121,7 +113,8 @@ public class NetworkSubmitSoloNonceTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.warn("Unable to commit solo nonce, caused by connectionTimeout, currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
+      LOG.warn("Unable to commit solo nonce, caused by connectionTimeout, currently '"
+               + (CoreProperties.getConnectionTimeout() / 1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

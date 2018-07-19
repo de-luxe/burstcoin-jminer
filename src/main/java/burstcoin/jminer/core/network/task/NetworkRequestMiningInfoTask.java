@@ -61,7 +61,6 @@ public class NetworkRequestMiningInfoTask
   private long blockNumber;
   private String server;
 
-  private long connectionTimeout;
   private long plotSizeInByte;
 
   private boolean success;
@@ -74,12 +73,11 @@ public class NetworkRequestMiningInfoTask
     this.publisher = publisher;
   }
 
-  public void init(String server, long blockNumber, byte[] generationSignature, long connectionTimeout, long plotSizeInByte)
+  public void init(String server, long blockNumber, byte[] generationSignature, long plotSizeInByte)
   {
     this.server = server;
     this.generationSignature = generationSignature;
     this.blockNumber = blockNumber;
-    this.connectionTimeout = connectionTimeout;
     this.plotSizeInByte = plotSizeInByte;
 
     success = false;
@@ -94,7 +92,7 @@ public class NetworkRequestMiningInfoTask
     try
     {
       ContentResponse response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       // do not parse result if status code is error
@@ -113,7 +111,8 @@ public class NetworkRequestMiningInfoTask
         long newBlockNumber = Convert.parseUnsignedLong(result.getHeight());
         byte[] newGenerationSignature = Convert.parseHexString(result.getGenerationSignature());
 
-        if(newBlockNumber > blockNumber || !Arrays.equals(newGenerationSignature, generationSignature))
+        // higher block 'or' same block with other generationSignature
+        if(newBlockNumber > blockNumber || (!Arrays.equals(newGenerationSignature, generationSignature) && blockNumber == newBlockNumber))
         {
           long baseTarget = Convert.parseUnsignedLong(result.getBaseTarget());
           long targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
@@ -131,7 +130,8 @@ public class NetworkRequestMiningInfoTask
     }
     catch(TimeoutException timeoutException)
     {
-      LOG.debug("Unable to get mining info from wallet, caused by connectionTimeout, currently '" + (connectionTimeout / 1000) + " sec.' try increasing it!");
+      LOG.debug("Unable to get mining info from wallet, caused by connectionTimeout, currently '"
+                + (CoreProperties.getConnectionTimeout() / 1000) + " sec.' try increasing it!");
     }
     catch(Exception e)
     {

@@ -51,7 +51,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 
 /**
- * This reader can handle POC2 plotfiles as long as POC1 is active and POC1 plotfiles if POC2 is active.
+ * This reader can handle POC1 plotfiles.
  * To archive compatibility, twice the amount of data needs to be read. Also memory and cpu usage is higher.
  *
  * Executed once for every block ... reads scoops of drive plots
@@ -145,7 +145,7 @@ public class ReaderConvertLoadDriveTask
           sbc1.read(partBuffer1);
           sbc2.read(partBuffer2);
 
-          if(Reader.blockNumber != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
+          if(Reader.blockNumber.get() != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
           {
             LOG.trace("loadDriveThread stopped!");
             partBuffer1.clear();

@@ -48,19 +48,14 @@ public class Plots
   private Collection<PlotDrive> plotDrives;
   private Map<BigInteger, Long> chunkPartStartNonces;
 
-  public Plots()
-  {
-    this(CoreProperties.getPlotPaths(), CoreProperties.getNumericAccountId(), CoreProperties.getChunkPartNonces());
-  }
-
-  public Plots(List<String> plotPaths, String numericAccountId, long chunkPartNonces)
+  public Plots(String numericAccountId)
   {
     plotDrives = new HashSet<>();
     chunkPartStartNonces = new HashMap<>();
-    Map<String, Collection<Path>> plotFilesLookup = collectPlotFiles(plotPaths, numericAccountId);
+    Map<String, Collection<Path>> plotFilesLookup = collectPlotFiles(CoreProperties.getPlotPaths(), numericAccountId);
     for(Map.Entry<String, Collection<Path>> entry : plotFilesLookup.entrySet())
     {
-      PlotDrive plotDrive = new PlotDrive(entry.getKey(), entry.getValue(), chunkPartNonces);
+      PlotDrive plotDrive = new PlotDrive(entry.getKey(), entry.getValue(), CoreProperties.getChunkPartNonces());
       if(!plotDrive.getPlotFiles().isEmpty())
       {
         plotDrives.add(plotDrive);

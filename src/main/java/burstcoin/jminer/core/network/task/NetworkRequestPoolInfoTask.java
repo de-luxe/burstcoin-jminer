@@ -22,6 +22,7 @@
 
 package burstcoin.jminer.core.network.task;
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.model.Account;
 import burstcoin.jminer.core.network.model.AccountsWithRewardRecipient;
@@ -50,11 +51,6 @@ public class NetworkRequestPoolInfoTask
   private final ObjectMapper objectMapper;
   private final ApplicationEventPublisher publisher;
 
-  private String accountId;
-  private long connectionTimeout;
-
-  private String walletServer;
-
   @Autowired
   public NetworkRequestPoolInfoTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
   {
@@ -63,17 +59,10 @@ public class NetworkRequestPoolInfoTask
     this.publisher = publisher;
   }
 
-  public void init(String walletServer, String accountId, long connectionTimeout)
-  {
-    this.walletServer = walletServer;
-    this.accountId = accountId;
-    this.connectionTimeout = connectionTimeout;
-  }
-
   @Override
   public void run()
   {
-    String rewardRecipientAccountId = getRewardRecipientAccountId(accountId);
+    String rewardRecipientAccountId = getRewardRecipientAccountId(CoreProperties.getNumericAccountId());
     if(rewardRecipientAccountId != null)
     {
       // number of registered miner accounts
@@ -92,8 +81,8 @@ public class NetworkRequestPoolInfoTask
     RewardRecipient rewardRecipient = null;
     try
     {
-      ContentResponse response = httpClient.newRequest(walletServer + "/burst?requestType=getRewardRecipient&account=" + accountId)
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+      ContentResponse response = httpClient.newRequest(CoreProperties.getWalletServer() + "/burst?requestType=getRewardRecipient&account=" + accountId)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       String contentAsString = response.getContentAsString();
@@ -119,8 +108,9 @@ public class NetworkRequestPoolInfoTask
     AccountsWithRewardRecipient accountsWithRewardRecipient = null;
     try
     {
-      ContentResponse response = httpClient.newRequest(walletServer + "/burst?requestType=getAccountsWithRewardRecipient&account=" + rewardRecipientAccountId)
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+      String requestUri = CoreProperties.getWalletServer() + "/burst?requestType=getAccountsWithRewardRecipient&account=" + rewardRecipientAccountId;
+      ContentResponse response = httpClient.newRequest(requestUri)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       String contentAsString = response.getContentAsString();
@@ -146,8 +136,8 @@ public class NetworkRequestPoolInfoTask
     Account account = null;
     try
     {
-      ContentResponse response = httpClient.newRequest(walletServer + "/burst?requestType=getAccount&account=" + accountId)
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+      ContentResponse response = httpClient.newRequest(CoreProperties.getWalletServer() + "/burst?requestType=getAccount&account=" + accountId)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       String contentAsString = response.getContentAsString();

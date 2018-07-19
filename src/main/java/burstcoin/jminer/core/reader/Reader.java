@@ -64,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The type Reader.
@@ -80,13 +81,11 @@ public class Reader
 
   // config
   private String numericAccountId;
-  private List<String> directories;
-  private long chunkPartNonces;
-  private boolean scanPathsEveryRound;
 
   // data
-  public static volatile long blockNumber;
+  public static volatile AtomicLong blockNumber;
   public static volatile byte[] generationSignature;
+
   private Plots plots;
 
   private Map<BigInteger, Long> realCapacityLookup;
@@ -107,6 +106,8 @@ public class Reader
     this.context = context;
     this.readerPool = readerPool;
     this.networkPool = networkPool;
+
+    blockNumber = new AtomicLong();
   }
 
   @PostConstruct
@@ -135,16 +136,12 @@ public class Reader
       LOG.error("init reader failed!");
     }
 
-    directories = CoreProperties.getPlotPaths();
-    chunkPartNonces = CoreProperties.getChunkPartNonces();
-    scanPathsEveryRound = CoreProperties.isScanPathsEveryRound();
     readerThreads = CoreProperties.getReaderThreads();
     capacityLookup = new HashMap<>();
     realCapacityLookup = new HashMap<>();
 
     if(CoreProperties.isListPlotFiles())
     {
-      // find winner of lastBlock on new round, if server available
       String server = !CoreProperties.isPoolMining() ? CoreProperties.getSoloServer() : CoreProperties.getWalletServer();
       if(!StringUtils.isEmpty(server))
       {
@@ -162,7 +159,7 @@ public class Reader
   /* starts reader (once per block) */
   public void read(long previousBlockNumber, long blockNumber, byte[] generationSignature, int scoopNumber, long lastBestCommittedDeadline, int networkQuality)
   {
-    Reader.blockNumber = blockNumber;
+    Reader.blockNumber.set(blockNumber);
     Reader.generationSignature = generationSignature;
 
     // ensure plots are initialized
@@ -175,7 +172,7 @@ public class Reader
     }
 
     // update reader thread count
-    int poolSize = readerThreads <= 0 ? directories.size() : readerThreads;
+    int poolSize = readerThreads <= 0 ? CoreProperties.getPlotPaths().size() : readerThreads;
     readerPool.setCorePoolSize(poolSize);
     readerPool.setMaxPoolSize(poolSize);
 
@@ -185,14 +182,16 @@ public class Reader
 
     realCapacityLookup.clear();
     realCapacity = 0;
-    for(BigInteger chunkPartNonces : capacityLookup.keySet())
+
+    Map<BigInteger, Long> capacityLookupCopy = new HashMap<>(capacityLookup);
+    for(BigInteger chunkPartNonces : capacityLookupCopy.keySet())
     {
       PlotFile plotFile = plots.getPlotFileByChunkPartStartNonce(chunkPartNonces);
-      long realChunkPartNoncesCapacity = isCompatibleWithCurrentPoc(blockNumber, plotFile.getPocVersion())
-                   ? capacityLookup.get(chunkPartNonces)
-                   : 2 * capacityLookup.get(chunkPartNonces);
+      long realChunkPartNoncesCapacity = isCompatibleWithCurrentPoc(plotFile.getPocVersion())
+                                         ? capacityLookupCopy.get(chunkPartNonces)
+                                         : 2 * capacityLookupCopy.get(chunkPartNonces);
       realCapacityLookup.put(chunkPartNonces, realChunkPartNoncesCapacity);
-      realCapacity+=realChunkPartNoncesCapacity;
+      realCapacity += realChunkPartNoncesCapacity;
     }
 
     remainingCapacity = plots.getSize();
@@ -205,7 +204,7 @@ public class Reader
     List<PlotDrive> orderedPlotDrives = new ArrayList<>(plots.getPlotDrives());
     orderedPlotDrives.removeIf(plotDrive -> plotDrive.getDrivePocVersion() == null);
     orderedPlotDrives.sort((o1, o2) -> Long.compare(o2.getSize(), o1.getSize())); // order by size
-    orderedPlotDrives.sort(Comparator.comparing(o -> isCompatibleWithCurrentPoc(blockNumber, o.getDrivePocVersion()))); // order by poc version
+    orderedPlotDrives.sort(Comparator.comparing(o -> isCompatibleWithCurrentPoc(o.getDrivePocVersion()))); // order by poc version
 
     for(PlotDrive plotDrive : orderedPlotDrives)
     {
@@ -217,7 +216,7 @@ public class Reader
       }
       else
       {
-        if(isCompatibleWithCurrentPoc(blockNumber, drivePocVersion))
+        if(isCompatibleWithCurrentPoc(drivePocVersion))
         {
           ReaderLoadDriveTask readerLoadDriveTask = context.getBean(ReaderLoadDriveTask.class);
           readerLoadDriveTask.init(scoopNumber, blockNumber, generationSignature, plotDrive);
@@ -233,23 +232,16 @@ public class Reader
     }
   }
 
-  private Boolean isCompatibleWithCurrentPoc(long blockNumber, PocVersion drivePocVersion)
+  private Boolean isCompatibleWithCurrentPoc(PocVersion drivePocVersion)
   {
-    switch(drivePocVersion)
-    {
-      case POC_2:
-        return blockNumber >= CoreProperties.getPoc2ActivationBlockHeight();
-      case POC_1:
-      default:
-        return blockNumber < CoreProperties.getPoc2ActivationBlockHeight();
-    }
+    return PocVersion.POC_2.equals(drivePocVersion);
   }
 
   public Plots getPlots()
   {
-    if(scanPathsEveryRound || plots == null)
+    if(CoreProperties.isScanPathsEveryRound() || plots == null)
     {
-      plots = new Plots(directories, numericAccountId, chunkPartNonces);
+      plots = new Plots(numericAccountId);
     }
     return plots;
   }
@@ -271,7 +263,7 @@ public class Reader
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {
-    if(blockNumber == event.getBlockNumber() && Arrays.equals(event.getGenerationSignature(), generationSignature))
+    if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(event.getGenerationSignature(), generationSignature))
     {
       // update progress
       Long removedCapacity = capacityLookup.remove(event.getChunkPartStartNonce());
@@ -299,7 +291,7 @@ public class Reader
   @EventListener
   public void handleMessage(NetworkResultErrorEvent event)
   {
-    if(blockNumber == event.getBlockNumber() && Arrays.equals(event.getGenerationSignature(), generationSignature))
+    if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(event.getGenerationSignature(), generationSignature))
     {
       // find maybe corrupt plot-file
       PlotFile plotFile = plots.getPlotFileByChunkPartStartNonce(event.getChunkPartStartNonce());
@@ -365,6 +357,10 @@ public class Reader
       {
         System.out.println(row);
       }
+    }
+    else
+    {
+      getPlots().printPlotFiles();
     }
   }
 }

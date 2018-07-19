@@ -136,7 +136,7 @@ public class ReaderLoadDriveTask
         {
           sbc.read(partBuffer);
 
-          if(Reader.blockNumber != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
+          if(Reader.blockNumber.get() != blockNumber || !Arrays.equals(Reader.generationSignature, generationSignature))
           {
             LOG.trace("loadDriveThread stopped!");
             partBuffer.clear();

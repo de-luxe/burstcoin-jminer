@@ -27,7 +27,7 @@ This file has to be in the miner directory (same folder as '*.jar' file)
     passPhrase=<YOUR PASS PHRASE>
 
 # POC1 and POC2 - NOTICE
-jminer supports POC2 since version 0.5.x
+jminer still supports POC1
 
 only use one type, POC1 or POC2 on one drive ('plotPath'), mixed will be skipped for now.
 
@@ -141,18 +141,6 @@ secretPhrase/password of solo mining burst-account
 
     passPhrase=xxxxxxxxxxxxxx
 
-### triggerServer (default: false)
-on 'true' miner emulates open wallet gui, to prevent wallet server from
-falling asleep (not sure if needed at all)
-
-    triggerServer=true
-    
-### recommitDeadlines (default: false)
-recommits deadlines below 1200 3 times in a interval of 5 sec.
-experimental feature to increase chance that deadline gets propagated
-e.g. on short disconnect or connected peers busy etc.
-
-    recommitDeadlines=true
 
 
 ## OpenCL
@@ -224,7 +212,7 @@ thats the 'xx% done ...' info.
 
     readProgressPerRound=16
 
-###  byteUnitDecimal (default:true) 
+### byteUnitDecimal (default:true) 
 switch between decimal units (true): TB/GB/MB (divided by 1000),
 or binary units (false) TiB/GiB/MiB (divided by 1024) - https://en.wikipedia.org/wiki/Byte
 
@@ -286,18 +274,6 @@ by setting 'readerThreads=2', this will reduce mining speed but save memory.
     readerThreads=10
     
     
-    
-## POC2 
-
-###  poc2ActivationBlockHeight - (default:502000)  
-only adjust if the POC2 release fork gets delayed to a later block
->you can btw. test how your setup will behave after the POC2 fork 
->with your current plotfiles. Just use a blockHeight from the past.
->No deadline will be confirmed! Just to check your read-times, cpu and memory usage.
-
-    poc2ActivationBlockHeight=502000
-
-
 
 
 

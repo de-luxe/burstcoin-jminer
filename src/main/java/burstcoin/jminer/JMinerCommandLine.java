@@ -28,7 +28,7 @@ import burstcoin.jminer.core.network.event.NetworkLastWinnerEvent;
 import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
-import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
+import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.event.ReaderCorruptFileEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveFinishEvent;
 import burstcoin.jminer.core.reader.event.ReaderDriveInterruptedEvent;
@@ -63,7 +63,6 @@ public class JMinerCommandLine
   private static final String G_UNIT = CoreProperties.isByteUnitDecimal() ? "GB" : "GiB";
   private static final String M_UNIT = CoreProperties.isByteUnitDecimal() ? "MB" : "MiB";
 
-  private static long blockNumber;
   private static int progressLogStep;
   private static long previousRemainingCapacity = 0;
   private static long previousElapsedTime = 0;
@@ -86,15 +85,11 @@ public class JMinerCommandLine
     LOG.info("            __         __   GPU assisted PoC-Miner");
     LOG.info("           |__| _____ |__| ____   ___________ ");
     LOG.info("   version |  |/     \\|  |/    \\_/ __ \\_  __ \\");
-    LOG.info("     0.5.2 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
+    LOG.info("     0.5.3 |  |  Y Y  \\  |   |  \\  ___/|  | \\/");
     LOG.info("       /\\__|  |__|_|  /__|___|  /\\___  >__| ");
     LOG.info("       \\______|     \\/        \\/     \\/");
     LOG.info("      mining engine: BURST-LUXE-RED2-G6JW-H4HG5");
     LOG.info("     openCL checker: BURST-QHCJ-9HB5-PTGC-5Q8J9");
-    LOG.info("-------------------------------------------------------");
-    LOG.info("NOTICE:");
-    LOG.info("1. Only use POC1 or POC2 per drive (plotPaths), mixed is not supported!");
-    LOG.info("2. POC2 plotfiles are detected by not having 'staggersize' in filename.");
 
     // start mining
     Network network = context.getBean(Network.class);
@@ -118,7 +113,7 @@ public class JMinerCommandLine
         String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
         LOG.info("FINISH block '" + event.getBlockNumber() + "', "
                  + "best deadline '" + bestDeadline + "', "
-                 + "connection '" + event.getNetworkQuality() + "%', "
+                 + "net '" + event.getNetworkQuality() + "%', "
                  + "time '" + s + "s " + ms + "ms'");
 
         showNetworkQualityInfo(event.getNetworkQuality());
@@ -145,7 +140,7 @@ public class JMinerCommandLine
         String bestDeadline = Long.MAX_VALUE == event.getBestCommittedDeadline() ? "N/A" : String.valueOf(event.getBestCommittedDeadline());
         LOG.info("STOP block '" + event.getBlockNumber() + "', " + String.valueOf(percentage) + "% done, "
                  + "best deadline '" + bestDeadline + "', "
-                 + "connection '" + event.getNetworkQuality() + "%', "
+                 + "net '" + event.getNetworkQuality() + "%', "
                  + "time '" + s + "s " + ms + "ms'");
 
         showNetworkQualityInfo(event.getNetworkQuality());
@@ -157,7 +152,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(NetworkLastWinnerEvent event)
       {
-        if(blockNumber - 1 == event.getLastBlockNumber())
+        if(Reader.blockNumber.get() - 1 == event.getLastBlockNumber())
         {
           LOG.info("      winner block '" + event.getLastBlockNumber() + "', '" + event.getWinner() + "'");
         }
@@ -165,15 +160,6 @@ public class JMinerCommandLine
         {
           LOG.error("Error: NetworkLastWinnerEvent for block: " + event.getLastBlockNumber() + " is outdated!");
         }
-      }
-    });
-
-    context.addApplicationListener(new ApplicationListener<NetworkStateChangeEvent>()
-    {
-      @Override
-      public void onApplicationEvent(NetworkStateChangeEvent event)
-      {
-        blockNumber = event.getBlockNumber();
       }
     });
 
@@ -325,7 +311,7 @@ public class JMinerCommandLine
       @Override
       public void onApplicationEvent(ReaderDriveFinishEvent event)
       {
-        if(blockNumber == event.getBlockNumber())
+        if(Reader.blockNumber.get() == event.getBlockNumber())
         {
           // calculate capacity
           long doneBytes = event.getSize();

@@ -134,67 +134,62 @@ public class Round
   @EventListener
   public void handleMessage(NetworkStateChangeEvent event)
   {
-    // ensure other handlers have executed first
-    timer.schedule(new TimerTask()
+    synchronized(reader)
     {
-      @Override
-      public void run()
+      boolean blockHeightIncreased = blockNumber < event.getBlockNumber();
+      boolean generationSignatureChanged = generationSignature != null && !Arrays.equals(event.getGenerationSignature(), generationSignature);
+      boolean restart = false;
+
+      boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
+      if(alreadyMined && CoreProperties.isUpdateMiningInfo())
       {
-        boolean blockHeightIncreased = blockNumber < event.getBlockNumber();
-        boolean generationSignatureChanged = generationSignature != null && !Arrays.equals(event.getGenerationSignature(), generationSignature);
-        boolean restart = false;
-
-        boolean alreadyMined = finishedLookup.contains(Convert.toHexString(event.getGenerationSignature()));
-        if(alreadyMined && CoreProperties.isUpdateMiningInfo())
-        {
-          publisher.publishEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
-        }
-
-        if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
-        {
-          restart = true;
-          // generationSignature for block updated
-          if(finishedBlockNumber == blockNumber)
-          {
-            finishedBlockNumber--;
-          }
-          // ui event
-          publisher.publishEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
-        }
-
-        long previousBlockNumber = event.getBlockNumber();
-        if(blockHeightIncreased)
-        {
-          previousBlockNumber = blockNumber;
-          Round.this.blockNumber = event.getBlockNumber();
-        }
-
-        if(blockHeightIncreased || (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
-        {
-          Round.this.baseTarget = event.getBaseTarget();
-          Round.this.targetDeadline = event.getTargetDeadline();
-
-          long lastBestCommittedDeadline = bestCommittedDeadline;
-
-          plots = reader.getPlots();
-          int networkQuality = getNetworkQuality();
-          initNewRound(plots);
-
-          // reconfigure checker
-          generationSignature = event.getGenerationSignature();
-          checker.reconfigure(blockNumber, generationSignature);
-
-          // start reader
-          int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
-          reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline, networkQuality);
-
-          // ui event
-          publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
-
-          network.checkLastWinner(blockNumber);
-        }
+        publisher.publishEvent(new RoundGenSigAlreadyMinedEvent(event.getBlockNumber(), event.getGenerationSignature()));
       }
-    }, 1);
+
+      if(!blockHeightIncreased && (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
+      {
+        restart = true;
+        // generationSignature for block updated
+        if(finishedBlockNumber == blockNumber)
+        {
+          finishedBlockNumber--;
+        }
+        // ui event
+        publisher.publishEvent(new RoundGenSigUpdatedEvent(blockNumber, generationSignature));
+      }
+
+      long previousBlockNumber = event.getBlockNumber();
+      if(blockHeightIncreased)
+      {
+        previousBlockNumber = blockNumber;
+        Round.this.blockNumber = event.getBlockNumber();
+      }
+
+      if(blockHeightIncreased || (!alreadyMined && CoreProperties.isUpdateMiningInfo() && generationSignatureChanged))
+      {
+        Round.this.baseTarget = event.getBaseTarget();
+        Round.this.targetDeadline = event.getTargetDeadline();
+
+        long lastBestCommittedDeadline = bestCommittedDeadline;
+
+        plots = reader.getPlots();
+        int networkQuality = getNetworkQuality();
+        initNewRound(plots);
+
+        // reconfigure checker
+        generationSignature = event.getGenerationSignature();
+        checker.reconfigure(blockNumber, generationSignature);
+
+        // start reader
+        int scoopNumber = calcScoopNumber(event.getBlockNumber(), event.getGenerationSignature());
+        reader.read(previousBlockNumber, blockNumber, generationSignature, scoopNumber, lastBestCommittedDeadline, networkQuality);
+
+        // ui event
+        publisher.publishEvent(new RoundStartedEvent(restart, blockNumber, scoopNumber, plots.getSize(), targetDeadline, baseTarget, generationSignature));
+
+        network.checkLastWinner(blockNumber);
+      }
+    }
   }
 
   @EventListener
@@ -266,16 +261,20 @@ public class Round
   {
     if(isCurrentRound(event.getBlockNumber(), event.getGenerationSignature()))
     {
-      lowestCommitted = event.getResult();
-
-      // if queuedLowest exist and is higher than lowestCommitted, remove queuedLowest
-      if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
+      // if result if lower than lowestCommitted, update lowestCommitted
+      if(event.getResult() != null && event.getResult().compareTo(lowestCommitted) < 0)
       {
-        BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
-        LOG.debug("dl '" + dl + "' removed from queue");
+        lowestCommitted = event.getResult();
 
-        runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
-        queuedEvent = null;
+        // if queuedLowest exist and is higher than lowestCommitted, remove queuedLowest
+        if(queuedEvent != null && lowestCommitted.compareTo(queuedEvent.getResult()) < 0)
+        {
+          BigInteger dl = queuedEvent.getResult().divide(BigInteger.valueOf(baseTarget));
+          LOG.debug("dl '" + dl + "' removed from queue");
+
+          runningChunkPartStartNonces.remove(queuedEvent.getChunkPartStartNonce());
+          queuedEvent = null;
+        }
       }
 
       runningChunkPartStartNonces.remove(event.getChunkPartStartNonce());

@@ -85,7 +85,7 @@ public class NetworkRequestAccountBlocksTask
       long connectionTimeout = CoreProperties.getConnectionTimeout() * 3;
       InputStreamResponseListener listener = new InputStreamResponseListener();
 
-      Request request = httpClient.newRequest(server+ "/burst");
+      Request request = httpClient.newRequest(server + "/burst");
       request.param("requestType", "getAccountBlocks");
       request.param("account", accountId);
       request.timeout(connectionTimeout, TimeUnit.MILLISECONDS);

@@ -22,6 +22,7 @@
 
 package burstcoin.jminer.core.network.task;
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkLastWinnerEvent;
 import burstcoin.jminer.core.network.model.Block;
 import burstcoin.jminer.core.network.model.BlockchainStatus;
@@ -51,9 +52,6 @@ public class NetworkRequestLastWinnerTask
   // data
   private long blockNumber; // updated on new round
   private String server;
-  private long connectionTimeout;
-  private int winnerRetriesOnAsync;
-  private long winnerRetryIntervalInMs;
 
   @Autowired
   public NetworkRequestLastWinnerTask(HttpClient httpClient, ObjectMapper objectMapper, ApplicationEventPublisher publisher)
@@ -63,14 +61,10 @@ public class NetworkRequestLastWinnerTask
     this.publisher = publisher;
   }
 
-  public void init(String server, long blockNumber, long connectionTimeout, int winnerRetriesOnAsync, long winnerRetryIntervalInMs)
+  public void init(String server, long blockNumber)
   {
     this.server = server;
     this.blockNumber = blockNumber;
-    this.connectionTimeout = connectionTimeout;
-
-    this.winnerRetriesOnAsync = winnerRetriesOnAsync;
-    this.winnerRetryIntervalInMs = winnerRetryIntervalInMs;
   }
 
   @Override
@@ -98,22 +92,22 @@ public class NetworkRequestLastWinnerTask
       lastBlock = getBlock(blockChainStatus.getLastBlock());
       if(lastBlock != null)
       {
-        while(blockNumber - 1 /*from pool*/ != lastBlock.getHeight()  /* from walletServer*/ && retries < winnerRetriesOnAsync)
+        while(blockNumber - 1 /*from pool*/ != lastBlock.getHeight()  /* from walletServer*/ && retries < CoreProperties.getWinnerRetriesOnAsync())
         {
           retries++;
 
-          if(retries == winnerRetriesOnAsync)
+          if(retries == CoreProperties.getWinnerRetriesOnAsync())
           {
-            LOG.debug("lastBlock from walletServer outdated, last retry in " + winnerRetryIntervalInMs + "ms");
+            LOG.debug("lastBlock from walletServer outdated, last retry in " + CoreProperties.getWinnerRetryIntervalInMs() + "ms");
           }
           else
           {
-            LOG.debug("lastBlock from walletServer outdated, retry-" + retries + " in " + winnerRetryIntervalInMs + "ms");
+            LOG.debug("lastBlock from walletServer outdated, retry-" + retries + " in " + CoreProperties.getWinnerRetryIntervalInMs() + "ms");
           }
 
           try
           {
-            Thread.sleep(winnerRetryIntervalInMs);
+            Thread.sleep(CoreProperties.getWinnerRetryIntervalInMs());
           }
           catch(InterruptedException e)
           {
@@ -125,7 +119,7 @@ public class NetworkRequestLastWinnerTask
       }
     }
 
-    return retries > 0 && winnerRetriesOnAsync == retries ? null : lastBlock;
+    return retries > 0 && CoreProperties.getWinnerRetriesOnAsync() == retries ? null : lastBlock;
   }
 
   private BlockchainStatus getBlockChainStatus()
@@ -134,7 +128,7 @@ public class NetworkRequestLastWinnerTask
     try
     {
       ContentResponse response = httpClient.newRequest(server + "/burst?requestType=getBlockchainStatus")
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       blockchainStatus = objectMapper.readValue(response.getContentAsString(), BlockchainStatus.class);
@@ -153,7 +147,7 @@ public class NetworkRequestLastWinnerTask
     try
     {
       ContentResponse response = httpClient.newRequest(server + "/burst?requestType=getBlock&block=" + blockId)
-        .timeout(connectionTimeout, TimeUnit.MILLISECONDS)
+        .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
       String contentAsString = response.getContentAsString();

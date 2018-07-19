@@ -22,6 +22,7 @@
 
 package burstcoin.jminer.core.reader.data;
 
+import burstcoin.jminer.core.CoreProperties;
 import nxt.util.Convert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class PlotFile
   {
     this.filePath = filePath;
     this.chunkPartNonces = chunkPartNonces;
-    this.filename = filePath.getFileName().toString();
+    this.filename = getFilename(filePath);
     String[] parts = filename.split("_");
     this.address = Convert.parseUnsignedLong(parts[0]);
     this.startnonce = new BigInteger(parts[1]);
@@ -107,6 +108,23 @@ public class PlotFile
         }
       }
     }
+  }
+
+  private String getFilename(Path filePath)
+  {
+    String fn = filePath.getFileName().toString();
+    // remove file-extension like e.g. '.plotting'
+    if(fn.contains("."))
+    {
+      fn = fn.substring(0, fn.indexOf("."));
+
+      if(!CoreProperties.isScanPathsEveryRound())
+      {
+        LOG.info("extension like '.plotting' was found, consider setting 'scanPathsEveryRound=true' "
+                 + "to ensure file gets detected after filename changed. (e.g. finished plotting)");
+      }
+    }
+    return fn;
   }
 
   public long getSize()
