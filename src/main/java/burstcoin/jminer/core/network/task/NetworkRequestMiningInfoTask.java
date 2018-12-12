@@ -112,7 +112,7 @@ public class NetworkRequestMiningInfoTask
         byte[] newGenerationSignature = Convert.parseHexString(result.getGenerationSignature());
 
         // higher block 'or' same block with other generationSignature
-        if(newBlockNumber > blockNumber || (!Arrays.equals(newGenerationSignature, generationSignature) && blockNumber == newBlockNumber))
+        if(!Arrays.equals(newGenerationSignature, generationSignature))
         {
           long baseTarget = Convert.parseUnsignedLong(result.getBaseTarget());
           long targetDeadline = getTargetDeadline(result.getTargetDeadline(), baseTarget);
