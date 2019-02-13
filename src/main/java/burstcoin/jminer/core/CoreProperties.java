@@ -41,7 +41,7 @@ public class CoreProperties
 
   // default values
   private static final int DEFAULT_CHUNK_PART_NONCES = 960000;
-  private static final boolean DEFAULT_USE_OPEN_CL = false;
+  private static final boolean DEFAULT_USE_OPEN_CL = true;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
