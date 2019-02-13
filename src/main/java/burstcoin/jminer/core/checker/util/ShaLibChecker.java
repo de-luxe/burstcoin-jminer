@@ -9,7 +9,7 @@ public class ShaLibChecker implements LowestNonceFinder {
     private final ShabalLibrary shabalLibrary;
 
     public ShaLibChecker() {
-        shabalLibrary = Native.load("shabal_lib", ShabalLibrary.class);
+        shabalLibrary = Native.load("libshabal", ShabalLibrary.class);
         shabalLibrary.shabal_init();
     }
 

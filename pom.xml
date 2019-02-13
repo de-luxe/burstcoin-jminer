@@ -148,7 +148,9 @@
             <configuration>
               <target>
                 <copy file="${project.basedir}/target/${project.build.finalName}.jar" tofile="${project.basedir}/dist/tmp/${project.build.finalName}.jar"/>
-                <copy file="${project.basedir}/lib/shabal_lib.dll" tofile="${project.basedir}/dist/tmp/shabal_lib.dll"/>
+                <copy file="${project.basedir}/libShabal/libshabal.dll" tofile="${project.basedir}/dist/tmp/libshabal.dll"/>
+                <copy file="${project.basedir}/libShabal/libshabal.dylib" tofile="${project.basedir}/dist/tmp/libshabal.dylib"/>
+                <copy file="${project.basedir}/libShabal/libshabal.so" tofile="${project.basedir}/dist/tmp/libshabal.so"/>
                 <copy file="${project.basedir}/jminer.default.properties" tofile="${project.basedir}/dist/tmp/jminer.properties"/>
                 <copy file="${project.basedir}/LICENSE.md" tofile="${project.basedir}/dist/tmp/LICENSE.txt"/>
                 <copy file="${project.basedir}/README.md" tofile="${project.basedir}/dist/tmp/README.txt"/>
