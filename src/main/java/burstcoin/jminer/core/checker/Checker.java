@@ -23,8 +23,11 @@
 package burstcoin.jminer.core.checker;
 
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
+import burstcoin.jminer.core.checker.util.LowestNonceFinder;
 import burstcoin.jminer.core.checker.util.OCLChecker;
+import burstcoin.jminer.core.checker.util.ShaLibChecker;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
+import fr.cryptohash.Shabal256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +35,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import pocminer.generate.MiningPlot;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -46,17 +51,17 @@ public class Checker
   private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
   private final ApplicationEventPublisher publisher;
-  private final OCLChecker oclChecker;
+  private final LowestNonceFinder lowestNonceFinder;
 
   // data
   private volatile AtomicLong blockNumber;
   private volatile byte[] generationSignature;
 
   @Autowired
-  public Checker(ApplicationEventPublisher publisher, OCLChecker oclChecker)
+  public Checker(ApplicationEventPublisher publisher, LowestNonceFinder lowestNonceFinder)
   {
     this.publisher = publisher;
-    this.oclChecker = oclChecker;
+    this.lowestNonceFinder = lowestNonceFinder;
 
     blockNumber = new AtomicLong();
   }
@@ -73,9 +78,9 @@ public class Checker
     if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       int lowestNonce;
-      synchronized(oclChecker)
+      synchronized(lowestNonceFinder)
       {
-        lowestNonce = oclChecker.findLowest(generationSignature, event.getScoops());
+        lowestNonce = lowestNonceFinder.findLowest(event.getGenerationSignature(), event.getScoops());
       }
       if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
       {
