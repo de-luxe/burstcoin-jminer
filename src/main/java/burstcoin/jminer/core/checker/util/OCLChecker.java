@@ -54,10 +54,7 @@ import static org.jocl.CL.*;
 /**
  * Org. OCLChecker code and the used openCL kernels are provided by 'burst dev'. Please donate: BURST-QHCJ-9HB5-PTGC-5Q8J9
  */
-@Component
-@Scope("singleton")
-public class OCLChecker
-{
+public class OCLChecker implements LowestNonceFinder {
   private static final Logger LOG = LoggerFactory.getLogger(OCLChecker.class);
 
   private static final int SIZE_DIVISOR = CoreProperties.isByteUnitDecimal() ? 1000 : 1024;
@@ -195,6 +192,7 @@ public class OCLChecker
     return bytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR + "" + G_UNIT;
   }
 
+  @Override
   public int findLowest(byte[] gensig, byte[] data)
   {
     cl_mem dataMem, deadlineMem;

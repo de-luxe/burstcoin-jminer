@@ -22,9 +22,14 @@
 
 package burstcoin.jminer.core;
 
+import burstcoin.jminer.core.checker.util.LowestNonceFinder;
+import burstcoin.jminer.core.checker.util.OCLChecker;
+import burstcoin.jminer.core.checker.util.ShaLibChecker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +43,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan(basePackages = {"burstcoin.jminer.core"})
 public class CoreConfig
 {
+  private static final Logger logger = LoggerFactory.getLogger(CoreConfig.class);
+
   @Bean(name = "readerPool")
   public ThreadPoolTaskExecutor readerPool()
   {
@@ -76,5 +83,19 @@ public class CoreConfig
   public ObjectMapper objectMapper()
   {
     return new ObjectMapper();
+  }
+
+  @Bean
+  public LowestNonceFinder getLowestNonceFinder() {
+    if (CoreProperties.getUseOpenCl()) {
+      return new OCLChecker();
+    } else {
+      try {
+        return new ShaLibChecker();
+      } catch (Exception | LinkageError e) {
+        logger.warn("Error initialising Shabal Library, falling back to OpenCL", e);
+        return new OCLChecker();
+      }
+    }
   }
 }

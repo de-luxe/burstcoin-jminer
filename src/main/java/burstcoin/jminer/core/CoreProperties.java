@@ -41,6 +41,7 @@ public class CoreProperties
 
   // default values
   private static final int DEFAULT_CHUNK_PART_NONCES = 960000;
+  private static final boolean DEFAULT_USE_OPEN_CL = true;
   private static final int DEFAULT_PLATFORM_ID = 0;
   private static final int DEFAULT_DEVICE_ID = 0;
   private static final boolean DEFAULT_POOL_MINING = true;
@@ -88,6 +89,7 @@ public class CoreProperties
   private static Long targetDeadline;
   private static List<String> plotPaths;
   private static Long chunkPartNonces;
+  private static Boolean useOpenCl;
   private static Integer deviceId;
   private static Integer platformId;
   private static String walletServer;
@@ -341,6 +343,20 @@ public class CoreProperties
       }
     }
     return passPhrase; // we deliver "noPassPhrase", should find no plots!
+  }
+
+  /**
+   * Gets use open cl.
+   *
+   * @return use open cl
+   */
+  public static boolean getUseOpenCl()
+  {
+    if(useOpenCl == null)
+    {
+      useOpenCl = asBoolean("useOpenCl", DEFAULT_USE_OPEN_CL);
+    }
+    return useOpenCl;
   }
 
   /**
