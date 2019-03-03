@@ -25,7 +25,7 @@ package burstcoin.jminer.core.network.task;
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkPoolInfoEvent;
 import burstcoin.jminer.core.network.model.Account;
-import burstcoin.jminer.core.network.model.AccountsWithRewardRecipient;
+import burstcoin.jminer.core.network.model.Accounts;
 import burstcoin.jminer.core.network.model.RewardRecipient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
@@ -105,7 +105,7 @@ public class NetworkRequestPoolInfoTask
 
   private List<String> getAccountIdsOfRewardRecipient(String rewardRecipientAccountId)
   {
-    AccountsWithRewardRecipient accountsWithRewardRecipient = null;
+    Accounts accounts = null;
     try
     {
       String requestUri = CoreProperties.getWalletServer() + "/burst?requestType=getAccountsWithRewardRecipient&account=" + rewardRecipientAccountId;
@@ -117,7 +117,7 @@ public class NetworkRequestPoolInfoTask
 
       if(!contentAsString.contains("error"))
       {
-        accountsWithRewardRecipient = objectMapper.readValue(contentAsString, AccountsWithRewardRecipient.class);
+        accounts = objectMapper.readValue(contentAsString, Accounts.class);
       }
       else
       {
@@ -128,7 +128,7 @@ public class NetworkRequestPoolInfoTask
     {
       LOG.warn("Error: Failed to 'getAccountIdsOfRewardRecipient' for pool info: " + e.getMessage());
     }
-    return accountsWithRewardRecipient != null ? accountsWithRewardRecipient.getAccounts() : null;
+    return accounts != null ? accounts.getAccounts() : null;
   }
 
   private Account getAccount(String accountId)

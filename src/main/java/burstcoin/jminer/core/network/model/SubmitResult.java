@@ -22,14 +22,51 @@
 
 package burstcoin.jminer.core.network.model;
 
-public class RewardRecipient
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true) // prevent future incompatible values
+public class SubmitResult
   extends Base
 {
-  // accountId of reward recipient
-  private String rewardRecipient;
+  private String result;
+  private long deadline;
 
-  public String getRewardRecipient()
+  // pool response
+  private long block;
+
+  // one or the other is used
+  private String deadlineString;
+  private String deadlineText;
+
+  private long targetDeadline;
+
+  public String getResult()
   {
-    return rewardRecipient;
+    return result;
+  }
+
+  public long getDeadline()
+  {
+    return deadline;
+  }
+
+  public long getBlock()
+  {
+    return block;
+  }
+
+  public String getDeadlineString()
+  {
+    return deadlineString;
+  }
+
+  public String getDeadlineText()
+  {
+    return deadlineText;
+  }
+
+  public long getTargetDeadline()
+  {
+    return targetDeadline;
   }
 }

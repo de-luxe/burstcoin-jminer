@@ -25,7 +25,7 @@ package burstcoin.jminer.core.network.task;
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkQualityChangeEvent;
 import burstcoin.jminer.core.network.event.NetworkStateChangeEvent;
-import burstcoin.jminer.core.network.model.MiningInfoResponse;
+import burstcoin.jminer.core.network.model.MiningInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import nxt.util.Convert;
 import org.eclipse.jetty.client.HttpClient;
@@ -88,7 +88,7 @@ public class NetworkRequestMiningInfoTask
   {
     LOG.trace("start check network state");
 
-    MiningInfoResponse result = null;
+    MiningInfo result = null;
     try
     {
       ContentResponse response = httpClient.newRequest(server + "/burst?requestType=getMiningInfo")
@@ -102,7 +102,7 @@ public class NetworkRequestMiningInfoTask
       }
       else
       {
-        result = objectMapper.readValue(response.getContentAsString(), MiningInfoResponse.class);
+        result = objectMapper.readValue(response.getContentAsString(), MiningInfo.class);
       }
 
       if(result != null)

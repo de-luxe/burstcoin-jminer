@@ -195,6 +195,9 @@ public class PlotFile
 
     long targetNoncesPerPart = chunkPartNonces != null ? chunkPartNonces : 960000;
 
+    // for CPU it should be much lower, ensures less idle.
+    targetNoncesPerPart = !CoreProperties.isUseOpenCl() ? targetNoncesPerPart / 10 : targetNoncesPerPart;
+
     // calculate numberOfParts based on target
     int suggestedNumberOfParts = (int) (staggeramt / targetNoncesPerPart) + 1;
 

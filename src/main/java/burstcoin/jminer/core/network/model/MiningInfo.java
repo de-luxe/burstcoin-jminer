@@ -22,14 +22,33 @@
 
 package burstcoin.jminer.core.network.model;
 
-public class RewardRecipient
+public class MiningInfo
   extends Base
 {
-  // accountId of reward recipient
-  private String rewardRecipient;
+  private String generationSignature;
+  private String baseTarget;
+  private String height;
 
-  public String getRewardRecipient()
+  // only if pool
+  private long targetDeadline;
+
+  public String getGenerationSignature()
   {
-    return rewardRecipient;
+    return generationSignature;
+  }
+
+  public String getBaseTarget()
+  {
+    return baseTarget;
+  }
+
+  public String getHeight()
+  {
+    return height;
+  }
+
+  public long getTargetDeadline()
+  {
+    return targetDeadline;
   }
 }

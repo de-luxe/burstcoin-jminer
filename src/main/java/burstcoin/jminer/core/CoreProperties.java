@@ -53,7 +53,7 @@ public class CoreProperties
   private static final int DEFAULT_REFRESH_INTERVAL = 2000;
   private static final int DEFAULT_CONNECTION_TIMEOUT = 18000;
   private static final int DEFAULT_WINNER_RETRIES_ON_ASYNC = 4;
-  private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 500;
+  private static final int DEFAULT_WINNER_RETRY_INTERVAL_IN_MS = 4000;
   private static final boolean DEFAULT_SCAN_PATHS_EVERY_ROUND = true;
   private static final boolean DEFAULT_BYTE_UNIT_DECIMAL = true;
   private static final boolean DEFAULT_LIST_PLOT_FILES = false;
@@ -100,11 +100,9 @@ public class CoreProperties
   private static Boolean byteUnitDecimal;
   private static Boolean listPlotFiles;
   private static Boolean showDriveInfo;
-  private static Boolean recommitDeadlines;
   private static Boolean showSkippedDeadlines;
   private static Integer readerThreads;
   private static Boolean writeLogFile;
-  private static Boolean triggerServer;
   private static Boolean debug;
   private static String logFilePath;
   private static String logPatternFile;
@@ -350,7 +348,7 @@ public class CoreProperties
    *
    * @return use open cl
    */
-  public static boolean getUseOpenCl()
+  public static boolean isUseOpenCl()
   {
     if(useOpenCl == null)
     {

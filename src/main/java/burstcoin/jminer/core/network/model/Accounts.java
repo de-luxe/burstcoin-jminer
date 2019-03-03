@@ -23,23 +23,15 @@
 package burstcoin.jminer.core.network.model;
 
 
-import java.io.Serializable;
 import java.util.List;
 
-public class AccountsWithRewardRecipient
-  implements Serializable
+public class Accounts
+  extends Base
 {
   private List<String> accounts;
-
-  private long requestProcessingTime;
 
   public List<String> getAccounts()
   {
     return accounts;
-  }
-
-  public long getRequestProcessingTime()
-  {
-    return requestProcessingTime;
   }
 }

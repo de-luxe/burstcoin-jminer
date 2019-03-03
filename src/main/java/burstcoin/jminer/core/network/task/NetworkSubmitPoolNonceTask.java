@@ -27,7 +27,7 @@ import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
 import burstcoin.jminer.core.network.model.ResponseError;
-import burstcoin.jminer.core.network.model.SubmitResultResponse;
+import burstcoin.jminer.core.network.model.SubmitResult;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
@@ -57,7 +57,7 @@ public class NetworkSubmitPoolNonceTask
   implements Runnable
 {
   private static final Logger LOG = LoggerFactory.getLogger(NetworkSubmitPoolNonceTask.class);
-  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.5.3";
+  private static final String HEADER_MINER_NAME = "burstcoin-jminer-0.6.0";
 
   private final ApplicationEventPublisher publisher;
   private final HttpClient httpClient;
@@ -133,7 +133,7 @@ public class NetworkSubmitPoolNonceTask
       }
       else
       {
-        SubmitResultResponse result = objectMapper.readValue(response.getContentAsString(), SubmitResultResponse.class);
+        SubmitResult result = objectMapper.readValue(response.getContentAsString(), SubmitResult.class);
 
         if(result.getResult().equals("success"))
         {

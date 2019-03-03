@@ -24,17 +24,13 @@ package burstcoin.jminer.core.network.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.io.Serializable;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Account
-  implements Serializable
+  extends Base
 {
   private String accountRS;
   private String balanceNQT;
   private String forgedBalanceNQT;
-
-  private long requestProcessingTime;
 
   public String getAccountRS()
   {
@@ -49,10 +45,5 @@ public class Account
   public String getForgedBalanceNQT()
   {
     return forgedBalanceNQT;
-  }
-
-  public long getRequestProcessingTime()
-  {
-    return requestProcessingTime;
   }
 }

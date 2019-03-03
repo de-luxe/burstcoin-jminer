@@ -3,7 +3,7 @@ GPU assisted Proof of Capacity (PoC) Miner for Burstcoin (BURST)
 
 1. edit 'jminer.properties' with text editor to configure miner
 2. ensure java8 (64bit) and openCL driver/sdk is installed (java9 will not work)
-3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.5.x-RELEASE.jar' or run the *.bat/*.sh file
+3. execute 'java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.6.x-RELEASE.jar' or run the *.bat/*.sh file
 
 > '-d64' to ensure 64bit java (remove for 32bit)
 > '-XX:+UseG1GC' to free memory after round finished.
@@ -120,7 +120,7 @@ number of retries to get winner from walletServer
 
     winnerRetriesOnAsync=10
 
-### winnerRetryIntervalInMs (default:500)
+### winnerRetryIntervalInMs (default:4000)
 time to wait until next retry to get winner from walletServer
 
     winnerRetryIntervalInMs=250
@@ -149,6 +149,13 @@ Instructions can be found e.g. here (thanks cryo):
 https://github.com/bhamon/gpuPlotGenerator/blob/master/README.md
 You could also use that instruction to find your platformId and deviceId if needed.
 Since version 0.4.4 all available platforms and devices are listed on startup.
+
+### useOpenCl (default:true)
+Since version 0.6.0 openCL is optional. Thanks harry1453! 
+Disable (useOpenCl=false) to only use CPU for mining.
+Following settings are only relevant if openCL is used.
+
+    default=false
 
 ### platformId (default:0) 
 id of openCL platform on your system. one platform may have multiple

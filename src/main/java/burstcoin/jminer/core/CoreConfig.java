@@ -22,9 +22,6 @@
 
 package burstcoin.jminer.core;
 
-import burstcoin.jminer.core.checker.util.LowestNonceFinder;
-import burstcoin.jminer.core.checker.util.OCLChecker;
-import burstcoin.jminer.core.checker.util.ShaLibChecker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
@@ -43,13 +40,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @ComponentScan(basePackages = {"burstcoin.jminer.core"})
 public class CoreConfig
 {
-  private static final Logger logger = LoggerFactory.getLogger(CoreConfig.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CoreConfig.class);
 
   @Bean(name = "readerPool")
   public ThreadPoolTaskExecutor readerPool()
   {
     ThreadPoolTaskExecutor pool = new ThreadPoolTaskExecutor();
-    pool.setThreadPriority(Thread.NORM_PRIORITY);
+    pool.setThreadPriority(Thread.MIN_PRIORITY);
     // false-> triggers interrupt exception at shutdown
     pool.setWaitForTasksToCompleteOnShutdown(true);
     pool.initialize();
@@ -60,14 +57,17 @@ public class CoreConfig
   public SimpleAsyncTaskExecutor networkPool()
   {
     SimpleAsyncTaskExecutor pool = new SimpleAsyncTaskExecutor();
-    pool.setThreadPriority(Thread.NORM_PRIORITY + 1);
+    pool.setThreadPriority(Thread.NORM_PRIORITY);
     return pool;
   }
 
   @Bean
   public HttpClient httpClient()
   {
-    HttpClient client = new HttpClient(new SslContextFactory(true));
+    SslContextFactory sslContextFactory = new SslContextFactory(null);
+    sslContextFactory.setEndpointIdentificationAlgorithm("none");
+
+    HttpClient client = new HttpClient(sslContextFactory);
     try
     {
       client.start();
@@ -83,19 +83,5 @@ public class CoreConfig
   public ObjectMapper objectMapper()
   {
     return new ObjectMapper();
-  }
-
-  @Bean
-  public LowestNonceFinder getLowestNonceFinder() {
-    if (CoreProperties.getUseOpenCl()) {
-      return new OCLChecker();
-    } else {
-      try {
-        return new ShaLibChecker();
-      } catch (Exception | LinkageError e) {
-        logger.warn("Error initialising Shabal Library, falling back to OpenCL", e);
-        return new OCLChecker();
-      }
-    }
   }
 }

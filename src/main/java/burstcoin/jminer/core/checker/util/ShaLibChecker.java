@@ -4,12 +4,12 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 import pocminer.generate.MiningPlot;
 
-public class ShaLibChecker implements LowestNonceFinder {
+public class ShaLibChecker {
 
     private final ShabalLibrary shabalLibrary;
 
     public ShaLibChecker() {
-        shabalLibrary = Native.load("libshabal", ShabalLibrary.class);
+        shabalLibrary = Native.loadLibrary("libshabal", ShabalLibrary.class);
         shabalLibrary.shabal_init();
     }
 
@@ -18,7 +18,6 @@ public class ShaLibChecker implements LowestNonceFinder {
         void shabal_init();
     }
 
-    @Override
     public int findLowest(byte[] gensig, byte[] data) {
         return (int) shabalLibrary.shabal_findBestDeadline(data, data.length / MiningPlot.SCOOP_SIZE, gensig);
     }

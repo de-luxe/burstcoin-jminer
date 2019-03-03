@@ -22,12 +22,10 @@
 
 package burstcoin.jminer.core.checker;
 
+import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.checker.event.CheckerResultEvent;
-import burstcoin.jminer.core.checker.util.LowestNonceFinder;
 import burstcoin.jminer.core.checker.util.OCLChecker;
-import burstcoin.jminer.core.checker.util.ShaLibChecker;
 import burstcoin.jminer.core.reader.event.ReaderLoadedPartEvent;
-import fr.cryptohash.Shabal256;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +33,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import pocminer.generate.MiningPlot;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -51,17 +47,17 @@ public class Checker
   private static final Logger LOG = LoggerFactory.getLogger(Checker.class);
 
   private final ApplicationEventPublisher publisher;
-  private final LowestNonceFinder lowestNonceFinder;
+  private final OCLChecker oclChecker;
 
   // data
   private volatile AtomicLong blockNumber;
   private volatile byte[] generationSignature;
 
   @Autowired
-  public Checker(ApplicationEventPublisher publisher, LowestNonceFinder lowestNonceFinder)
+  public Checker(ApplicationEventPublisher publisher, OCLChecker oclChecker)
   {
     this.publisher = publisher;
-    this.lowestNonceFinder = lowestNonceFinder;
+    this.oclChecker = oclChecker;
 
     blockNumber = new AtomicLong();
   }
@@ -75,12 +71,12 @@ public class Checker
   @EventListener
   public void handleMessage(ReaderLoadedPartEvent event)
   {
-    if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
+    if(CoreProperties.isUseOpenCl() && blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
     {
       int lowestNonce;
-      synchronized(lowestNonceFinder)
+      synchronized(oclChecker)
       {
-        lowestNonce = lowestNonceFinder.findLowest(event.getGenerationSignature(), event.getScoops());
+        lowestNonce = oclChecker.findLowest(event.getGenerationSignature(), event.getScoops());
       }
       if(blockNumber.get() == event.getBlockNumber() && Arrays.equals(generationSignature, event.getGenerationSignature()))
       {

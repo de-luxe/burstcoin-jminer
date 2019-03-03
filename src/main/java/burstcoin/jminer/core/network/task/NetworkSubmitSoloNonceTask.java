@@ -25,7 +25,7 @@ package burstcoin.jminer.core.network.task;
 import burstcoin.jminer.core.CoreProperties;
 import burstcoin.jminer.core.network.event.NetworkResultConfirmedEvent;
 import burstcoin.jminer.core.network.event.NetworkResultErrorEvent;
-import burstcoin.jminer.core.network.model.SubmitResultResponse;
+import burstcoin.jminer.core.network.model.SubmitResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.jetty.client.HttpClient;
 import org.eclipse.jetty.client.api.ContentResponse;
@@ -91,7 +91,7 @@ public class NetworkSubmitSoloNonceTask
         .timeout(CoreProperties.getConnectionTimeout(), TimeUnit.MILLISECONDS)
         .send();
 
-      SubmitResultResponse result = objectMapper.readValue(response.getContentAsString(), SubmitResultResponse.class);
+      SubmitResult result = objectMapper.readValue(response.getContentAsString(), SubmitResult.class);
 
       if(result.getResult().equals("success"))
       {

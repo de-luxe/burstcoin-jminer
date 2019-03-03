@@ -24,6 +24,8 @@ package burstcoin.jminer.core.reader.task;
 
 
 import burstcoin.jminer.core.CoreProperties;
+import burstcoin.jminer.core.checker.event.CheckerResultEvent;
+import burstcoin.jminer.core.checker.util.ShaLibChecker;
 import burstcoin.jminer.core.reader.Reader;
 import burstcoin.jminer.core.reader.data.PlotDrive;
 import burstcoin.jminer.core.reader.data.PlotFile;
@@ -63,6 +65,7 @@ public class ReaderLoadDriveTask
   private static final Logger LOG = LoggerFactory.getLogger(ReaderLoadDriveTask.class);
 
   private final ApplicationEventPublisher publisher;
+  private ShaLibChecker shaLibChecker;
 
   private byte[] generationSignature;
   private PlotDrive plotDrive;
@@ -84,6 +87,11 @@ public class ReaderLoadDriveTask
     this.plotDrive = plotDrive;
 
     showDriveInfo = CoreProperties.isShowDriveInfo();
+
+    if(!CoreProperties.isUseOpenCl())
+    {
+      this.shaLibChecker = new ShaLibChecker();
+    }
   }
 
   @Override
@@ -149,6 +157,13 @@ public class ReaderLoadDriveTask
             final byte[] scoops = partBuffer.array();
             partBuffer.clear();
             publisher.publishEvent(new ReaderLoadedPartEvent(blockNumber, generationSignature, scoops, chunkPartStartNonce, plotFile.getFilePath().toString()));
+
+            if(!CoreProperties.isUseOpenCl())
+            {
+              int lowestNonce = shaLibChecker.findLowest(generationSignature, scoops);
+              publisher.publishEvent(new CheckerResultEvent(blockNumber, generationSignature, chunkPartStartNonce, lowestNonce,
+                                                            plotFile.getFilePath().toString(), scoops));
+            }
           }
         }
       }

@@ -33,13 +33,13 @@ import org.jocl.cl_kernel;
 import org.jocl.cl_mem;
 import org.jocl.cl_platform_id;
 import org.jocl.cl_program;
+import org.jocl.cl_queue_properties;
 import org.jocl.utils.DeviceInfos;
 import org.jocl.utils.Devices;
 import org.jocl.utils.PlatformInfos;
 import org.jocl.utils.Platforms;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -54,7 +54,8 @@ import static org.jocl.CL.*;
 /**
  * Org. OCLChecker code and the used openCL kernels are provided by 'burst dev'. Please donate: BURST-QHCJ-9HB5-PTGC-5Q8J9
  */
-public class OCLChecker implements LowestNonceFinder {
+@Component
+public class OCLChecker {
   private static final Logger LOG = LoggerFactory.getLogger(OCLChecker.class);
 
   private static final int SIZE_DIVISOR = CoreProperties.isByteUnitDecimal() ? 1000 : 1024;
@@ -72,7 +73,10 @@ public class OCLChecker implements LowestNonceFinder {
   @PostConstruct
   protected void postConstruct()
   {
-    initChecker(CoreProperties.getPlatformId(), CoreProperties.getDeviceId());
+    if(CoreProperties.isUseOpenCl())
+    {
+      initChecker(CoreProperties.getPlatformId(), CoreProperties.getDeviceId());
+    }
   }
 
   public void initChecker(int platformId, int deviceId)
@@ -107,7 +111,7 @@ public class OCLChecker implements LowestNonceFinder {
     contextProperties.addProperty(CL_CONTEXT_PLATFORM, platforms[platformId]);
 
     context = clCreateContext(contextProperties, 1, new cl_device_id[]{devices[deviceId]}, null, null, null);
-    queue = clCreateCommandQueue(context, devices[deviceId], 0, null);
+    queue = clCreateCommandQueueWithProperties(context, devices[deviceId], new cl_queue_properties(), null);
 
     String kernelSource;
     try
@@ -192,7 +196,6 @@ public class OCLChecker implements LowestNonceFinder {
     return bytes / SIZE_DIVISOR / SIZE_DIVISOR / SIZE_DIVISOR % SIZE_DIVISOR + "" + G_UNIT;
   }
 
-  @Override
   public int findLowest(byte[] gensig, byte[] data)
   {
     cl_mem dataMem, deadlineMem;

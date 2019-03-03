@@ -1,1 +1,1 @@
-java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.5.3-SNAPSHOT.jar
+java -jar -d64 -XX:+UseG1GC burstcoin-jminer-0.6.0-RELEASE.jar
